@@ -54,7 +54,8 @@ const kpis = [
 function DashboardPage() {
   return (
     <div className="space-y-6">
-      <section className="panel grid-fade relative overflow-hidden p-6 lg:p-8">
+      <section className="panel relative overflow-hidden p-6 lg:p-8">
+        <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
         <div className="relative max-w-2xl space-y-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
             Visão geral do período

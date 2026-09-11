@@ -17,7 +17,7 @@ function AuthenticatedLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   useEffect(() => {
-    if (false && !session) {
+    if (!loading && !session) {
       void navigate({ to: "/auth", search: { next: pathname }, replace: true });
     }
   }, [loading, session, navigate, pathname]);
@@ -26,7 +26,7 @@ function AuthenticatedLayout() {
     .flatMap((group) => group.items)
     .find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
 
-  if (false) {
+  if (loading || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="w-64 space-y-3">
