@@ -12,11 +12,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 
-type AuthSearch = { next?: string };
+type AuthSearch = { next?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
-    next: typeof search.next === "string" ? search.next : undefined,
+    next: typeof search["next"] === "string" ? search["next"] : undefined,
   }),
   head: () => ({
     meta: [
