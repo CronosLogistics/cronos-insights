@@ -1,24 +1,45 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Cronos Pricing Insights — Análise de Cotações" },
+      {
+        name: "description",
+        content:
+          "Plataforma corporativa de inteligência de Pricing para análise de cotações de transporte internacional.",
+      },
+      { property: "og:title", content: "Cronos Pricing Insights — Análise de Cotações" },
+      {
+        property: "og:description",
+        content:
+          "Inteligência e acompanhamento de Pricing: ofertas, rotas, clientes, coloaders e analistas.",
+      },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+    void navigate({ to: session ? "/dashboard" : "/auth", replace: true });
+  }, [loading, session, navigate]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="w-64 space-y-3">
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-3 w-40" />
+      </div>
     </div>
   );
 }
