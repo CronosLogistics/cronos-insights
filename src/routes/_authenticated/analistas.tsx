@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/analistas")({
   component: () => (
     <ModulePage
       eyebrow="Pessoas"
-      title="Ficha de inteligência do analista"
+      title="Ficha do analista"
       description="Acompanhamento do time de Pricing: cotações analisadas, tempo médio até a decisão, distribuição entre aprovações e reprovações e concentração por rota ou cliente."
       filters={["Analista", "Período", "Rota", "Cliente"]}
       kpis={["Analistas ativos", "Cotações analisadas", "Tempo médio", "Conversão"]}
