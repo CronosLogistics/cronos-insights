@@ -209,25 +209,28 @@ function DashboardPage() {
           {mensal.isPending ? (
             <Skeleton className="h-56 w-full" />
           ) : (
-            <div className="flex h-56 items-end gap-2">
+            <div className="flex h-56 items-stretch gap-2">
               {(mensal.data ?? []).map((item) => (
                 <div key={item.mes_ano} className="flex flex-1 flex-col items-center gap-1">
                   <span className="text-[10px] text-muted-foreground">
                     {Number(item.conversao_pct ?? 0).toLocaleString("pt-BR")}%
                   </span>
-                  <div
-                    className="gradient-cronos w-full rounded-t-md"
-                    style={{
-                      height: `${Math.max((Number(item.ofertas ?? 0) / maiorMes) * 100, 3)}%`,
-                    }}
-                    title={`${Number(item.ofertas ?? 0).toLocaleString("pt-BR")} ofertas`}
-                  />
+                  <div className="flex w-full flex-1 items-end">
+                    <div
+                      className="gradient-cronos w-full rounded-t-md"
+                      style={{
+                        height: `${Math.max((Number(item.ofertas ?? 0) / maiorMes) * 100, 3)}%`,
+                      }}
+                      title={`${Number(item.ofertas ?? 0).toLocaleString("pt-BR")} ofertas`}
+                    />
+                  </div>
                   <span className="text-[10px] text-muted-foreground">
                     {mesLabel(item.mes_ano)}
                   </span>
                 </div>
               ))}
             </div>
+
           )}
         </PanelBlock>
 
