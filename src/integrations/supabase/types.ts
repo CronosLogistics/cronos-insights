@@ -271,7 +271,7 @@ export type Database = {
           oferta?: string | null
           pricing?: string | null
           revisao?: number | null
-          rota?: string | null
+          rota?: never
           status?: string | null
           vendedor?: string | null
         }
@@ -284,7 +284,7 @@ export type Database = {
           oferta?: string | null
           pricing?: string | null
           revisao?: number | null
-          rota?: string | null
+          rota?: never
           status?: string | null
           vendedor?: string | null
         }
@@ -352,6 +352,8 @@ export type Database = {
           modalidade: string | null
           ofertas: number | null
           origem: string | null
+          pais_destino: string | null
+          pais_origem: string | null
           reprovadas: number | null
           rota: string | null
           teus: number | null
