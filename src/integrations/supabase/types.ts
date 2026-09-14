@@ -14,7 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      importacoes: {
+        Row: {
+          arquivo_modificado_em: string | null
+          concluido_em: string | null
+          fonte: string
+          id: number
+          iniciado_em: string
+          linhas: number | null
+          mensagem: string | null
+          situacao: string
+        }
+        Insert: {
+          arquivo_modificado_em?: string | null
+          concluido_em?: string | null
+          fonte?: string
+          id?: number
+          iniciado_em?: string
+          linhas?: number | null
+          mensagem?: string | null
+          situacao?: string
+        }
+        Update: {
+          arquivo_modificado_em?: string | null
+          concluido_em?: string | null
+          fonte?: string
+          id?: number
+          iniciado_em?: string
+          linhas?: number | null
+          mensagem?: string | null
+          situacao?: string
+        }
+        Relationships: []
+      }
+      ofertas: {
+        Row: {
+          agente: string | null
+          analise: string | null
+          ano: number | null
+          armador: string | null
+          cliente: string | null
+          complemento_incoterm: string | null
+          container: string | null
+          continente: string | null
+          data_abertura: string | null
+          data_conclusao: string | null
+          data_envio_pricing: string | null
+          data_fim_sales_support: string | null
+          data_retorno_pricing: string | null
+          descricao_motivo: string | null
+          destino: string | null
+          destino_final: string | null
+          escritorio: string | null
+          id: number
+          importado_em: string
+          incoterm: string | null
+          inside_sales: string | null
+          intermediario: string | null
+          mc_oferta_pct: number | null
+          mes: number | null
+          mes_ano: number | null
+          modalidade: string | null
+          motivo: string | null
+          oferta: string
+          origem: string | null
+          origem_carga: string | null
+          pais_destino: string | null
+          pais_origem: string | null
+          peso_aferido: number | null
+          peso_mercadoria: number | null
+          pricing: string | null
+          produto: string | null
+          revisao: number | null
+          rota: string | null
+          servicos_adicionais: string | null
+          solicitacao: string | null
+          status: string | null
+          tempo_resposta_pricing_horas: number | null
+          teus: number | null
+          usuario_abertura: string | null
+          validade_ate: string | null
+          validade_de: string | null
+          vendedor: string | null
+        }
+        Insert: {
+          agente?: string | null
+          analise?: string | null
+          ano?: number | null
+          armador?: string | null
+          cliente?: string | null
+          complemento_incoterm?: string | null
+          container?: string | null
+          continente?: string | null
+          data_abertura?: string | null
+          data_conclusao?: string | null
+          data_envio_pricing?: string | null
+          data_fim_sales_support?: string | null
+          data_retorno_pricing?: string | null
+          descricao_motivo?: string | null
+          destino?: string | null
+          destino_final?: string | null
+          escritorio?: string | null
+          id?: number
+          importado_em?: string
+          incoterm?: string | null
+          inside_sales?: string | null
+          intermediario?: string | null
+          mc_oferta_pct?: number | null
+          mes?: number | null
+          mes_ano?: number | null
+          modalidade?: string | null
+          motivo?: string | null
+          oferta: string
+          origem?: string | null
+          origem_carga?: string | null
+          pais_destino?: string | null
+          pais_origem?: string | null
+          peso_aferido?: number | null
+          peso_mercadoria?: number | null
+          pricing?: string | null
+          produto?: string | null
+          revisao?: number | null
+          rota?: string | null
+          servicos_adicionais?: string | null
+          solicitacao?: string | null
+          status?: string | null
+          tempo_resposta_pricing_horas?: number | null
+          teus?: number | null
+          usuario_abertura?: string | null
+          validade_ate?: string | null
+          validade_de?: string | null
+          vendedor?: string | null
+        }
+        Update: {
+          agente?: string | null
+          analise?: string | null
+          ano?: number | null
+          armador?: string | null
+          cliente?: string | null
+          complemento_incoterm?: string | null
+          container?: string | null
+          continente?: string | null
+          data_abertura?: string | null
+          data_conclusao?: string | null
+          data_envio_pricing?: string | null
+          data_fim_sales_support?: string | null
+          data_retorno_pricing?: string | null
+          descricao_motivo?: string | null
+          destino?: string | null
+          destino_final?: string | null
+          escritorio?: string | null
+          id?: number
+          importado_em?: string
+          incoterm?: string | null
+          inside_sales?: string | null
+          intermediario?: string | null
+          mc_oferta_pct?: number | null
+          mes?: number | null
+          mes_ano?: number | null
+          modalidade?: string | null
+          motivo?: string | null
+          oferta?: string
+          origem?: string | null
+          origem_carga?: string | null
+          pais_destino?: string | null
+          pais_origem?: string | null
+          peso_aferido?: number | null
+          peso_mercadoria?: number | null
+          pricing?: string | null
+          produto?: string | null
+          revisao?: number | null
+          rota?: string | null
+          servicos_adicionais?: string | null
+          solicitacao?: string | null
+          status?: string | null
+          tempo_resposta_pricing_horas?: number | null
+          teus?: number | null
+          usuario_abertura?: string | null
+          validade_ate?: string | null
+          validade_de?: string | null
+          vendedor?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
