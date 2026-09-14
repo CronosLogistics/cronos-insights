@@ -5,7 +5,23 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { usePerfil } from "@/hooks/useProduto";
 import { navigation } from "@/lib/navigation";
+
+/** Sem produto associado, o banco não libera nenhum registro de ofertas. */
+function SemProdutoAviso() {
+  const perfil = usePerfil();
+  if (perfil.isPending || perfil.data?.produtoCodigo) return null;
+  return (
+    <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
+      <p className="font-medium">Nenhum produto associado ao seu acesso</p>
+      <p className="text-muted-foreground">
+        Enquanto um administrador não definir seu produto em Configurações, nenhuma oferta será
+        exibida nas telas.
+      </p>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -50,7 +66,8 @@ function AuthenticatedLayout() {
           title={current?.label ?? "Cronos Pricing Insights"}
           subtitle={current?.description ?? "Análise de Cotações"}
         />
-        <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
+        <main className="flex-1 space-y-4 px-4 py-6 lg:px-8 lg:py-8">
+          <SemProdutoAviso />
           <Outlet />
         </main>
       </div>

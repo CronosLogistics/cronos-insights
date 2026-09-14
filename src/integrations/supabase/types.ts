@@ -197,6 +197,86 @@ export type Database = {
         }
         Relationships: []
       }
+      papeis_usuario: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      perfis: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string | null
+          produto_codigo: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          nome?: string | null
+          produto_codigo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
+          produto_codigo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_produto_codigo_fkey"
+            columns: ["produto_codigo"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["codigo"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          created_at: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       v_agentes: {
@@ -207,6 +287,7 @@ export type Database = {
           conversao_pct: number | null
           ofertas: number | null
           origens: number | null
+          produto: string | null
           reprovadas: number | null
         }
         Relationships: []
@@ -219,6 +300,7 @@ export type Database = {
           decididas: number | null
           em_aberto: number | null
           ofertas: number | null
+          produto: string | null
           tempo_medio_horas: number | null
         }
         Relationships: []
@@ -230,6 +312,7 @@ export type Database = {
           conversao_pct: number | null
           em_aberto: number | null
           ofertas: number | null
+          produto: string | null
           reprovadas: number | null
           rotas: number | null
           ultima_oferta: string | null
@@ -242,6 +325,7 @@ export type Database = {
           coloader: string | null
           conversao_pct: number | null
           ofertas: number | null
+          produto: string | null
           reprovadas: number | null
           rotas: number | null
           teus: number | null
@@ -301,6 +385,7 @@ export type Database = {
           em_aberto: number | null
           ofertas: number | null
           primeira_abertura: string | null
+          produto: string | null
           reprovadas: number | null
           rotas: number | null
           tempo_medio_horas: number | null
@@ -315,6 +400,7 @@ export type Database = {
           cliente_recorrente: string | null
           motivo: string | null
           participacao_pct: number | null
+          produto: string | null
           reprovacoes: number | null
           rota_recorrente: string | null
         }
@@ -329,6 +415,7 @@ export type Database = {
           mes: number | null
           mes_ano: number | null
           ofertas: number | null
+          produto: string | null
           reprovadas: number | null
         }
         Relationships: []
@@ -338,6 +425,7 @@ export type Database = {
           campo: string | null
           preenchidos: number | null
           preenchimento_pct: number | null
+          produto: string | null
           vazios: number | null
         }
         Relationships: []
@@ -354,6 +442,7 @@ export type Database = {
           origem: string | null
           pais_destino: string | null
           pais_origem: string | null
+          produto: string | null
           reprovadas: number | null
           rota: string | null
           teus: number | null
@@ -366,6 +455,7 @@ export type Database = {
           clientes: number | null
           conversao_pct: number | null
           ofertas: number | null
+          produto: string | null
           reprovadas: number | null
           rotas: number | null
           vendedor: string | null
@@ -374,10 +464,18 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      atualizar_analises: { Args: never; Returns: undefined }
+      produto_do_usuario: { Args: never; Returns: string }
+      tem_papel: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "usuario"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -504,6 +602,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "usuario"],
+    },
   },
 } as const

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarDataHora, useKpisGerais, useUltimaImportacao } from "@/lib/analytics";
+import { usePerfil } from "@/hooks/useProduto";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -53,6 +54,7 @@ function mesLabel(mesAno: number | null) {
 function DashboardPage() {
   const kpis = useKpisGerais();
   const importacao = useUltimaImportacao();
+  const perfil = usePerfil();
 
   const mensal = useQuery({
     queryKey: ["ofertas-mensal"],
@@ -143,12 +145,11 @@ function DashboardPage() {
             . Última carga: {formatarDataHora(importacao.data?.concluido_em)}.
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
-            <Badge variant="secondary">Marítimo</Badge>
-            <Badge variant="outline" className="text-muted-foreground">
-              Aéreo (futuro)
+            <Badge variant="secondary">
+              Produto: {perfil.data?.produtoNome ?? "não definido"}
             </Badge>
             <Badge variant="outline" className="text-muted-foreground">
-              Rodoviário (futuro)
+              Filtro obrigatório do usuário
             </Badge>
           </div>
         </div>

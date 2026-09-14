@@ -7,6 +7,14 @@ import authBg from "@/assets/auth-bg.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useProdutos } from "@/hooks/useProduto";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -46,7 +54,10 @@ function AuthPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nome, setNome] = useState("");
+  const [produto, setProduto] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const produtos = useProdutos();
 
   useEffect(() => {
     if (!loading && session) {
@@ -68,11 +79,20 @@ function AuthPage() {
 
   async function handleSignUp(event: React.FormEvent) {
     event.preventDefault();
+    if (!produto) {
+      toast.error("Selecione o produto", {
+        description: "O produto define os dados que estarão disponíveis para o acesso.",
+      });
+      return;
+    }
     setSubmitting(true);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { nome, produto_codigo: produto },
+      },
     });
     setSubmitting(false);
     if (error) {
@@ -199,6 +219,35 @@ function AuthPage() {
 
             <TabsContent value="criar" className="pt-6">
               <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-nome">Nome</Label>
+                  <Input
+                    id="signup-nome"
+                    autoComplete="name"
+                    required
+                    value={nome}
+                    onChange={(event) => setNome(event.target.value)}
+                    placeholder="Nome e sobrenome"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-produto">Produto</Label>
+                  <Select value={produto} onValueChange={setProduto}>
+                    <SelectTrigger id="signup-produto">
+                      <SelectValue placeholder="Selecione o produto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(produtos.data ?? []).map((item) => (
+                        <SelectItem key={item.codigo} value={item.codigo}>
+                          {item.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    O produto define quais registros do relatório de Ofertas você poderá analisar.
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">E-mail</Label>
                   <Input

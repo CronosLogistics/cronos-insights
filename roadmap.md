@@ -20,3 +20,9 @@
   manual sob demanda.
 - Filtros globais de período/modalidade nos módulos (hoje há busca por nome).
 - Parâmetros e cadastros de apoio em Configurações continuam visuais.
+
+## Produto como dimensão de acesso (concluído)
+- Catálogo `produtos` (IM, EM, IA, EA, IR, CA, S&A - IM) e `perfis` com produto por usuário.
+- Cadastro de acesso pede Nome e Produto; administração em Configurações permite trocar o produto.
+- Base de ofertas com política por produto (`produto = produto_do_usuario()`); análises pré-calculadas por produto no schema interno `analitico` e expostas por visões filtradas.
+- Recalcular análises após cada carga: `select public.atualizar_analises();`

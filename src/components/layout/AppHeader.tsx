@@ -15,9 +15,11 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { usePerfil } from "@/hooks/useProduto";
 
 export function AppHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   const { user, signOut } = useAuth();
+  const perfil = usePerfil();
   const email = user?.email ?? "";
   const initials = email.slice(0, 2).toUpperCase() || "CP";
 
@@ -47,8 +49,9 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
       </div>
 
       <Badge variant="outline" className="hidden border-accent/40 text-accent lg:inline-flex">
-        Base de Ofertas
+        {perfil.data?.produtoNome ?? "Produto não definido"}
       </Badge>
+
 
 
       <Button variant="ghost" size="icon" aria-label="Notificações" disabled>
@@ -66,8 +69,14 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
-          <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">
-            {email}
+          <DropdownMenuLabel className="space-y-0.5 text-xs font-normal">
+            <span className="block truncate text-foreground">
+              {perfil.data?.nome || email}
+            </span>
+            <span className="block truncate text-muted-foreground">{email}</span>
+            <span className="block truncate text-accent">
+              Produto: {perfil.data?.produtoNome ?? "não definido"}
+            </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void signOut()}>
