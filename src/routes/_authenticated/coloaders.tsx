@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ModulePage } from "@/components/layout/ModulePage";
+import { RankingModule } from "@/components/data/RankingModule";
+import { supabase } from "@/integrations/supabase/client";
+import { useKpisGerais, type Linha } from "@/lib/analytics";
 
 export const Route = createFileRoute("/_authenticated/coloaders")({
   head: () => ({
@@ -18,18 +20,68 @@ export const Route = createFileRoute("/_authenticated/coloaders")({
       },
     ],
   }),
-  component: () => (
-    <ModulePage
+  component: ColoadersPage,
+});
+
+function ColoadersPage() {
+  const kpis = useKpisGerais();
+
+  return (
+    <RankingModule
       eyebrow="Inteligência"
       title="Ficha do coloader / armador"
-      description="Avaliação dos parceiros de transporte: participação nas ofertas, taxa de aprovação por rota, aderência de validade e competitividade relativa frente às alternativas cotadas."
-      filters={["Coloader / Armador", "Rota", "Período", "Modalidade"]}
-      kpis={["Parceiros cotados", "Ofertas atribuídas", "Conversão", "Rotas atendidas"]}
-      chartTitle="Participação por período"
-      chartDescription="Volume de ofertas e decisões por parceiro."
+      description="Avaliação dos parceiros de transporte a partir do relatório de Ofertas: participação nas cotações, aprovações e reprovações, conversão, rotas atendidas e TEUS cotados."
+      kpisCarregando={kpis.isPending}
+      kpis={[
+        {
+          label: "Parceiros cotados",
+          value: (kpis.data?.coloaders ?? 0).toLocaleString("pt-BR"),
+          hint: "Armadores e coloaders",
+        },
+        {
+          label: "Ofertas atribuídas",
+          value: (kpis.data?.ofertas ?? 0).toLocaleString("pt-BR"),
+          hint: "Registros importados",
+        },
+        {
+          label: "Conversão geral",
+          value: `${(kpis.data?.conversao_pct ?? 0).toLocaleString("pt-BR")}%`,
+          hint: "Aprovadas sobre decididas",
+        },
+        {
+          label: "Rotas atendidas",
+          value: (kpis.data?.rotas ?? 0).toLocaleString("pt-BR"),
+          hint: "Rotas distintas na base",
+        },
+      ]}
+      queryKey="coloaders"
+      fetchRows={async (busca) => {
+        let query = supabase
+          .from("v_coloaders")
+          .select("*")
+          .order("ofertas", { ascending: false })
+          .limit(200);
+        if (busca) query = query.ilike("coloader", `%${busca}%`);
+        const { data, error } = await query;
+        if (error) throw error;
+        return (data ?? []) as unknown as Linha[];
+      }}
+      campoRotulo="coloader"
+      campoValor="ofertas"
+      buscaPlaceholder="Buscar coloader ou armador"
+      chartTitle="Participação por parceiro"
+      chartDescription="Dez parceiros com mais ofertas na base."
       tableTitle="Ranking de coloaders"
-      tableDescription="Comparativo por volume, conversão e cobertura de rotas."
-      tableColumns={["Coloader / Armador", "Ofertas", "Aprovadas", "Conversão", "Rotas"]}
+      tableDescription="Volume, conversão e cobertura de rotas por parceiro."
+      colunas={[
+        { key: "coloader", label: "Coloader / Armador" },
+        { key: "ofertas", label: "Ofertas", tipo: "numero" },
+        { key: "aprovadas", label: "Aprovadas", tipo: "numero" },
+        { key: "reprovadas", label: "Reprovadas", tipo: "numero" },
+        { key: "conversao_pct", label: "Conversão", tipo: "pct" },
+        { key: "rotas", label: "Rotas", tipo: "numero" },
+        { key: "teus", label: "TEUS", tipo: "decimal" },
+      ]}
     />
-  ),
-});
+  );
+}

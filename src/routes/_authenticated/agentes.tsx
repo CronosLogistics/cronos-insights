@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ModulePage } from "@/components/layout/ModulePage";
+import { RankingModule } from "@/components/data/RankingModule";
+import { supabase } from "@/integrations/supabase/client";
+import { useKpisGerais, type Linha } from "@/lib/analytics";
 
 export const Route = createFileRoute("/_authenticated/agentes")({
   head: () => ({
@@ -18,18 +20,68 @@ export const Route = createFileRoute("/_authenticated/agentes")({
       },
     ],
   }),
-  component: () => (
-    <ModulePage
+  component: AgentesPage,
+});
+
+function AgentesPage() {
+  const kpis = useKpisGerais();
+
+  return (
+    <RankingModule
       eyebrow="Inteligência"
       title="Inteligência de agentes"
-      description="Participação dos agentes no exterior nas cotações: volume apresentado, taxa de conversão, cobertura por origem e contribuição para as decisões aprovadas."
-      filters={["Agente", "País de origem", "Período", "Rota"]}
-      kpis={["Agentes envolvidos", "Ofertas via agente", "Conversão", "Origens cobertas"]}
+      description="Participação dos agentes no exterior nas cotações do relatório de Ofertas: volume apresentado, decisões, conversão, países de origem cobertos e clientes atendidos."
+      kpisCarregando={kpis.isPending}
+      kpis={[
+        {
+          label: "Agentes envolvidos",
+          value: (kpis.data?.agentes ?? 0).toLocaleString("pt-BR"),
+          hint: "Agentes na base",
+        },
+        {
+          label: "Ofertas na base",
+          value: (kpis.data?.ofertas ?? 0).toLocaleString("pt-BR"),
+          hint: "Ofertas e revisões",
+        },
+        {
+          label: "Aprovadas",
+          value: (kpis.data?.aprovadas ?? 0).toLocaleString("pt-BR"),
+          hint: "Decisões favoráveis",
+        },
+        {
+          label: "Conversão geral",
+          value: `${(kpis.data?.conversao_pct ?? 0).toLocaleString("pt-BR")}%`,
+          hint: "Aprovadas sobre decididas",
+        },
+      ]}
+      queryKey="agentes"
+      fetchRows={async (busca) => {
+        let query = supabase
+          .from("v_agentes")
+          .select("*")
+          .order("ofertas", { ascending: false })
+          .limit(200);
+        if (busca) query = query.ilike("agente", `%${busca}%`);
+        const { data, error } = await query;
+        if (error) throw error;
+        return (data ?? []) as unknown as Linha[];
+      }}
+      campoRotulo="agente"
+      campoValor="ofertas"
+      buscaPlaceholder="Buscar agente"
       chartTitle="Volume por agente"
-      chartDescription="Comparativo de ofertas apresentadas por período."
+      chartDescription="Dez agentes com mais ofertas na base."
       tableTitle="Ranking de agentes"
-      tableDescription="Volume, conversão e cobertura geográfica."
-      tableColumns={["Agente", "Ofertas", "Aprovadas", "Conversão", "Origens"]}
+      tableDescription="Volume, conversão e cobertura geográfica por agente."
+      colunas={[
+        { key: "agente", label: "Agente" },
+        { key: "ofertas", label: "Ofertas", tipo: "numero" },
+        { key: "aprovadas", label: "Aprovadas", tipo: "numero" },
+        { key: "reprovadas", label: "Reprovadas", tipo: "numero" },
+        { key: "conversao_pct", label: "Conversão", tipo: "pct" },
+        { key: "origens", label: "Países de origem", tipo: "numero" },
+        { key: "clientes", label: "Clientes", tipo: "numero" },
+      ]}
     />
-  ),
-});
+  );
+}
