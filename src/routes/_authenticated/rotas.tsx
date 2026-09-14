@@ -74,9 +74,10 @@ function RotasPage() {
       tableTitle="Ranking de rotas"
       tableDescription="Volume, decisões, conversão e cobertura por rota."
       colunas={[
-        { key: "rota", label: "Rota" },
         { key: "origem", label: "Origem" },
+        { key: "pais_origem", label: "País origem" },
         { key: "destino", label: "Destino" },
+        { key: "pais_destino", label: "País destino" },
         { key: "ofertas", label: "Ofertas", tipo: "numero" },
         { key: "aprovadas", label: "Aprovadas", tipo: "numero" },
         { key: "reprovadas", label: "Reprovadas", tipo: "numero" },
@@ -84,6 +85,7 @@ function RotasPage() {
         { key: "clientes", label: "Clientes", tipo: "numero" },
         { key: "teus", label: "TEUS", tipo: "decimal" },
       ]}
+
     />
   );
 }
