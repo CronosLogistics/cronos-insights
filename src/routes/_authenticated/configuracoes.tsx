@@ -91,6 +91,87 @@ function ConfiguracoesPage() {
           </PanelBlock>
         ))}
       </div>
+
+      <HistoricoImportacoes />
     </div>
   );
 }
+
+function HistoricoImportacoes() {
+  const importacoes = useQuery({
+    queryKey: ["importacoes-historico"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("importacoes")
+        .select("*")
+        .order("iniciado_em", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  return (
+    <PanelBlock
+      title="Histórico de cargas"
+      description="Cargas do relatório de Ofertas mantido no OneDrive."
+      action={
+        <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
+          <Database className="size-3" />
+          Dados reais
+        </Badge>
+      }
+    >
+      {importacoes.isPending ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} className="h-10 w-full" />
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fonte</TableHead>
+                <TableHead>Início</TableHead>
+                <TableHead>Conclusão</TableHead>
+                <TableHead className="text-right">Linhas</TableHead>
+                <TableHead>Situação</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(importacoes.data ?? []).map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="max-w-[220px] truncate">{item.fonte}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {formatarDataHora(item.iniciado_em)}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {formatarDataHora(item.concluido_em)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {item.linhas ? item.linhas.toLocaleString("pt-BR") : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="font-normal">
+                      {item.situacao}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(importacoes.data ?? []).length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    Nenhuma carga registrada.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </PanelBlock>
+  );
+}
+
