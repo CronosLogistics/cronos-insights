@@ -1,9 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Database } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { formatarDataHora } from "@/lib/analytics";
+
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
