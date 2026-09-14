@@ -199,7 +199,179 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_agentes: {
+        Row: {
+          agente: string | null
+          aprovadas: number | null
+          clientes: number | null
+          conversao_pct: number | null
+          ofertas: number | null
+          origens: number | null
+          reprovadas: number | null
+        }
+        Relationships: []
+      }
+      v_analistas: {
+        Row: {
+          analista: string | null
+          aprovadas: number | null
+          conversao_pct: number | null
+          decididas: number | null
+          em_aberto: number | null
+          ofertas: number | null
+          tempo_medio_horas: number | null
+        }
+        Relationships: []
+      }
+      v_clientes: {
+        Row: {
+          aprovadas: number | null
+          cliente: string | null
+          conversao_pct: number | null
+          em_aberto: number | null
+          ofertas: number | null
+          reprovadas: number | null
+          rotas: number | null
+          ultima_oferta: string | null
+        }
+        Relationships: []
+      }
+      v_coloaders: {
+        Row: {
+          aprovadas: number | null
+          coloader: string | null
+          conversao_pct: number | null
+          ofertas: number | null
+          reprovadas: number | null
+          rotas: number | null
+          teus: number | null
+        }
+        Relationships: []
+      }
+      v_cotacoes_em_analise: {
+        Row: {
+          cliente: string | null
+          data_abertura: string | null
+          dias_em_aberto: number | null
+          faixa_atencao: string | null
+          modalidade: string | null
+          oferta: string | null
+          pricing: string | null
+          revisao: number | null
+          rota: string | null
+          status: string | null
+          vendedor: string | null
+        }
+        Insert: {
+          cliente?: string | null
+          data_abertura?: string | null
+          dias_em_aberto?: never
+          faixa_atencao?: never
+          modalidade?: string | null
+          oferta?: string | null
+          pricing?: string | null
+          revisao?: number | null
+          rota?: never
+          status?: string | null
+          vendedor?: string | null
+        }
+        Update: {
+          cliente?: string | null
+          data_abertura?: string | null
+          dias_em_aberto?: never
+          faixa_atencao?: never
+          modalidade?: string | null
+          oferta?: string | null
+          pricing?: string | null
+          revisao?: number | null
+          rota?: never
+          status?: string | null
+          vendedor?: string | null
+        }
+        Relationships: []
+      }
+      v_kpis_geral: {
+        Row: {
+          agentes: number | null
+          analistas: number | null
+          aprovadas: number | null
+          clientes: number | null
+          coloaders: number | null
+          conversao_pct: number | null
+          em_aberto: number | null
+          ofertas: number | null
+          primeira_abertura: string | null
+          reprovadas: number | null
+          rotas: number | null
+          tempo_medio_horas: number | null
+          teus: number | null
+          ultima_abertura: string | null
+          vendedores: number | null
+        }
+        Relationships: []
+      }
+      v_motivos_perda: {
+        Row: {
+          cliente_recorrente: string | null
+          motivo: string | null
+          participacao_pct: number | null
+          reprovacoes: number | null
+          rota_recorrente: string | null
+        }
+        Relationships: []
+      }
+      v_ofertas_mensal: {
+        Row: {
+          ano: number | null
+          aprovadas: number | null
+          conversao_pct: number | null
+          em_aberto: number | null
+          mes: number | null
+          mes_ano: number | null
+          ofertas: number | null
+          reprovadas: number | null
+        }
+        Relationships: []
+      }
+      v_qualidade_dados: {
+        Row: {
+          campo: string | null
+          preenchidos: number | null
+          preenchimento_pct: number | null
+          vazios: number | null
+        }
+        Relationships: []
+      }
+      v_rotas: {
+        Row: {
+          aprovadas: number | null
+          clientes: number | null
+          conversao_pct: number | null
+          destino: string | null
+          em_aberto: number | null
+          modalidade: string | null
+          ofertas: number | null
+          origem: string | null
+          pais_destino: string | null
+          pais_origem: string | null
+          reprovadas: number | null
+          rota: string | null
+          teus: number | null
+        }
+        Relationships: []
+      }
+      v_vendedores: {
+        Row: {
+          aprovadas: number | null
+          clientes: number | null
+          conversao_pct: number | null
+          ofertas: number | null
+          reprovadas: number | null
+          rotas: number | null
+          vendedor: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

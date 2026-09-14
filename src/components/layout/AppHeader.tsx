@@ -47,8 +47,9 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
       </div>
 
       <Badge variant="outline" className="hidden border-accent/40 text-accent lg:inline-flex">
-        Estrutura visual
+        Base de Ofertas
       </Badge>
+
 
       <Button variant="ghost" size="icon" aria-label="Notificações" disabled>
         <Bell className="size-5" />
