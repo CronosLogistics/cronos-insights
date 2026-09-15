@@ -1,7 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, Check, ChevronsUpDown, Info, Search } from "lucide-react";
+import {
+  BarChart2,
+  BarChart3,
+  BookOpen,
+  Building2,
+  Check,
+  CheckCircle2,
+  ChevronsUpDown,
+  Clock,
+  FileText,
+  Gavel,
+  Info,
+  Network,
+  Scale,
+  Search,
+  Target,
+  TrendingUp,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
