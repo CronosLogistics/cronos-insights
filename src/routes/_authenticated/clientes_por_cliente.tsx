@@ -440,6 +440,71 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
   );
 }
 
+type TomGrupo = "volume" | "resultado" | "performance";
+
+const tons: Record<TomGrupo, { caixa: string; titulo: string; icone: string }> = {
+  volume: {
+    caixa: "border-primary/20 bg-primary/5",
+    titulo: "text-primary",
+    icone: "text-primary",
+  },
+  resultado: {
+    caixa: "border-accent/25 bg-accent/5",
+    titulo: "text-accent",
+    icone: "text-accent",
+  },
+  performance: {
+    caixa: "border-border bg-muted/40",
+    titulo: "text-foreground",
+    icone: "text-muted-foreground",
+  },
+};
+
+function GrupoIndicadores({
+  titulo,
+  tom,
+  itens,
+}: {
+  titulo: string;
+  tom: TomGrupo;
+  itens: { titulo: string; valor: string; icone: LucideIcon }[];
+}) {
+  const estilo = tons[tom];
+  return (
+    <div className={cn("rounded-lg border p-4", estilo.caixa)}>
+      <p
+        className={cn(
+          "mb-3 text-[11px] font-semibold uppercase tracking-wider",
+          estilo.titulo,
+        )}
+      >
+        {titulo}
+      </p>
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2">
+        {itens.map((item) => {
+          const Icone = item.icone;
+          return (
+            <li
+              key={item.titulo}
+              className="flex items-center gap-2.5 rounded-md border border-border/60 bg-card px-3 py-2.5"
+            >
+              <Icone className={cn("size-4 shrink-0", estilo.icone)} />
+              <span className="min-w-0">
+                <span className="block truncate font-heading text-lg font-semibold leading-tight">
+                  {item.valor}
+                </span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {item.titulo}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function ListaInsights({ itens }: { itens: string[] }) {
   return (
     <ul className="space-y-3">
