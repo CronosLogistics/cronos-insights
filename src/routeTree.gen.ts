@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAgentesRouteImport } from './routes/_authenticated/agentes'
 import { Route as AuthenticatedAnalistasRouteImport } from './routes/_authenticated/analistas'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedClientes_por_clienteRouteImport } from './routes/_authenticated/clientes_por_cliente'
 import { Route as AuthenticatedColoadersRouteImport } from './routes/_authenticated/coloaders'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCotacoesRouteImport } from './routes/_authenticated/cotacoes'
@@ -23,6 +24,7 @@ import { Route as AuthenticatedMotivosPerdaRouteImport } from './routes/_authent
 import { Route as AuthenticatedQualidadeDadosRouteImport } from './routes/_authenticated/qualidade-dados'
 import { Route as AuthenticatedRotasRouteImport } from './routes/_authenticated/rotas'
 import { Route as AuthenticatedVendedoresRouteImport } from './routes/_authenticated/vendedores'
+import { Route as ApiIngestaoOfertasOrigemRouteImport } from './routes/api/ingestao/ofertas-origem'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,6 +55,12 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClientes_por_clienteRoute =
+  AuthenticatedClientes_por_clienteRouteImport.update({
+    id: '/clientes_por_cliente',
+    path: '/clientes_por_cliente',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedColoadersRoute = AuthenticatedColoadersRouteImport.update({
   id: '/coloaders',
   path: '/coloaders',
@@ -96,6 +104,12 @@ const AuthenticatedVendedoresRoute = AuthenticatedVendedoresRouteImport.update({
   path: '/vendedores',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiIngestaoOfertasOrigemRoute =
+  ApiIngestaoOfertasOrigemRouteImport.update({
+    id: '/api/ingestao/ofertas-origem',
+    path: '/api/ingestao/ofertas-origem',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/agentes': typeof AuthenticatedAgentesRoute
   '/analistas': typeof AuthenticatedAnalistasRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/clientes_por_cliente': typeof AuthenticatedClientes_por_clienteRoute
   '/coloaders': typeof AuthenticatedColoadersRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cotacoes': typeof AuthenticatedCotacoesRoute
@@ -111,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/rotas': typeof AuthenticatedRotasRoute
   '/vendedores': typeof AuthenticatedVendedoresRoute
+  '/api/ingestao/ofertas-origem': typeof ApiIngestaoOfertasOrigemRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +134,7 @@ export interface FileRoutesByTo {
   '/agentes': typeof AuthenticatedAgentesRoute
   '/analistas': typeof AuthenticatedAnalistasRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/clientes_por_cliente': typeof AuthenticatedClientes_por_clienteRoute
   '/coloaders': typeof AuthenticatedColoadersRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/cotacoes': typeof AuthenticatedCotacoesRoute
@@ -126,6 +143,7 @@ export interface FileRoutesByTo {
   '/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/rotas': typeof AuthenticatedRotasRoute
   '/vendedores': typeof AuthenticatedVendedoresRoute
+  '/api/ingestao/ofertas-origem': typeof ApiIngestaoOfertasOrigemRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -135,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/agentes': typeof AuthenticatedAgentesRoute
   '/_authenticated/analistas': typeof AuthenticatedAnalistasRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/clientes_por_cliente': typeof AuthenticatedClientes_por_clienteRoute
   '/_authenticated/coloaders': typeof AuthenticatedColoadersRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/cotacoes': typeof AuthenticatedCotacoesRoute
@@ -143,6 +162,7 @@ export interface FileRoutesById {
   '/_authenticated/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/_authenticated/rotas': typeof AuthenticatedRotasRoute
   '/_authenticated/vendedores': typeof AuthenticatedVendedoresRoute
+  '/api/ingestao/ofertas-origem': typeof ApiIngestaoOfertasOrigemRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -152,6 +172,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/analistas'
     | '/clientes'
+    | '/clientes_por_cliente'
     | '/coloaders'
     | '/configuracoes'
     | '/cotacoes'
@@ -160,6 +181,7 @@ export interface FileRouteTypes {
     | '/qualidade-dados'
     | '/rotas'
     | '/vendedores'
+    | '/api/ingestao/ofertas-origem'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -167,6 +189,7 @@ export interface FileRouteTypes {
     | '/agentes'
     | '/analistas'
     | '/clientes'
+    | '/clientes_por_cliente'
     | '/coloaders'
     | '/configuracoes'
     | '/cotacoes'
@@ -175,6 +198,7 @@ export interface FileRouteTypes {
     | '/qualidade-dados'
     | '/rotas'
     | '/vendedores'
+    | '/api/ingestao/ofertas-origem'
   id:
     | '__root__'
     | '/'
@@ -183,6 +207,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agentes'
     | '/_authenticated/analistas'
     | '/_authenticated/clientes'
+    | '/_authenticated/clientes_por_cliente'
     | '/_authenticated/coloaders'
     | '/_authenticated/configuracoes'
     | '/_authenticated/cotacoes'
@@ -191,12 +216,14 @@ export interface FileRouteTypes {
     | '/_authenticated/qualidade-dados'
     | '/_authenticated/rotas'
     | '/_authenticated/vendedores'
+    | '/api/ingestao/ofertas-origem'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiIngestaoOfertasOrigemRoute: typeof ApiIngestaoOfertasOrigemRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -241,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes'
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes_por_cliente': {
+      id: '/_authenticated/clientes_por_cliente'
+      path: '/clientes_por_cliente'
+      fullPath: '/clientes_por_cliente'
+      preLoaderRoute: typeof AuthenticatedClientes_por_clienteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/coloaders': {
@@ -299,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendedoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/ingestao/ofertas-origem': {
+      id: '/api/ingestao/ofertas-origem'
+      path: '/api/ingestao/ofertas-origem'
+      fullPath: '/api/ingestao/ofertas-origem'
+      preLoaderRoute: typeof ApiIngestaoOfertasOrigemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -306,6 +347,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgentesRoute: typeof AuthenticatedAgentesRoute
   AuthenticatedAnalistasRoute: typeof AuthenticatedAnalistasRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedClientes_por_clienteRoute: typeof AuthenticatedClientes_por_clienteRoute
   AuthenticatedColoadersRoute: typeof AuthenticatedColoadersRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCotacoesRoute: typeof AuthenticatedCotacoesRoute
@@ -320,6 +362,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgentesRoute: AuthenticatedAgentesRoute,
   AuthenticatedAnalistasRoute: AuthenticatedAnalistasRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedClientes_por_clienteRoute:
+    AuthenticatedClientes_por_clienteRoute,
   AuthenticatedColoadersRoute: AuthenticatedColoadersRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCotacoesRoute: AuthenticatedCotacoesRoute,
@@ -337,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiIngestaoOfertasOrigemRoute: ApiIngestaoOfertasOrigemRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

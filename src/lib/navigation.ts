@@ -6,6 +6,7 @@ import {
   Ship,
   Users,
   UserRound,
+  UserSearch,
   Briefcase,
   TrendingDown,
   ShieldCheck,
@@ -18,6 +19,7 @@ export type NavItem = {
   to: string;
   icon: LucideIcon;
   description: string;
+  children?: NavItem[];
 };
 
 export type NavGroup = {
@@ -62,6 +64,14 @@ export const navigation: NavGroup[] = [
         to: "/clientes",
         icon: Building2,
         description: "Comportamento de aprovação e recorrência por cliente.",
+        children: [
+          {
+            label: "Por cliente",
+            to: "/clientes_por_cliente",
+            icon: UserSearch,
+            description: "Ficha analítica detalhada de um cliente selecionado.",
+          },
+        ],
       },
       {
         label: "Coloaders / Armadores",

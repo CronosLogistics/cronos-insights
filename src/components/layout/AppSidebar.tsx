@@ -33,6 +33,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
                     to={item.to}
                     onClick={onNavigate}
                     className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-80 transition-colors hover:bg-sidebar-accent hover:opacity-100"
+                    activeOptions={{ exact: true }}
                     activeProps={{
                       className:
                         "bg-sidebar-accent opacity-100 shadow-[inset_2px_0_0_0_var(--color-cronos)]",
@@ -41,6 +42,27 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
                     <item.icon className="size-4 shrink-0" />
                     <span className="truncate">{item.label}</span>
                   </Link>
+
+                  {item.children && item.children.length > 0 ? (
+                    <ul className="mt-1 space-y-1 border-l border-sidebar-border pl-3 ml-4">
+                      {item.children.map((child) => (
+                        <li key={child.to}>
+                          <Link
+                            to={child.to}
+                            onClick={onNavigate}
+                            className="group flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium opacity-70 transition-colors hover:bg-sidebar-accent hover:opacity-100"
+                            activeProps={{
+                              className:
+                                "bg-sidebar-accent opacity-100 shadow-[inset_2px_0_0_0_var(--color-cronos)]",
+                            }}
+                          >
+                            <child.icon className="size-3.5 shrink-0" />
+                            <span className="truncate">{child.label}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </li>
               ))}
             </ul>
