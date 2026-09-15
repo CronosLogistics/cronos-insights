@@ -24,7 +24,6 @@ import { Route as AuthenticatedMotivosPerdaRouteImport } from './routes/_authent
 import { Route as AuthenticatedQualidadeDadosRouteImport } from './routes/_authenticated/qualidade-dados'
 import { Route as AuthenticatedRotasRouteImport } from './routes/_authenticated/rotas'
 import { Route as AuthenticatedVendedoresRouteImport } from './routes/_authenticated/vendedores'
-import { Route as ApiIngestaoOfertasOrigemRouteImport } from './routes/api/ingestao/ofertas-origem'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -104,12 +103,6 @@ const AuthenticatedVendedoresRoute = AuthenticatedVendedoresRouteImport.update({
   path: '/vendedores',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiIngestaoOfertasOrigemRoute =
-  ApiIngestaoOfertasOrigemRouteImport.update({
-    id: '/api/ingestao/ofertas-origem',
-    path: '/api/ingestao/ofertas-origem',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -126,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/rotas': typeof AuthenticatedRotasRoute
   '/vendedores': typeof AuthenticatedVendedoresRoute
-  '/api/ingestao/ofertas-origem': typeof ApiIngestaoOfertasOrigemRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -143,7 +135,6 @@ export interface FileRoutesByTo {
   '/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/rotas': typeof AuthenticatedRotasRoute
   '/vendedores': typeof AuthenticatedVendedoresRoute
-  '/api/ingestao/ofertas-origem': typeof ApiIngestaoOfertasOrigemRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -162,7 +153,6 @@ export interface FileRoutesById {
   '/_authenticated/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/_authenticated/rotas': typeof AuthenticatedRotasRoute
   '/_authenticated/vendedores': typeof AuthenticatedVendedoresRoute
-  '/api/ingestao/ofertas-origem': typeof ApiIngestaoOfertasOrigemRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,7 +171,6 @@ export interface FileRouteTypes {
     | '/qualidade-dados'
     | '/rotas'
     | '/vendedores'
-    | '/api/ingestao/ofertas-origem'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -198,7 +187,6 @@ export interface FileRouteTypes {
     | '/qualidade-dados'
     | '/rotas'
     | '/vendedores'
-    | '/api/ingestao/ofertas-origem'
   id:
     | '__root__'
     | '/'
@@ -216,14 +204,12 @@ export interface FileRouteTypes {
     | '/_authenticated/qualidade-dados'
     | '/_authenticated/rotas'
     | '/_authenticated/vendedores'
-    | '/api/ingestao/ofertas-origem'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  ApiIngestaoOfertasOrigemRoute: typeof ApiIngestaoOfertasOrigemRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -333,13 +319,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendedoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/ingestao/ofertas-origem': {
-      id: '/api/ingestao/ofertas-origem'
-      path: '/api/ingestao/ofertas-origem'
-      fullPath: '/api/ingestao/ofertas-origem'
-      preLoaderRoute: typeof ApiIngestaoOfertasOrigemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -381,7 +360,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  ApiIngestaoOfertasOrigemRoute: ApiIngestaoOfertasOrigemRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
