@@ -1,20 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Building2, Info, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Building2, Check, ChevronsUpDown, Info, Search } from "lucide-react";
 
-import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -32,6 +33,7 @@ import {
   type LinhaRotaColoader,
 } from "@/lib/customer-analysis";
 import { getAnaliseCliente, getClienteLista } from "@/lib/customer-analysis-fn";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/clientes_por_cliente")({
   head: () => ({
@@ -91,18 +93,11 @@ function PorClientePage() {
               {lista.isPending ? (
                 <Skeleton className="h-9 w-full rounded-md" />
               ) : (
-                <Select value={cliente ?? ""} onValueChange={setCliente}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(lista.data ?? []).map((opcao) => (
-                      <SelectItem key={opcao.cliente} value={opcao.cliente}>
-                        {opcao.cliente}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ClienteCombobox
+                  clientes={(lista.data ?? []).map((opcao) => opcao.cliente)}
+                  value={cliente}
+                  onValueChange={setCliente}
+                />
               )}
             </div>
             {lista.data ? (
@@ -132,6 +127,122 @@ function PorClientePage() {
         <Ficha analise={analise.data} />
       ) : null}
     </div>
+  );
+}
+
+function ClienteCombobox({
+  clientes,
+  value,
+  onValueChange,
+}: {
+  clientes: string[];
+  value: string | null;
+  onValueChange: (cliente: string) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [texto, setTexto] = useState(value ?? "");
+  const [largura, setLargura] = useState<number>();
+  const ancoraRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setTexto(value ?? "");
+  }, [value]);
+
+  const filtrados = useMemo(() => {
+    const termo = texto.trim().toLocaleLowerCase("pt-BR");
+    if (!termo) return clientes;
+    return clientes.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
+  }, [texto, clientes]);
+
+  function abrir() {
+    setLargura(ancoraRef.current?.offsetWidth);
+    setAberto(true);
+  }
+
+  function fechar() {
+    setAberto(false);
+    setTexto(value ?? "");
+  }
+
+  function selecionar(nome: string) {
+    onValueChange(nome);
+    setTexto(nome);
+    setAberto(false);
+  }
+
+  return (
+    <Popover
+      open={aberto}
+      onOpenChange={(proximo) => {
+        if (proximo) abrir();
+        else fechar();
+      }}
+    >
+      <PopoverAnchor asChild>
+        <div ref={ancoraRef} className="relative w-full">
+          <Input
+            role="combobox"
+            aria-expanded={aberto}
+            autoComplete="off"
+            placeholder="Digite ou selecione um cliente"
+            value={texto}
+            onChange={(event) => {
+              setTexto(event.target.value);
+              abrir();
+            }}
+            onFocus={abrir}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                fechar();
+              }
+            }}
+            className="pr-9"
+          />
+          <ChevronsUpDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 opacity-50" />
+        </div>
+      </PopoverAnchor>
+      <PopoverContent
+        className="p-0"
+        align="start"
+        style={largura ? { width: largura } : undefined}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+        onPointerDownOutside={(event) => {
+          if (ancoraRef.current?.contains(event.target as Node)) {
+            event.preventDefault();
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (ancoraRef.current?.contains(event.target as Node)) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <Command shouldFilter={false}>
+          <CommandList>
+            <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+            <CommandGroup>
+              {filtrados.map((nome) => (
+                <CommandItem
+                  key={nome}
+                  value={nome}
+                  onSelect={() => selecionar(nome)}
+                >
+                  <Check
+                    className={cn(
+                      "size-4 shrink-0",
+                      value === nome ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  <span className="truncate">{nome}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -193,37 +304,85 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
           </Badge>
         }
       >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Rotas" value={inteiro(ind.rotas)} hint="Linhas do recorte" />
-          <KpiCard label="Ofertas" value={inteiro(ind.ofertas)} hint="Ofertas distintas" />
-          <KpiCard label="Aprovadas" value={inteiro(ind.aprovadas)} />
-          <KpiCard label="Reprovadas" value={inteiro(ind.reprovadas)} />
-          <KpiCard label="Em análise" value={inteiro(ind.emAnalise)} />
-          <KpiCard label="Taxa de aprovação" value={formatarPct(ind.taxaAprovacao)} />
-          <KpiCard label="Taxa de reprovação" value={formatarPct(ind.taxaReprovacao)} />
-          <KpiCard label="Clientes" value={inteiro(ind.clientes)} />
-          <KpiCard label="Rotas distintas" value={inteiro(ind.rotasDistintas)} />
-          <KpiCard label="Coloaders" value={inteiro(ind.coloaders)} />
-          <KpiCard label="Conversão recorte" value={formatarPct(ind.conversaoRecorte)} />
-          <KpiCard label="Média geral" value={formatarPct(ind.mediaGeral)} hint="Base do produto" />
-          <KpiCard label="Diferença" value={diferencaTexto(ind.diferenca)} hint="Recorte − média" />
-          <KpiCard label="Decisões" value={inteiro(ind.decisoes)} hint="Aprovadas + reprovadas" />
-        </div>
+        <ul className="grid gap-x-10 sm:grid-cols-2">
+          {[
+            { titulo: "Rotas", valor: inteiro(ind.rotas), hint: "Linhas do recorte" },
+            { titulo: "Ofertas", valor: inteiro(ind.ofertas), hint: "Ofertas distintas" },
+            { titulo: "Aprovadas", valor: inteiro(ind.aprovadas) },
+            { titulo: "Reprovadas", valor: inteiro(ind.reprovadas) },
+            { titulo: "Em análise", valor: inteiro(ind.emAnalise) },
+            { titulo: "Taxa de aprovação", valor: formatarPct(ind.taxaAprovacao) },
+            { titulo: "Taxa de reprovação", valor: formatarPct(ind.taxaReprovacao) },
+            { titulo: "Clientes", valor: inteiro(ind.clientes) },
+            { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas) },
+            { titulo: "Coloaders", valor: inteiro(ind.coloaders) },
+            { titulo: "Conversão recorte", valor: formatarPct(ind.conversaoRecorte) },
+            {
+              titulo: "Média geral",
+              valor: formatarPct(ind.mediaGeral),
+              hint: "Base do produto",
+            },
+            {
+              titulo: "Diferença",
+              valor: diferencaTexto(ind.diferenca),
+              hint: "Recorte − média",
+            },
+            {
+              titulo: "Decisões",
+              valor: inteiro(ind.decisoes),
+              hint: "Aprovadas + reprovadas",
+            },
+          ].map((item) => (
+            <li
+              key={item.titulo}
+              className="flex flex-col gap-0.5 border-b border-border/60 py-3 first:pt-0 sm:flex-row sm:items-baseline sm:gap-4"
+            >
+              <span className="w-44 shrink-0">
+                <span className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  {item.titulo}
+                </span>
+                {item.hint ? (
+                  <span className="mt-0.5 block text-xs text-muted-foreground/80 normal-case tracking-normal font-normal">
+                    {item.hint}
+                  </span>
+                ) : null}
+              </span>
+              <span className="text-sm font-medium leading-snug">{item.valor}</span>
+            </li>
+          ))}
+        </ul>
       </PanelBlock>
 
-      <PanelBlock
-        title="Perfil do recorte"
-        description="Rotas e motivo mais relevantes do cliente."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <PerfilCard titulo="Mais recorrente" valor={perfil.maisRecorrente} />
-          <PerfilCard titulo="Mais aprovações" valor={perfil.maisAprovacoes} />
-          <PerfilCard titulo="Mais reprovações" valor={perfil.maisReprovacoes} />
-          <PerfilCard titulo="Melhor conversão" valor={perfil.melhorConversao} />
-          <PerfilCard titulo="Pior conversão" valor={perfil.piorConversao} />
-          <PerfilCard titulo="Principal motivo" valor={perfil.principalMotivo} />
-        </div>
-      </PanelBlock>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PanelBlock
+          className="h-full"
+          title="Perfil do recorte"
+          description="Rotas e motivo mais relevantes do cliente."
+        >
+          <ul className="divide-y divide-border/60">
+            {[
+              { titulo: "Mais recorrente", valor: perfil.maisRecorrente },
+              { titulo: "Mais aprovações", valor: perfil.maisAprovacoes },
+              { titulo: "Mais reprovações", valor: perfil.maisReprovacoes },
+              { titulo: "Melhor conversão", valor: perfil.melhorConversao },
+              { titulo: "Pior conversão", valor: perfil.piorConversao },
+              { titulo: "Principal motivo", valor: perfil.principalMotivo },
+            ].map((item) => (
+              <li
+                key={item.titulo}
+                className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:gap-4"
+              >
+                <span className="w-40 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  {item.titulo}
+                </span>
+                <span className="text-sm font-medium leading-snug">{item.valor}</span>
+              </li>
+            ))}
+          </ul>
+        </PanelBlock>
+
+        <TabelaMotivos linhas={analise.motivos} resetKey={analise.cliente} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PanelBlock title="Insights de Pricing" description="Leitura automática dos indicadores.">
@@ -258,23 +417,8 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         resetKey={analise.cliente}
       />
 
-      <TabelaMotivos linhas={analise.motivos} resetKey={analise.cliente} />
-
       <TabelaRotaColoader linhas={analise.rotaColoader} resetKey={analise.cliente} />
     </div>
-  );
-}
-
-function PerfilCard({ titulo, valor }: { titulo: string; valor: string }) {
-  return (
-    <Card>
-      <CardContent className="space-y-1 pt-6">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {titulo}
-        </p>
-        <p className="text-sm font-semibold leading-snug">{valor}</p>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -367,39 +511,42 @@ function TabelaMotivos({
   const paginacao = usePaginacao(linhas, resetKey);
   return (
     <PanelBlock
+      className="h-full"
       title="Motivos de reprovação"
       description="Distribuição das reprovações do cliente por motivo."
     >
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Motivo</TableHead>
-              <TableHead className="text-right">Reprovadas</TableHead>
-              <TableHead className="text-right">% das reprovações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginacao.visiveis.map((linha, i) => (
-              <TableRow key={`${linha.motivo}-${paginacao.inicio + i}`}>
-                <TableCell className="max-w-[420px] truncate">{linha.motivo}</TableCell>
-                <TableCell className="text-right">{inteiro(linha.reprovadas)}</TableCell>
-                <TableCell className="text-right">{formatarPct(linha.participacao)}</TableCell>
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Motivo</TableHead>
+                <TableHead className="text-right">Reprovadas</TableHead>
+                <TableHead className="text-right">% das reprovações</TableHead>
               </TableRow>
-            ))}
-            {linhas.length === 0 ? <VazioTabela colunas={3} /> : null}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {paginacao.visiveis.map((linha, i) => (
+                <TableRow key={`${linha.motivo}-${paginacao.inicio + i}`}>
+                  <TableCell className="max-w-[420px] truncate">{linha.motivo}</TableCell>
+                  <TableCell className="text-right">{inteiro(linha.reprovadas)}</TableCell>
+                  <TableCell className="text-right">{formatarPct(linha.participacao)}</TableCell>
+                </TableRow>
+              ))}
+              {linhas.length === 0 ? <VazioTabela colunas={3} /> : null}
+            </TableBody>
+          </Table>
+        </div>
+        <TablePagination
+          pagina={paginacao.pagina}
+          totalPaginas={paginacao.totalPaginas}
+          porPagina={paginacao.porPagina}
+          total={paginacao.total}
+          inicio={paginacao.inicio}
+          onPagina={paginacao.setPagina}
+          onPorPagina={paginacao.setPorPagina}
+        />
       </div>
-      <TablePagination
-        pagina={paginacao.pagina}
-        totalPaginas={paginacao.totalPaginas}
-        porPagina={paginacao.porPagina}
-        total={paginacao.total}
-        inicio={paginacao.inicio}
-        onPagina={paginacao.setPagina}
-        onPorPagina={paginacao.setPorPagina}
-      />
     </PanelBlock>
   );
 }

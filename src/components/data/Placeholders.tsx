@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 /** Bloco padrão de conteúdo: título, descrição e área reservada. */
 export function PanelBlock({
@@ -20,7 +21,7 @@ export function PanelBlock({
   className?: string;
 }) {
   return (
-    <Card className={className}>
+    <Card className={cn("flex flex-col", className)}>
       <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
         <div>
           <CardTitle className="text-sm font-semibold">{title}</CardTitle>
@@ -30,7 +31,7 @@ export function PanelBlock({
         </div>
         {action}
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="flex flex-1 flex-col">{children}</CardContent>
     </Card>
   );
 }
