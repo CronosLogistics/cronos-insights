@@ -324,7 +324,7 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
           </Badge>
         }
       >
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr_1.1fr]">
           <GrupoIndicadores
             titulo="Volume"
             tom="volume"
@@ -447,12 +447,12 @@ const tons: Record<TomGrupo, { caixa: string; titulo: string; icone: string }> =
   volume: {
     caixa: "border-primary/20 bg-primary/5",
     titulo: "text-primary",
-    icone: "text-primary",
+    icone: "text-primary/70",
   },
   resultado: {
     caixa: "border-accent/25 bg-accent/5",
     titulo: "text-accent",
-    icone: "text-accent",
+    icone: "text-accent/70",
   },
   performance: {
     caixa: "border-border bg-muted/40",
@@ -472,29 +472,26 @@ function GrupoIndicadores({
 }) {
   const estilo = tons[tom];
   return (
-    <div className={cn("rounded-lg border p-4", estilo.caixa)}>
+    <div className={cn("rounded-lg border px-3 py-2.5", estilo.caixa)}>
       <p
         className={cn(
-          "mb-3 text-[11px] font-semibold uppercase tracking-wider",
+          "mb-2 text-[10px] font-semibold uppercase tracking-wider",
           estilo.titulo,
         )}
       >
-        {titulo}
+        + {titulo}
       </p>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2">
+      <ul className="flex flex-wrap gap-x-4 gap-y-2">
         {itens.map((item) => {
           const Icone = item.icone;
           return (
-            <li
-              key={item.titulo}
-              className="flex items-center gap-2.5 rounded-md border border-border/60 bg-card px-3 py-2.5"
-            >
-              <Icone className={cn("size-4 shrink-0", estilo.icone)} />
+            <li key={item.titulo} className="flex min-w-0 items-start gap-1.5">
+              <Icone className={cn("mt-0.5 size-3 shrink-0", estilo.icone)} />
               <span className="min-w-0">
-                <span className="block truncate font-heading text-lg font-semibold leading-tight">
+                <span className="block truncate font-heading text-sm font-semibold leading-tight">
                   {item.valor}
                 </span>
-                <span className="block truncate text-xs text-muted-foreground">
+                <span className="block truncate text-[10px] leading-tight text-muted-foreground">
                   {item.titulo}
                 </span>
               </span>
