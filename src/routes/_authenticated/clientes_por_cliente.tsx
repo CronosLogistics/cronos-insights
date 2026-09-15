@@ -304,53 +304,52 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
           </Badge>
         }
       >
-        <ul className="grid gap-x-10 sm:grid-cols-2">
-          {[
-            { titulo: "Rotas", valor: inteiro(ind.rotas), hint: "Linhas do recorte" },
-            { titulo: "Ofertas", valor: inteiro(ind.ofertas), hint: "Ofertas distintas" },
-            { titulo: "Aprovadas", valor: inteiro(ind.aprovadas) },
-            { titulo: "Reprovadas", valor: inteiro(ind.reprovadas) },
-            { titulo: "Em análise", valor: inteiro(ind.emAnalise) },
-            { titulo: "Taxa de aprovação", valor: formatarPct(ind.taxaAprovacao) },
-            { titulo: "Taxa de reprovação", valor: formatarPct(ind.taxaReprovacao) },
-            { titulo: "Clientes", valor: inteiro(ind.clientes) },
-            { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas) },
-            { titulo: "Coloaders", valor: inteiro(ind.coloaders) },
-            { titulo: "Conversão recorte", valor: formatarPct(ind.conversaoRecorte) },
-            {
-              titulo: "Média geral",
-              valor: formatarPct(ind.mediaGeral),
-              hint: "Base do produto",
-            },
-            {
-              titulo: "Diferença",
-              valor: diferencaTexto(ind.diferenca),
-              hint: "Recorte − média",
-            },
-            {
-              titulo: "Decisões",
-              valor: inteiro(ind.decisoes),
-              hint: "Aprovadas + reprovadas",
-            },
-          ].map((item) => (
-            <li
-              key={item.titulo}
-              className="flex flex-col gap-0.5 border-b border-border/60 py-3 first:pt-0 sm:flex-row sm:items-baseline sm:gap-4"
-            >
-              <span className="w-44 shrink-0">
-                <span className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.titulo}
-                </span>
-                {item.hint ? (
-                  <span className="mt-0.5 block text-xs text-muted-foreground/80 normal-case tracking-normal font-normal">
-                    {item.hint}
-                  </span>
-                ) : null}
-              </span>
-              <span className="text-sm font-medium leading-snug">{item.valor}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="grid gap-4 xl:grid-cols-3">
+          <GrupoIndicadores
+            titulo="Volume"
+            tom="volume"
+            itens={[
+              { titulo: "Rotas", valor: inteiro(ind.rotas), icone: BookOpen },
+              { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
+              { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
+              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
+            ]}
+          />
+          <GrupoIndicadores
+            titulo="Resultado"
+            tom="resultado"
+            itens={[
+              { titulo: "Aprovadas", valor: inteiro(ind.aprovadas), icone: CheckCircle2 },
+              { titulo: "Reprovadas", valor: inteiro(ind.reprovadas), icone: XCircle },
+              { titulo: "Em análise", valor: inteiro(ind.emAnalise), icone: Clock },
+              { titulo: "Decisões", valor: inteiro(ind.decisoes), icone: Gavel },
+            ]}
+          />
+          <GrupoIndicadores
+            titulo="Performance"
+            tom="performance"
+            itens={[
+              {
+                titulo: "Taxa de aprovação",
+                valor: formatarPct(ind.taxaAprovacao),
+                icone: BarChart3,
+              },
+              {
+                titulo: "Taxa de reprovação",
+                valor: formatarPct(ind.taxaReprovacao),
+                icone: BarChart2,
+              },
+              {
+                titulo: "Conversão recorte",
+                valor: formatarPct(ind.conversaoRecorte),
+                icone: TrendingUp,
+              },
+              { titulo: "Média geral", valor: formatarPct(ind.mediaGeral), icone: Target },
+              { titulo: "Diferença", valor: diferencaTexto(ind.diferenca), icone: Scale },
+            ]}
+          />
+        </div>
       </PanelBlock>
 
       <div className="grid gap-6 lg:grid-cols-2">
