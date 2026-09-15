@@ -1,7 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, Check, ChevronsUpDown, Info, Search } from "lucide-react";
+import {
+  BarChart2,
+  BarChart3,
+  BookOpen,
+  Building2,
+  Check,
+  CheckCircle2,
+  ChevronsUpDown,
+  Clock,
+  FileText,
+  Gavel,
+  Info,
+  Network,
+  Scale,
+  Search,
+  Target,
+  TrendingUp,
+  Users,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
@@ -304,53 +324,52 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
           </Badge>
         }
       >
-        <ul className="grid gap-x-10 sm:grid-cols-2">
-          {[
-            { titulo: "Rotas", valor: inteiro(ind.rotas), hint: "Linhas do recorte" },
-            { titulo: "Ofertas", valor: inteiro(ind.ofertas), hint: "Ofertas distintas" },
-            { titulo: "Aprovadas", valor: inteiro(ind.aprovadas) },
-            { titulo: "Reprovadas", valor: inteiro(ind.reprovadas) },
-            { titulo: "Em análise", valor: inteiro(ind.emAnalise) },
-            { titulo: "Taxa de aprovação", valor: formatarPct(ind.taxaAprovacao) },
-            { titulo: "Taxa de reprovação", valor: formatarPct(ind.taxaReprovacao) },
-            { titulo: "Clientes", valor: inteiro(ind.clientes) },
-            { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas) },
-            { titulo: "Coloaders", valor: inteiro(ind.coloaders) },
-            { titulo: "Conversão recorte", valor: formatarPct(ind.conversaoRecorte) },
-            {
-              titulo: "Média geral",
-              valor: formatarPct(ind.mediaGeral),
-              hint: "Base do produto",
-            },
-            {
-              titulo: "Diferença",
-              valor: diferencaTexto(ind.diferenca),
-              hint: "Recorte − média",
-            },
-            {
-              titulo: "Decisões",
-              valor: inteiro(ind.decisoes),
-              hint: "Aprovadas + reprovadas",
-            },
-          ].map((item) => (
-            <li
-              key={item.titulo}
-              className="flex flex-col gap-0.5 border-b border-border/60 py-3 first:pt-0 sm:flex-row sm:items-baseline sm:gap-4"
-            >
-              <span className="w-44 shrink-0">
-                <span className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.titulo}
-                </span>
-                {item.hint ? (
-                  <span className="mt-0.5 block text-xs text-muted-foreground/80 normal-case tracking-normal font-normal">
-                    {item.hint}
-                  </span>
-                ) : null}
-              </span>
-              <span className="text-sm font-medium leading-snug">{item.valor}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="grid gap-4 xl:grid-cols-3">
+          <GrupoIndicadores
+            titulo="Volume"
+            tom="volume"
+            itens={[
+              { titulo: "Rotas", valor: inteiro(ind.rotas), icone: BookOpen },
+              { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
+              { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
+              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
+            ]}
+          />
+          <GrupoIndicadores
+            titulo="Resultado"
+            tom="resultado"
+            itens={[
+              { titulo: "Aprovadas", valor: inteiro(ind.aprovadas), icone: CheckCircle2 },
+              { titulo: "Reprovadas", valor: inteiro(ind.reprovadas), icone: XCircle },
+              { titulo: "Em análise", valor: inteiro(ind.emAnalise), icone: Clock },
+              { titulo: "Decisões", valor: inteiro(ind.decisoes), icone: Gavel },
+            ]}
+          />
+          <GrupoIndicadores
+            titulo="Performance"
+            tom="performance"
+            itens={[
+              {
+                titulo: "Taxa de aprovação",
+                valor: formatarPct(ind.taxaAprovacao),
+                icone: BarChart3,
+              },
+              {
+                titulo: "Taxa de reprovação",
+                valor: formatarPct(ind.taxaReprovacao),
+                icone: BarChart2,
+              },
+              {
+                titulo: "Conversão recorte",
+                valor: formatarPct(ind.conversaoRecorte),
+                icone: TrendingUp,
+              },
+              { titulo: "Média geral", valor: formatarPct(ind.mediaGeral), icone: Target },
+              { titulo: "Diferença", valor: diferencaTexto(ind.diferenca), icone: Scale },
+            ]}
+          />
+        </div>
       </PanelBlock>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -418,6 +437,71 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
       />
 
       <TabelaRotaColoader linhas={analise.rotaColoader} resetKey={analise.cliente} />
+    </div>
+  );
+}
+
+type TomGrupo = "volume" | "resultado" | "performance";
+
+const tons: Record<TomGrupo, { caixa: string; titulo: string; icone: string }> = {
+  volume: {
+    caixa: "border-primary/20 bg-primary/5",
+    titulo: "text-primary",
+    icone: "text-primary",
+  },
+  resultado: {
+    caixa: "border-accent/25 bg-accent/5",
+    titulo: "text-accent",
+    icone: "text-accent",
+  },
+  performance: {
+    caixa: "border-border bg-muted/40",
+    titulo: "text-foreground",
+    icone: "text-muted-foreground",
+  },
+};
+
+function GrupoIndicadores({
+  titulo,
+  tom,
+  itens,
+}: {
+  titulo: string;
+  tom: TomGrupo;
+  itens: { titulo: string; valor: string; icone: LucideIcon }[];
+}) {
+  const estilo = tons[tom];
+  return (
+    <div className={cn("rounded-lg border p-4", estilo.caixa)}>
+      <p
+        className={cn(
+          "mb-3 text-[11px] font-semibold uppercase tracking-wider",
+          estilo.titulo,
+        )}
+      >
+        {titulo}
+      </p>
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2">
+        {itens.map((item) => {
+          const Icone = item.icone;
+          return (
+            <li
+              key={item.titulo}
+              className="flex items-center gap-2.5 rounded-md border border-border/60 bg-card px-3 py-2.5"
+            >
+              <Icone className={cn("size-4 shrink-0", estilo.icone)} />
+              <span className="min-w-0">
+                <span className="block truncate font-heading text-lg font-semibold leading-tight">
+                  {item.valor}
+                </span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {item.titulo}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
