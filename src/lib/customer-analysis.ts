@@ -286,44 +286,37 @@ function minPor(
   return pior;
 }
 
+/**
+ * Mínimo de decisões para um agrupamento ser considerado relevante em
+ * "Melhor conversão" / "Pior conversão" — equivale a TRATAMENTO!B5 da planilha.
+ */
+export const MIN_DECISOES = 5;
+
+const semAmostra = `Amostra pequena — sem combinação com ${MIN_DECISOES} decisões`;
+
 function montarPerfil(rotas: LinhaRanking[], motivos: LinhaMotivo[]): Perfil {
   const semDados = "—";
-  // rotas já vem ordenado por volume desc (desempate estável).
-  const recorrente = rotas[0];
-  if (!recorrente) {
-    return {
-      maisRecorrente: semDados,
-      maisAprovacoes: semDados,
-      maisReprovacoes: semDados,
-      melhorConversao: semDados,
-      piorConversao: semDados,
-      principalMotivo: motivos[0]
-        ? `${motivos[0].motivo} — ${inteiroBR(motivos[0].reprovadas)} reprovações`
-        : semDados,
-    };
-  }
-
+  const recorrente = rotas[0]; // já ordenado por volume desc (desempate estável)
+  const relevante = (l: LinhaRanking) => l.aprovadas + l.reprovadas >= MIN_DECISOES;
+  const melhor = maxPor(rotas, (l) => l.conversao, relevante);
+  const pior = minPor(rotas, (l) => l.conversao, relevante);
   const maisAp = maxPor(rotas, (l) => l.aprovadas);
   const maisRep = maxPor(rotas, (l) => l.reprovadas);
-  const comDecisao = (l: LinhaRanking) => l.aprovadas + l.reprovadas > 0;
-  const melhor = maxPor(rotas, (l) => l.conversao, comDecisao);
-  const pior = minPor(rotas, (l) => l.conversao, comDecisao);
+  const principalMotivo = motivos[0]
+    ? `${motivos[0].motivo} — ${inteiroBR(motivos[0].reprovadas)} reprovações`
+    : semDados;
 
   return {
-    maisRecorrente: `${recorrente.item} — ${inteiroBR(recorrente.rotas)} linhas`,
-    maisAprovacoes: maisAp
-      ? `${maisAp.item} — ${inteiroBR(maisAp.aprovadas)} aprovadas`
+    maisRecorrente: recorrente
+      ? `${recorrente.item} — ${inteiroBR(recorrente.rotas)} linhas`
       : semDados,
+    maisAprovacoes: maisAp ? `${maisAp.item} — ${inteiroBR(maisAp.aprovadas)} aprovadas` : semDados,
     maisReprovacoes: maisRep
       ? `${maisRep.item} — ${inteiroBR(maisRep.reprovadas)} reprovadas`
       : semDados,
-    melhorConversao: melhor
-      ? `${melhor.item} — ${formatarPct(melhor.conversao)}`
-      : semDados,
-    piorConversao: pior ? `${pior.item} — ${formatarPct(pior.conversao)}` : semDados,
-    principalMotivo: motivos[0]
-      ? `${motivos[0].motivo} — ${inteiroBR(motivos[0].reprovadas)} reprovações`
-      : semDados,
+    melhorConversao: melhor ? `${melhor.item} — ${formatarPct(melhor.conversao)}` : semAmostra,
+    piorConversao: pior ? `${pior.item} — ${formatarPct(pior.conversao)}` : semAmostra,
+    principalMotivo,
   };
 }
 
@@ -339,58 +332,44 @@ function pontos(diferenca: number): string {
   })} p.p.`;
 }
 
-function montarInsightsPricing(ind: Indicadores, motivos: LinhaMotivo[]): string[] {
+function montarInsightsPricing(
+  ind: Indicadores,
+  rotas: LinhaRanking[],
+  perfil: Perfil,
+  motivos: LinhaMotivo[],
+): string[] {
   const itens: string[] = [];
 
-  if (ind.decisoes === 0) {
+  // 1 — principal agrupamento.
+  const recorrente = rotas[0];
+  if (recorrente && ind.rotas > 0) {
     itens.push(
-      "O cliente ainda não possui decisões (aprovações ou reprovações) no recorte atual.",
-    );
-    if (ind.emAnalise > 0) {
-      itens.push(
-        `Há ${inteiroBR(ind.emAnalise)} oferta(s) em análise aguardando desfecho.`,
-      );
-    }
-    return itens;
-  }
-
-  if (ind.diferenca > 0.0001) {
-    itens.push(
-      `A conversão do cliente (${formatarPct(ind.conversaoRecorte)}) está ${pontos(
-        ind.diferenca,
-      )} acima da média do produto (${formatarPct(ind.mediaGeral)}).`,
-    );
-  } else if (ind.diferenca < -0.0001) {
-    itens.push(
-      `A conversão do cliente (${formatarPct(ind.conversaoRecorte)}) está ${pontos(
-        ind.diferenca,
-      )} abaixo da média do produto (${formatarPct(ind.mediaGeral)}).`,
-    );
-  } else {
-    itens.push(
-      `A conversão do cliente (${formatarPct(
-        ind.conversaoRecorte,
-      )}) está alinhada à média do produto (${formatarPct(ind.mediaGeral)}).`,
+      `O principal agrupamento é ${recorrente.item}, com ${formatarPct(
+        recorrente.rotas / ind.rotas,
+      )} das rotas.`,
     );
   }
 
+  // 2 — conversão vs. média geral.
   itens.push(
-    `Taxa de reprovação de ${formatarPct(ind.taxaReprovacao)} sobre ${inteiroBR(
-      ind.decisoes,
-    )} decisões (${inteiroBR(ind.aprovadas)} aprovadas, ${inteiroBR(ind.reprovadas)} reprovadas).`,
+    `Conversão de ${formatarPct(ind.conversaoRecorte)} vs. ${formatarPct(
+      ind.mediaGeral,
+    )} na base (${pontos(ind.diferenca)}; ${inteiroBR(ind.decisoes)} decisões).`,
   );
 
-  if (ind.emAnalise > 0) {
-    itens.push(
-      `${inteiroBR(ind.emAnalise)} oferta(s) ainda em análise — desfecho pode mover a conversão.`,
-    );
-  }
+  // 3 — principal motivo.
+  itens.push(
+    `Principal motivo registrado nas reprovações: ${
+      motivos[0] ? motivos[0].motivo : "—"
+    }.`,
+  );
 
-  if (motivos[0] && ind.reprovadas > 0) {
+  // 4 — melhor / pior agrupamento relevante.
+  if (ind.decisoes < MIN_DECISOES) {
+    itens.push(`Amostra pequena — ${inteiroBR(ind.rotas)} rotas.`);
+  } else {
     itens.push(
-      `Principal motivo de perda: "${motivos[0].motivo}" (${formatarPct(
-        motivos[0].participacao,
-      )} das reprovações).`,
+      `Melhor agrupamento relevante: ${perfil.melhorConversao}; pior: ${perfil.piorConversao}.`,
     );
   }
 
@@ -399,51 +378,51 @@ function montarInsightsPricing(ind: Indicadores, motivos: LinhaMotivo[]): string
 
 function montarOndeAtuar(
   ind: Indicadores,
-  rotas: LinhaRanking[],
   rotaColoader: LinhaRotaColoader[],
-  motivos: LinhaMotivo[],
 ): string[] {
   const itens: string[] = [];
-  const comDecisao = (l: LinhaRanking) => l.aprovadas + l.reprovadas > 0;
 
-  // Rota de maior volume com pior conversão.
-  const pior = minPor(rotas, (l) => l.conversao, comDecisao);
-  if (pior && pior.reprovadas > 0) {
+  // 1 — prioridade geral.
+  if (ind.decisoes < MIN_DECISOES) {
+    itens.push(`AMOSTRA PEQUENA — ${inteiroBR(ind.rotas)} rotas.`);
+  } else if (ind.diferenca < 0) {
     itens.push(
-      `Revisar pricing na rota "${pior.item}": conversão de ${formatarPct(
-        pior.conversao,
-      )} em ${inteiroBR(pior.aprovadas + pior.reprovadas)} decisões.`,
+      `ALTA PRIORIDADE — conversão ${pontos(Math.abs(ind.diferenca))} abaixo da média.`,
     );
+  } else {
+    itens.push("PONTO FORTE — conversão igual ou acima da média.");
   }
 
-  // Combinação Rota × Coloader com mais reprovações.
-  const critico = rotaColoader.find((l) => l.reprovadas > 0);
-  if (critico) {
+  // Combinação relevante = a primeira do ranking (mais reprovações).
+  const critico = rotaColoader[0];
+  const combinacao = critico ? `${critico.rota} × ${critico.coloader}` : null;
+
+  // 2 — reprovações da combinação.
+  if (critico && combinacao) {
     itens.push(
-      `Maior perda em "${critico.rota}" via ${critico.coloader}: ${inteiroBR(
-        critico.reprovadas,
-      )} reprovações (conversão ${formatarPct(critico.conversao)}).`,
+      `ATENÇÃO — ${combinacao} reúne ${inteiroBR(critico.reprovadas)} reprovações.`,
     );
+  } else {
+    itens.push("Sem combinação disponível");
   }
 
-  // Motivo dominante.
-  if (motivos[0] && motivos[0].reprovadas > 0) {
+  // 3 — concentração de rotas.
+  if (critico && combinacao && ind.rotas > 0) {
     itens.push(
-      `Atacar o motivo "${motivos[0].motivo}", responsável por ${formatarPct(
-        motivos[0].participacao,
-      )} das reprovações.`,
+      `DEPENDÊNCIA — ${combinacao} concentra ${formatarPct(
+        critico.rotas / ind.rotas,
+      )} das rotas.`,
     );
+  } else {
+    itens.push("Sem concentração calculável");
   }
 
-  // Ofertas represadas em análise.
-  if (ind.emAnalise > 0) {
-    itens.push(
-      `Acompanhar ${inteiroBR(ind.emAnalise)} oferta(s) em análise para destravar decisões.`,
-    );
-  }
-
-  if (itens.length === 0) {
-    itens.push("Recorte saudável: nenhuma frente crítica de reprovação identificada.");
+  // 4 — conversão da combinação vs. média geral.
+  if (critico && combinacao && critico.aprovadas + critico.reprovadas > 0) {
+    const rotulo = critico.conversao >= ind.mediaGeral ? "PONTO FORTE" : "INVESTIGAR";
+    itens.push(`${rotulo} — ${combinacao} converte ${formatarPct(critico.conversao)}.`);
+  } else {
+    itens.push("Sem amostra");
   }
 
   return itens;
