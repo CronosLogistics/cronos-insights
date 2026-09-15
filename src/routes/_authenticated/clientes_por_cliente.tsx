@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -16,12 +16,13 @@ import {
   Target,
   TrendingDown,
   Users,
+  X,
   XCircle,
   type LucideIcon,
 } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
-import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
+import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -146,12 +147,14 @@ function ClienteCombobox({
 }: {
   clientes: string[];
   value: string | null;
-  onValueChange: (cliente: string) => void;
+  onValueChange: (cliente: string | null) => void;
 }) {
   const [aberto, setAberto] = useState(false);
   const [texto, setTexto] = useState(value ?? "");
   const [largura, setLargura] = useState<number>();
   const ancoraRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const temConteudo = Boolean(texto.trim() || value);
 
   useEffect(() => {
     setTexto(value ?? "");
@@ -179,6 +182,15 @@ function ClienteCombobox({
     setAberto(false);
   }
 
+  function limpar(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    onValueChange(null);
+    setTexto("");
+    setAberto(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
+
   return (
     <Popover
       open={aberto}
@@ -190,6 +202,7 @@ function ClienteCombobox({
       <PopoverAnchor asChild>
         <div ref={ancoraRef} className="relative w-full">
           <Input
+            ref={inputRef}
             role="combobox"
             aria-expanded={aberto}
             autoComplete="off"
@@ -206,9 +219,22 @@ function ClienteCombobox({
                 fechar();
               }
             }}
-            className="pr-9"
+            className={cn("pr-9", temConteudo && "pr-16")}
           />
-          <ChevronsUpDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 opacity-50" />
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+            {temConteudo ? (
+              <button
+                type="button"
+                aria-label="Limpar cliente"
+                className="rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={limpar}
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
+            <ChevronsUpDown className="pointer-events-none size-4 opacity-50" />
+          </div>
         </div>
       </PopoverAnchor>
       <PopoverContent
@@ -560,7 +586,7 @@ function TabelaRanking({
   const paginacao = usePaginacao(linhas, resetKey);
   return (
     <PanelBlock title={titulo} description={descricao}>
-      <div className="overflow-x-auto">
+      <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -586,7 +612,7 @@ function TabelaRanking({
             {linhas.length === 0 ? <VazioTabela colunas={6} /> : null}
           </TableBody>
         </Table>
-      </div>
+      </PaginatedContent>
       <TablePagination
         pagina={paginacao.pagina}
         totalPaginas={paginacao.totalPaginas}
@@ -615,7 +641,7 @@ function TabelaMotivos({
       description="Distribuição das reprovações do cliente por motivo."
     >
       <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
-        <div className="overflow-x-auto">
+        <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -635,7 +661,7 @@ function TabelaMotivos({
               {linhas.length === 0 ? <VazioTabela colunas={3} /> : null}
             </TableBody>
           </Table>
-        </div>
+        </PaginatedContent>
         <TablePagination
           pagina={paginacao.pagina}
           totalPaginas={paginacao.totalPaginas}
@@ -664,7 +690,7 @@ function TabelaRotaColoader({
       description="Combinações com mais reprovações (desempate por volume)."
       action={<Search className="size-4 text-muted-foreground" />}
     >
-      <div className="overflow-x-auto">
+      <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -692,7 +718,7 @@ function TabelaRotaColoader({
             {linhas.length === 0 ? <VazioTabela colunas={7} /> : null}
           </TableBody>
         </Table>
-      </div>
+      </PaginatedContent>
       <TablePagination
         pagina={paginacao.pagina}
         totalPaginas={paginacao.totalPaginas}

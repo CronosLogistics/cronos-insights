@@ -4,7 +4,7 @@ import { Database } from "lucide-react";
 
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
-import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
+import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -129,7 +129,7 @@ function QualidadePage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -166,7 +166,7 @@ function QualidadePage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
+            </PaginatedContent>
             <TablePagination
               pagina={paginacao.pagina}
               totalPaginas={paginacao.totalPaginas}

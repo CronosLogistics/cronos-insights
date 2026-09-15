@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
-import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
+import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -251,7 +251,7 @@ function CotacoesPage() {
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -301,7 +301,7 @@ function CotacoesPage() {
                     ) : null}
                   </TableBody>
                 </Table>
-              </div>
+              </PaginatedContent>
               <TablePagination
                 pagina={paginacao.pagina}
                 totalPaginas={paginacao.totalPaginas}
