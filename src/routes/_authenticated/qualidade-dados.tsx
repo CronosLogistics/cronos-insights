@@ -4,6 +4,7 @@ import { Database } from "lucide-react";
 
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -64,6 +65,7 @@ function QualidadePage() {
       ? campos.data.reduce((soma, item) => soma + Number(item.preenchimento_pct ?? 0), 0) /
         campos.data.length
       : 0;
+  const paginacao = usePaginacao(campos.data, "qualidade-dados");
 
   return (
     <div className="space-y-6">
@@ -126,44 +128,55 @@ function QualidadePage() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Campo</TableHead>
-                  <TableHead className="text-right">Preenchidos</TableHead>
-                  <TableHead className="text-right">Sem informação</TableHead>
-                  <TableHead className="text-right">Preenchimento</TableHead>
-                  <TableHead>Situação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(campos.data ?? []).map((item) => {
-                  const pct = Number(item.preenchimento_pct ?? 0);
-                  const nivel = severidade(pct);
-                  return (
-                    <TableRow key={item.campo}>
-                      <TableCell className="font-medium">{item.campo}</TableCell>
-                      <TableCell className="text-right">
-                        {Number(item.preenchidos ?? 0).toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {Number(item.vazios ?? 0).toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {pct.toLocaleString("pt-BR")}%
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={nivel.variant} className="font-normal">
-                          {nivel.label}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Campo</TableHead>
+                    <TableHead className="text-right">Preenchidos</TableHead>
+                    <TableHead className="text-right">Sem informação</TableHead>
+                    <TableHead className="text-right">Preenchimento</TableHead>
+                    <TableHead>Situação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginacao.visiveis.map((item) => {
+                    const pct = Number(item.preenchimento_pct ?? 0);
+                    const nivel = severidade(pct);
+                    return (
+                      <TableRow key={item.campo}>
+                        <TableCell className="font-medium">{item.campo}</TableCell>
+                        <TableCell className="text-right">
+                          {Number(item.preenchidos ?? 0).toLocaleString("pt-BR")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {Number(item.vazios ?? 0).toLocaleString("pt-BR")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {pct.toLocaleString("pt-BR")}%
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={nivel.variant} className="font-normal">
+                            {nivel.label}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              pagina={paginacao.pagina}
+              totalPaginas={paginacao.totalPaginas}
+              porPagina={paginacao.porPagina}
+              total={paginacao.total}
+              inicio={paginacao.inicio}
+              onPagina={paginacao.setPagina}
+              onPorPagina={paginacao.setPorPagina}
+            />
+          </>
         )}
       </PanelBlock>
     </div>

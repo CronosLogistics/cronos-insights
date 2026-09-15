@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Database } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -111,11 +112,13 @@ function HistoricoImportacoes() {
         .from("importacoes")
         .select("*")
         .order("iniciado_em", { ascending: false })
-        .limit(10);
+        .limit(100);
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  const paginacao = usePaginacao(importacoes.data, "importacoes-historico");
 
   return (
     <PanelBlock
@@ -135,47 +138,58 @@ function HistoricoImportacoes() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fonte</TableHead>
-                <TableHead>Início</TableHead>
-                <TableHead>Conclusão</TableHead>
-                <TableHead className="text-right">Linhas</TableHead>
-                <TableHead>Situação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(importacoes.data ?? []).map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="max-w-[220px] truncate">{item.fonte}</TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {formatarDataHora(item.iniciado_em)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {formatarDataHora(item.concluido_em)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {item.linhas ? item.linhas.toLocaleString("pt-BR") : "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">
-                      {item.situacao}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(importacoes.data ?? []).length === 0 ? (
+        <>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    Nenhuma carga registrada.
-                  </TableCell>
+                  <TableHead>Fonte</TableHead>
+                  <TableHead>Início</TableHead>
+                  <TableHead>Conclusão</TableHead>
+                  <TableHead className="text-right">Linhas</TableHead>
+                  <TableHead>Situação</TableHead>
                 </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {paginacao.visiveis.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="max-w-[220px] truncate">{item.fonte}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatarDataHora(item.iniciado_em)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatarDataHora(item.concluido_em)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.linhas ? item.linhas.toLocaleString("pt-BR") : "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="font-normal">
+                        {item.situacao}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {paginacao.total === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      Nenhuma carga registrada.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
+          </div>
+          <TablePagination
+            pagina={paginacao.pagina}
+            totalPaginas={paginacao.totalPaginas}
+            porPagina={paginacao.porPagina}
+            total={paginacao.total}
+            inicio={paginacao.inicio}
+            onPagina={paginacao.setPagina}
+            onPorPagina={paginacao.setPorPagina}
+          />
+        </>
       )}
     </PanelBlock>
   );
@@ -222,6 +236,8 @@ function AcessosProduto() {
     },
   });
 
+  const paginacao = usePaginacao(usuarios.data, "acessos-produto");
+
   if (perfil.isPending) {
     return <Skeleton className="h-40 w-full" />;
   }
@@ -263,49 +279,60 @@ function AcessosProduto() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuário</TableHead>
-                <TableHead>E-mail</TableHead>
-                <TableHead className="w-64">Produto</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(usuarios.data ?? []).map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="max-w-[220px] truncate">{item.nome ?? "—"}</TableCell>
-                  <TableCell className="max-w-[240px] truncate">{item.email ?? "—"}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={item.produto_codigo ?? ""}
-                      onValueChange={(codigo) => atualizar.mutate({ id: item.id, codigo })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o produto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(produtos.data ?? []).map((produto) => (
-                          <SelectItem key={produto.codigo} value={produto.codigo}>
-                            {produto.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(usuarios.data ?? []).length === 0 ? (
+        <>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Nenhum usuário cadastrado.
-                  </TableCell>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>E-mail</TableHead>
+                  <TableHead className="w-64">Produto</TableHead>
                 </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {paginacao.visiveis.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="max-w-[220px] truncate">{item.nome ?? "—"}</TableCell>
+                    <TableCell className="max-w-[240px] truncate">{item.email ?? "—"}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={item.produto_codigo ?? ""}
+                        onValueChange={(codigo) => atualizar.mutate({ id: item.id, codigo })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o produto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(produtos.data ?? []).map((produto) => (
+                            <SelectItem key={produto.codigo} value={produto.codigo}>
+                              {produto.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {paginacao.total === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                      Nenhum usuário cadastrado.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
+          </div>
+          <TablePagination
+            pagina={paginacao.pagina}
+            totalPaginas={paginacao.totalPaginas}
+            porPagina={paginacao.porPagina}
+            total={paginacao.total}
+            inicio={paginacao.inicio}
+            onPagina={paginacao.setPagina}
+            onPorPagina={paginacao.setPorPagina}
+          />
+        </>
       )}
     </PanelBlock>
   );

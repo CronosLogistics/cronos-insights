@@ -5,8 +5,8 @@ import { Building2, Info, Search } from "lucide-react";
 
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -184,7 +184,6 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
 
   return (
     <div className="space-y-6">
-      {/* 1. Indicadores do recorte */}
       <PanelBlock
         title="Indicadores do recorte"
         description={`Cliente: ${analise.cliente}`}
@@ -212,7 +211,6 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         </div>
       </PanelBlock>
 
-      {/* 2. Perfil do recorte */}
       <PanelBlock
         title="Perfil do recorte"
         description="Rotas e motivo mais relevantes do cliente."
@@ -227,7 +225,6 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         </div>
       </PanelBlock>
 
-      {/* 3 e 4. Insights */}
       <div className="grid gap-6 lg:grid-cols-2">
         <PanelBlock title="Insights de Pricing" description="Leitura automática dos indicadores.">
           <ListaInsights itens={analise.insightsPricing} />
@@ -237,35 +234,33 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         </PanelBlock>
       </div>
 
-      {/* 5. Rotas do cliente */}
       <TabelaRanking
         titulo="Rotas do cliente"
         descricao="Volume e conversão por rota (origem → destino)."
         rotuloItem="Rota"
         linhas={analise.rotas}
+        resetKey={analise.cliente}
       />
 
-      {/* 6. Coloaders do cliente */}
       <TabelaRanking
         titulo="Coloaders do cliente"
         descricao="Desempenho por coloader/armador."
         rotuloItem="Coloader"
         linhas={analise.coloaders}
+        resetKey={analise.cliente}
       />
 
-      {/* 7. Agentes do cliente */}
       <TabelaRanking
         titulo="Agentes do cliente"
         descricao="Desempenho por agente no exterior."
         rotuloItem="Agente"
         linhas={analise.agentes}
+        resetKey={analise.cliente}
       />
 
-      {/* 8. Motivos de reprovação */}
-      <TabelaMotivos linhas={analise.motivos} />
+      <TabelaMotivos linhas={analise.motivos} resetKey={analise.cliente} />
 
-      {/* 9. Onde estamos perdendo? — Rota × Coloader */}
-      <TabelaRotaColoader linhas={analise.rotaColoader} />
+      <TabelaRotaColoader linhas={analise.rotaColoader} resetKey={analise.cliente} />
     </div>
   );
 }
@@ -296,36 +291,6 @@ function ListaInsights({ itens }: { itens: string[] }) {
   );
 }
 
-const LIMITE_INICIAL = 10;
-
-function useLimite<T>(linhas: T[]) {
-  const [expandido, setExpandido] = useState(false);
-  const visiveis = expandido ? linhas : linhas.slice(0, LIMITE_INICIAL);
-  const podeExpandir = linhas.length > LIMITE_INICIAL;
-  return { visiveis, expandido, setExpandido, podeExpandir };
-}
-
-function BotaoExpandir({
-  expandido,
-  podeExpandir,
-  total,
-  onToggle,
-}: {
-  expandido: boolean;
-  podeExpandir: boolean;
-  total: number;
-  onToggle: () => void;
-}) {
-  if (!podeExpandir) return null;
-  return (
-    <div className="pt-3">
-      <Button variant="ghost" size="sm" onClick={onToggle}>
-        {expandido ? "Mostrar top 10" : `Mostrar todas (${inteiro(total)})`}
-      </Button>
-    </div>
-  );
-}
-
 function VazioTabela({ colunas }: { colunas: number }) {
   return (
     <TableRow>
@@ -341,13 +306,15 @@ function TabelaRanking({
   descricao,
   rotuloItem,
   linhas,
+  resetKey,
 }: {
   titulo: string;
   descricao: string;
   rotuloItem: string;
   linhas: LinhaRanking[];
+  resetKey: string;
 }) {
-  const { visiveis, expandido, setExpandido, podeExpandir } = useLimite(linhas);
+  const paginacao = usePaginacao(linhas, resetKey);
   return (
     <PanelBlock title={titulo} description={descricao}>
       <div className="overflow-x-auto">
@@ -363,8 +330,8 @@ function TabelaRanking({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visiveis.map((linha, i) => (
-              <TableRow key={`${linha.item}-${i}`}>
+            {paginacao.visiveis.map((linha, i) => (
+              <TableRow key={`${linha.item}-${paginacao.inicio + i}`}>
                 <TableCell className="max-w-[280px] truncate">{linha.item}</TableCell>
                 <TableCell className="text-right">{inteiro(linha.rotas)}</TableCell>
                 <TableCell className="text-right">{inteiro(linha.aprovadas)}</TableCell>
@@ -377,18 +344,27 @@ function TabelaRanking({
           </TableBody>
         </Table>
       </div>
-      <BotaoExpandir
-        expandido={expandido}
-        podeExpandir={podeExpandir}
-        total={linhas.length}
-        onToggle={() => setExpandido((v) => !v)}
+      <TablePagination
+        pagina={paginacao.pagina}
+        totalPaginas={paginacao.totalPaginas}
+        porPagina={paginacao.porPagina}
+        total={paginacao.total}
+        inicio={paginacao.inicio}
+        onPagina={paginacao.setPagina}
+        onPorPagina={paginacao.setPorPagina}
       />
     </PanelBlock>
   );
 }
 
-function TabelaMotivos({ linhas }: { linhas: LinhaMotivo[] }) {
-  const { visiveis, expandido, setExpandido, podeExpandir } = useLimite(linhas);
+function TabelaMotivos({
+  linhas,
+  resetKey,
+}: {
+  linhas: LinhaMotivo[];
+  resetKey: string;
+}) {
+  const paginacao = usePaginacao(linhas, resetKey);
   return (
     <PanelBlock
       title="Motivos de reprovação"
@@ -404,8 +380,8 @@ function TabelaMotivos({ linhas }: { linhas: LinhaMotivo[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visiveis.map((linha, i) => (
-              <TableRow key={`${linha.motivo}-${i}`}>
+            {paginacao.visiveis.map((linha, i) => (
+              <TableRow key={`${linha.motivo}-${paginacao.inicio + i}`}>
                 <TableCell className="max-w-[420px] truncate">{linha.motivo}</TableCell>
                 <TableCell className="text-right">{inteiro(linha.reprovadas)}</TableCell>
                 <TableCell className="text-right">{formatarPct(linha.participacao)}</TableCell>
@@ -415,18 +391,27 @@ function TabelaMotivos({ linhas }: { linhas: LinhaMotivo[] }) {
           </TableBody>
         </Table>
       </div>
-      <BotaoExpandir
-        expandido={expandido}
-        podeExpandir={podeExpandir}
-        total={linhas.length}
-        onToggle={() => setExpandido((v) => !v)}
+      <TablePagination
+        pagina={paginacao.pagina}
+        totalPaginas={paginacao.totalPaginas}
+        porPagina={paginacao.porPagina}
+        total={paginacao.total}
+        inicio={paginacao.inicio}
+        onPagina={paginacao.setPagina}
+        onPorPagina={paginacao.setPorPagina}
       />
     </PanelBlock>
   );
 }
 
-function TabelaRotaColoader({ linhas }: { linhas: LinhaRotaColoader[] }) {
-  const { visiveis, expandido, setExpandido, podeExpandir } = useLimite(linhas);
+function TabelaRotaColoader({
+  linhas,
+  resetKey,
+}: {
+  linhas: LinhaRotaColoader[];
+  resetKey: string;
+}) {
+  const paginacao = usePaginacao(linhas, resetKey);
   return (
     <PanelBlock
       title="Onde estamos perdendo? — Rota × Coloader"
@@ -447,8 +432,8 @@ function TabelaRotaColoader({ linhas }: { linhas: LinhaRotaColoader[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visiveis.map((linha, i) => (
-              <TableRow key={`${linha.rota}-${linha.coloader}-${i}`}>
+            {paginacao.visiveis.map((linha, i) => (
+              <TableRow key={`${linha.rota}-${linha.coloader}-${paginacao.inicio + i}`}>
                 <TableCell className="max-w-[220px] truncate">{linha.rota}</TableCell>
                 <TableCell className="max-w-[220px] truncate">{linha.coloader}</TableCell>
                 <TableCell className="text-right">{inteiro(linha.rotas)}</TableCell>
@@ -462,11 +447,14 @@ function TabelaRotaColoader({ linhas }: { linhas: LinhaRotaColoader[] }) {
           </TableBody>
         </Table>
       </div>
-      <BotaoExpandir
-        expandido={expandido}
-        podeExpandir={podeExpandir}
-        total={linhas.length}
-        onToggle={() => setExpandido((v) => !v)}
+      <TablePagination
+        pagina={paginacao.pagina}
+        totalPaginas={paginacao.totalPaginas}
+        porPagina={paginacao.porPagina}
+        total={paginacao.total}
+        inicio={paginacao.inicio}
+        onPagina={paginacao.setPagina}
+        onPorPagina={paginacao.setPorPagina}
       />
     </PanelBlock>
   );

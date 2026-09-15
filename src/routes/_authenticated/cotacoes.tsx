@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/cotacoes")({
   component: CotacoesPage,
 });
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 500;
 
 type Oferta = {
   oferta: string;
@@ -162,6 +163,9 @@ function CotacoesPage() {
     return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
   }, [resumo.data]);
 
+  const filtrosKey = `${busca}|${modalidade}|${analise}`;
+  const paginacao = usePaginacao(lista.data, filtrosKey);
+
   return (
     <div className="space-y-6">
       <ModuleIntro
@@ -191,7 +195,7 @@ function CotacoesPage() {
 
       <PanelBlock
         title="Base de ofertas"
-        description="Cinquenta ofertas mais recentes conforme os filtros aplicados."
+        description="Ofertas mais recentes conforme os filtros aplicados, com paginação."
         action={
           <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
             <Database className="size-3" />
@@ -246,57 +250,68 @@ function CotacoesPage() {
               Não foi possível carregar as ofertas agora.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Oferta</TableHead>
-                    <TableHead>Rev.</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Origem → Destino</TableHead>
-                    <TableHead>Modalidade</TableHead>
-                    <TableHead>Situação</TableHead>
-                    <TableHead>Vendedor</TableHead>
-                    <TableHead>Pricing</TableHead>
-                    <TableHead>Abertura</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lista.data!.map((row) => (
-                    <TableRow key={`${row.oferta}-${row.revisao ?? 0}`}>
-                      <TableCell className="whitespace-nowrap font-medium">{row.oferta}</TableCell>
-                      <TableCell>{row.revisao ?? "—"}</TableCell>
-                      <TableCell className="max-w-[220px] truncate">
-                        {row.cliente ?? "—"}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">
-                        {(row.origem ?? "—") + " → " + (row.destino ?? "—")}
-                      </TableCell>
-                      <TableCell>{row.modalidade ?? "—"}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-normal">
-                          {row.analise ?? "—"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[180px] truncate">
-                        {row.vendedor ?? "—"}
-                      </TableCell>
-                      <TableCell className="max-w-[160px] truncate">{row.pricing ?? "—"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {formatDate(row.data_abertura)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {lista.data!.length === 0 ? (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground">
-                        Nenhuma oferta encontrada com os filtros atuais.
-                      </TableCell>
+                      <TableHead>Oferta</TableHead>
+                      <TableHead>Rev.</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Origem → Destino</TableHead>
+                      <TableHead>Modalidade</TableHead>
+                      <TableHead>Situação</TableHead>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Pricing</TableHead>
+                      <TableHead>Abertura</TableHead>
                     </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {paginacao.visiveis.map((row) => (
+                      <TableRow key={`${row.oferta}-${row.revisao ?? 0}`}>
+                        <TableCell className="whitespace-nowrap font-medium">{row.oferta}</TableCell>
+                        <TableCell>{row.revisao ?? "—"}</TableCell>
+                        <TableCell className="max-w-[220px] truncate">
+                          {row.cliente ?? "—"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                          {(row.origem ?? "—") + " → " + (row.destino ?? "—")}
+                        </TableCell>
+                        <TableCell>{row.modalidade ?? "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="font-normal">
+                            {row.analise ?? "—"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[180px] truncate">
+                          {row.vendedor ?? "—"}
+                        </TableCell>
+                        <TableCell className="max-w-[160px] truncate">{row.pricing ?? "—"}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {formatDate(row.data_abertura)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {paginacao.total === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center text-muted-foreground">
+                          Nenhuma oferta encontrada com os filtros atuais.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
+              <TablePagination
+                pagina={paginacao.pagina}
+                totalPaginas={paginacao.totalPaginas}
+                porPagina={paginacao.porPagina}
+                total={paginacao.total}
+                inicio={paginacao.inicio}
+                onPagina={paginacao.setPagina}
+                onPorPagina={paginacao.setPorPagina}
+              />
+            </>
           )}
         </div>
       </PanelBlock>

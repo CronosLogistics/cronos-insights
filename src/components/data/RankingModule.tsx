@@ -4,6 +4,7 @@ import { Database, RefreshCw } from "lucide-react";
 
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,9 +69,10 @@ export function RankingModule({
     queryFn: () => fetchRows(busca.trim()),
   });
 
-  const linhas = lista.data ?? [];
-  const top = linhas.slice(0, 10);
+  const linhas = lista.data;
+  const top = (linhas ?? []).slice(0, 10);
   const maior = Math.max(...top.map((linha) => Number(linha[campoValor] ?? 0)), 1);
+  const paginacao = usePaginacao(linhas, `${queryKey}:${busca}`);
 
   return (
     <div className="space-y-6">
@@ -152,50 +154,63 @@ export function RankingModule({
               Não foi possível carregar os dados agora.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {colunas.map((coluna) => (
-                      <TableHead
-                        key={coluna.key}
-                        className={coluna.tipo && coluna.tipo !== "texto" ? "text-right" : ""}
-                      >
-                        {coluna.label}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {linhas.map((linha, index) => (
-                    <TableRow key={`${String(linha[campoRotulo])}-${index}`}>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
                       {colunas.map((coluna) => (
-                        <TableCell
+                        <TableHead
                           key={coluna.key}
-                          className={
-                            coluna.tipo && coluna.tipo !== "texto"
-                              ? "whitespace-nowrap text-right"
-                              : "max-w-[260px] truncate"
-                          }
+                          className={coluna.tipo && coluna.tipo !== "texto" ? "text-right" : ""}
                         >
-                          {formatarValor(linha[coluna.key] ?? null, coluna.tipo ?? "texto")}
-                        </TableCell>
+                          {coluna.label}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))}
-                  {linhas.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={colunas.length}
-                        className="text-center text-muted-foreground"
+                  </TableHeader>
+                  <TableBody>
+                    {paginacao.visiveis.map((linha, index) => (
+                      <TableRow
+                        key={`${String(linha[campoRotulo])}-${paginacao.inicio + index}`}
                       >
-                        Nenhum registro encontrado.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </div>
+                        {colunas.map((coluna) => (
+                          <TableCell
+                            key={coluna.key}
+                            className={
+                              coluna.tipo && coluna.tipo !== "texto"
+                                ? "whitespace-nowrap text-right"
+                                : "max-w-[260px] truncate"
+                            }
+                          >
+                            {formatarValor(linha[coluna.key] ?? null, coluna.tipo ?? "texto")}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                    {paginacao.total === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={colunas.length}
+                          className="text-center text-muted-foreground"
+                        >
+                          Nenhum registro encontrado.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
+              <TablePagination
+                pagina={paginacao.pagina}
+                totalPaginas={paginacao.totalPaginas}
+                porPagina={paginacao.porPagina}
+                total={paginacao.total}
+                inicio={paginacao.inicio}
+                onPagina={paginacao.setPagina}
+                onPorPagina={paginacao.setPorPagina}
+              />
+            </>
           )}
         </div>
       </PanelBlock>
