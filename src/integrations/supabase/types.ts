@@ -305,6 +305,20 @@ export type Database = {
         }
         Relationships: []
       }
+      v_cliente_lista: {
+        Row: {
+          cliente: string | null
+          ofertas: number | null
+        }
+        Relationships: []
+      }
+      v_cliente_media_geral: {
+        Row: {
+          aprovadas: number | null
+          reprovadas: number | null
+        }
+        Relationships: []
+      }
       v_clientes: {
         Row: {
           aprovadas: number | null
@@ -403,6 +417,45 @@ export type Database = {
           produto: string | null
           reprovacoes: number | null
           rota_recorrente: string | null
+        }
+        Relationships: []
+      }
+      v_ofertas_analitico: {
+        Row: {
+          agente_analitico: string | null
+          cliente_analitico: string | null
+          coloader_analitico: string | null
+          flag_aprovada: number | null
+          flag_em_analise: number | null
+          flag_reprovada: number | null
+          id: number | null
+          motivo_perda_analitico: string | null
+          oferta: string | null
+          rota_analitica: string | null
+        }
+        Insert: {
+          agente_analitico?: never
+          cliente_analitico?: never
+          coloader_analitico?: never
+          flag_aprovada?: never
+          flag_em_analise?: never
+          flag_reprovada?: never
+          id?: number | null
+          motivo_perda_analitico?: never
+          oferta?: string | null
+          rota_analitica?: never
+        }
+        Update: {
+          agente_analitico?: never
+          cliente_analitico?: never
+          coloader_analitico?: never
+          flag_aprovada?: never
+          flag_em_analise?: never
+          flag_reprovada?: never
+          id?: number | null
+          motivo_perda_analitico?: never
+          oferta?: string | null
+          rota_analitica?: never
         }
         Relationships: []
       }
