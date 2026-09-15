@@ -19,6 +19,7 @@ import {
   Target,
   TrendingUp,
   Users,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 
