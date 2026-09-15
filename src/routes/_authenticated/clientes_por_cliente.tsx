@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BarChart2,
   BarChart3,
   BookOpen,
   Building2,
@@ -11,13 +10,11 @@ import {
   ChevronsUpDown,
   Clock,
   FileText,
-  Gavel,
   Info,
   Network,
-  Scale,
   Search,
   Target,
-  TrendingUp,
+  TrendingDown,
   Users,
   XCircle,
   type LucideIcon,
@@ -70,14 +67,6 @@ export const Route = createFileRoute("/_authenticated/clientes_por_cliente")({
 });
 
 const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
-
-function diferencaTexto(diferenca: number): string {
-  const sinal = diferenca > 0 ? "+" : "";
-  return `${sinal}${(diferenca * 100).toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })} p.p.`;
-}
 
 function PorClientePage() {
   const [cliente, setCliente] = useState<string | null>(null);
@@ -319,12 +308,12 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         title="Indicadores do recorte"
         description={`Cliente: ${analise.cliente}`}
         action={
-          <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
+          <Badge className="border-transparent bg-accent text-accent-foreground hover:bg-accent">
             Dados reais
           </Badge>
         }
       >
-        <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr_1.1fr]">
+        <div className="grid gap-3 lg:grid-cols-3">
           <GrupoIndicadores
             titulo="Volume"
             tom="volume"
@@ -333,17 +322,30 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
               { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
               { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
-              { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
             ]}
           />
           <GrupoIndicadores
             titulo="Resultado"
             tom="resultado"
             itens={[
-              { titulo: "Aprovadas", valor: inteiro(ind.aprovadas), icone: CheckCircle2 },
-              { titulo: "Reprovadas", valor: inteiro(ind.reprovadas), icone: XCircle },
-              { titulo: "Em análise", valor: inteiro(ind.emAnalise), icone: Clock },
-              { titulo: "Decisões", valor: inteiro(ind.decisoes), icone: Gavel },
+              {
+                titulo: "Aprovadas",
+                valor: inteiro(ind.aprovadas),
+                icone: CheckCircle2,
+                tomIcone: "positivo",
+              },
+              {
+                titulo: "Reprovadas",
+                valor: inteiro(ind.reprovadas),
+                icone: XCircle,
+                tomIcone: "negativo",
+              },
+              {
+                titulo: "Em análise",
+                valor: inteiro(ind.emAnalise),
+                icone: Clock,
+                tomIcone: "positivo",
+              },
             ]}
           />
           <GrupoIndicadores
@@ -358,15 +360,13 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
               {
                 titulo: "Taxa de reprovação",
                 valor: formatarPct(ind.taxaReprovacao),
-                icone: BarChart2,
+                icone: TrendingDown,
               },
               {
-                titulo: "Conversão recorte",
-                valor: formatarPct(ind.conversaoRecorte),
-                icone: TrendingUp,
+                titulo: "Média geral",
+                valor: formatarPct(ind.mediaGeral),
+                icone: Target,
               },
-              { titulo: "Média geral", valor: formatarPct(ind.mediaGeral), icone: Target },
-              { titulo: "Diferença", valor: diferencaTexto(ind.diferenca), icone: Scale },
             ]}
           />
         </div>
@@ -442,22 +442,23 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
 }
 
 type TomGrupo = "volume" | "resultado" | "performance";
+type TomIcone = "padrao" | "positivo" | "negativo";
 
-const tons: Record<TomGrupo, { caixa: string; titulo: string; icone: string }> = {
+const tons: Record<
+  TomGrupo,
+  { cabecalho: string; icone: string }
+> = {
   volume: {
-    caixa: "border-primary/20 bg-primary/5",
-    titulo: "text-primary",
-    icone: "text-primary/70",
+    cabecalho: "bg-[#fce4ec] text-[#AC145A]",
+    icone: "text-[#AC145A]/80",
   },
   resultado: {
-    caixa: "border-accent/25 bg-accent/5",
-    titulo: "text-accent",
-    icone: "text-accent/70",
+    cabecalho: "bg-emerald-50 text-emerald-700",
+    icone: "text-emerald-600",
   },
   performance: {
-    caixa: "border-border bg-muted/40",
-    titulo: "text-foreground",
-    icone: "text-muted-foreground",
+    cabecalho: "bg-sky-50 text-sky-700",
+    icone: "text-sky-600",
   },
 };
 
@@ -468,30 +469,47 @@ function GrupoIndicadores({
 }: {
   titulo: string;
   tom: TomGrupo;
-  itens: { titulo: string; valor: string; icone: LucideIcon }[];
+  itens: {
+    titulo: string;
+    valor: string;
+    icone: LucideIcon;
+    tomIcone?: TomIcone;
+  }[];
 }) {
   const estilo = tons[tom];
   return (
-    <div className={cn("rounded-lg border px-3 py-2.5", estilo.caixa)}>
-      <p
+    <div className="flex h-full min-h-[7.5rem] flex-col overflow-hidden rounded-lg border border-border bg-card">
+      <div
         className={cn(
-          "mb-2 text-[10px] font-semibold uppercase tracking-wider",
-          estilo.titulo,
+          "px-4 py-2.5 text-sm font-bold leading-none",
+          estilo.cabecalho,
         )}
       >
         + {titulo}
-      </p>
-      <ul className="flex flex-wrap gap-x-4 gap-y-2">
-        {itens.map((item) => {
+      </div>
+      <ul className="flex flex-1 items-stretch px-1 py-2 sm:px-2">
+        {itens.map((item, index) => {
           const Icone = item.icone;
+          const corIcone =
+            item.tomIcone === "positivo"
+              ? "text-emerald-600"
+              : item.tomIcone === "negativo"
+                ? "text-red-500"
+                : estilo.icone;
           return (
-            <li key={item.titulo} className="flex min-w-0 items-start gap-1.5">
-              <Icone className={cn("mt-0.5 size-3 shrink-0", estilo.icone)} />
+            <li
+              key={item.titulo}
+              className={cn(
+                "flex min-w-0 flex-1 items-center justify-center gap-2.5 px-2 py-3",
+                index > 0 && "border-l border-border/70",
+              )}
+            >
+              <Icone className={cn("size-5 shrink-0", corIcone)} strokeWidth={1.75} />
               <span className="min-w-0">
-                <span className="block truncate font-heading text-sm font-semibold leading-tight">
+                <span className="block font-heading text-2xl font-bold leading-none tracking-tight">
                   {item.valor}
                 </span>
-                <span className="block truncate text-[10px] leading-tight text-muted-foreground">
+                <span className="mt-1.5 block text-xs leading-tight text-muted-foreground">
                   {item.titulo}
                 </span>
               </span>
