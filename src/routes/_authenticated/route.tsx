@@ -40,6 +40,7 @@ function AuthenticatedLayout() {
 
   const current = navigation
     .flatMap((group) => group.items.flatMap((item) => [item, ...(item.children ?? [])]))
+    .filter((item): item is typeof item & { to: string } => Boolean(item.to))
     .sort((a, b) => b.to.length - a.to.length)
     .find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
 

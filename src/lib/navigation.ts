@@ -3,6 +3,7 @@ import {
   FileSpreadsheet,
   Route as RouteIcon,
   Building2,
+  ChartColumn,
   Ship,
   Users,
   UserRound,
@@ -16,7 +17,8 @@ import {
 
 export type NavItem = {
   label: string;
-  to: string;
+  /** Ausente quando o item é só um grupo expansível (sem rota própria). */
+  to?: string;
   icon: LucideIcon;
   description: string;
   children?: NavItem[];
@@ -61,7 +63,6 @@ export const navigation: NavGroup[] = [
       },
       {
         label: "Clientes",
-        to: "/clientes",
         icon: Building2,
         description: "Comportamento de aprovação e recorrência por cliente.",
         children: [
@@ -70,6 +71,12 @@ export const navigation: NavGroup[] = [
             to: "/clientes_por_cliente",
             icon: UserSearch,
             description: "Ficha analítica detalhada de um cliente selecionado.",
+          },
+          {
+            label: "Visão geral",
+            to: "/clientes",
+            icon: ChartColumn,
+            description: "Ranking e indicadores agregados de clientes.",
           },
         ],
       },

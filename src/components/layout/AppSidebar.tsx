@@ -1,7 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { Activity } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Activity, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
-import { navigation } from "@/lib/navigation";
+import { navigation, type NavItem } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
@@ -28,41 +30,18 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
             </p>
             <ul className="space-y-1">
               {group.items.map((item) => (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    onClick={onNavigate}
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-80 transition-colors hover:bg-sidebar-accent hover:opacity-100"
-                    activeOptions={{ exact: true }}
-                    activeProps={{
-                      className:
-                        "bg-sidebar-accent opacity-100 shadow-[inset_2px_0_0_0_var(--color-cronos)]",
-                    }}
-                  >
-                    <item.icon className="size-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-
+                <li key={item.to ?? item.label}>
                   {item.children && item.children.length > 0 ? (
-                    <ul className="mt-1 space-y-1 border-l border-sidebar-border pl-3 ml-4">
-                      {item.children.map((child) => (
-                        <li key={child.to}>
-                          <Link
-                            to={child.to}
-                            onClick={onNavigate}
-                            className="group flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium opacity-70 transition-colors hover:bg-sidebar-accent hover:opacity-100"
-                            activeProps={{
-                              className:
-                                "bg-sidebar-accent opacity-100 shadow-[inset_2px_0_0_0_var(--color-cronos)]",
-                            }}
-                          >
-                            <child.icon className="size-3.5 shrink-0" />
-                            <span className="truncate">{child.label}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
+                    <NavGroupItem
+                      item={item}
+                      {...(onNavigate ? { onNavigate } : {})}
+                    />
+                  ) : (
+                    <NavLinkItem
+                      item={item}
+                      {...(onNavigate ? { onNavigate } : {})}
+                    />
+                  )}
                 </li>
               ))}
             </ul>
@@ -74,5 +53,108 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         Base analítica multimodal · v1.3
       </div>
     </aside>
+  );
+}
+
+function childAtivo(item: NavItem, pathname: string): boolean {
+  return (item.children ?? []).some(
+    (child) =>
+      Boolean(child.to) &&
+      (pathname === child.to || pathname.startsWith(`${child.to}/`)),
+  );
+}
+
+function NavGroupItem({
+  item,
+  onNavigate,
+}: {
+  item: NavItem;
+  onNavigate?: () => void;
+}) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const ativo = childAtivo(item, pathname);
+  const [abertoManual, setAbertoManual] = useState<boolean | null>(null);
+  const aberto = abertoManual ?? ativo;
+
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={aberto}
+        onClick={() => setAbertoManual(!aberto)}
+        className={cn(
+          "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium opacity-80 transition-colors duration-200 hover:bg-sidebar-accent hover:opacity-100",
+          ativo && "opacity-100",
+        )}
+      >
+        <item.icon className="size-4 shrink-0" />
+        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+        <ChevronRight
+          className={cn(
+            "size-4 shrink-0 opacity-60 transition-transform duration-300 ease-out",
+            aberto && "rotate-90",
+          )}
+        />
+      </button>
+
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-300 ease-out",
+          aberto ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <ul
+            className={cn(
+              "mt-1 space-y-1 border-l border-sidebar-border pl-3 ml-4 transition-opacity duration-300 ease-out",
+              aberto ? "opacity-100" : "opacity-0",
+            )}
+          >
+            {item.children?.map((child) => (
+              <li key={child.to ?? child.label}>
+                <NavLinkItem
+                  item={child}
+                  nested
+                  {...(onNavigate ? { onNavigate } : {})}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NavLinkItem({
+  item,
+  onNavigate,
+  nested = false,
+}: {
+  item: NavItem;
+  onNavigate?: () => void;
+  nested?: boolean;
+}) {
+  if (!item.to) return null;
+
+  return (
+    <Link
+      to={item.to}
+      onClick={onNavigate}
+      className={cn(
+        "group flex items-center gap-3 rounded-lg px-3 font-medium transition-colors hover:bg-sidebar-accent hover:opacity-100",
+        nested
+          ? "gap-2 py-2 text-[13px] opacity-70"
+          : "py-2.5 text-sm opacity-80",
+      )}
+      activeOptions={{ exact: true }}
+      activeProps={{
+        className:
+          "bg-sidebar-accent opacity-100 shadow-[inset-2px_0_0_0_var(--color-cronos)]",
+      }}
+    >
+      <item.icon className={cn("shrink-0", nested ? "size-3.5" : "size-4")} />
+      <span className="truncate">{item.label}</span>
+    </Link>
   );
 }
