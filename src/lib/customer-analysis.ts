@@ -481,8 +481,8 @@ export function analisarCliente(params: {
   const rotaColoader = agregarRotaColoader(rows);
 
   const perfil = montarPerfil(rotas, motivos);
-  const insightsPricing = montarInsightsPricing(indicadores, motivos);
-  const ondeAtuar = montarOndeAtuar(indicadores, rotas, rotaColoader, motivos);
+  const insightsPricing = montarInsightsPricing(indicadores, rotas, perfil, motivos);
+  const ondeAtuar = montarOndeAtuar(indicadores, rotaColoader);
 
   return {
     cliente,
