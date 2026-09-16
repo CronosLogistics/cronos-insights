@@ -586,7 +586,7 @@ function GrupoIndicadores({
       </div>
       <ul
         className={cn(
-          "grid w-full flex-1 gap-px bg-border/70",
+          "grid w-full flex-1 gap-2 p-2 sm:gap-3 sm:p-3",
           cincoItens ? "grid-cols-6" : "grid-cols-2",
         )}
       >
@@ -604,7 +604,7 @@ function GrupoIndicadores({
             <li
               key={item.titulo}
               className={cn(
-                "flex min-w-0 items-start gap-1.5 bg-card px-2 py-2.5 sm:gap-2 sm:px-2.5 sm:py-3",
+                "flex min-w-0 flex-col items-center justify-center gap-1.5 px-1 py-2 text-center sm:gap-2 sm:py-2.5",
                 // 5 itens — desktop (≥sm): 3+2; mobile: 2+2+1 (último em linha cheia).
                 cincoItens &&
                   (index < 3
@@ -617,10 +617,10 @@ function GrupoIndicadores({
               )}
             >
               <Icone
-                className={cn("mt-0.5 size-3.5 shrink-0 sm:size-4", corIcone)}
+                className={cn("size-3.5 shrink-0 sm:size-4", corIcone)}
                 strokeWidth={1.75}
               />
-              <span className="min-w-0 flex-1 text-left">
+              <span className="min-w-0">
                 <span className="block break-words font-heading text-base font-bold leading-tight tracking-tight sm:text-lg xl:text-xl">
                   {item.valor}
                 </span>
