@@ -431,6 +431,10 @@ export type Database = {
           id: number | null
           motivo_perda_analitico: string | null
           oferta: string | null
+          pais_destino: string | null
+          pais_origem: string | null
+          porto_destino: string | null
+          porto_origem: string | null
           rota_analitica: string | null
         }
         Insert: {
@@ -443,6 +447,10 @@ export type Database = {
           id?: number | null
           motivo_perda_analitico?: never
           oferta?: string | null
+          pais_destino?: never
+          pais_origem?: never
+          porto_destino?: never
+          porto_origem?: never
           rota_analitica?: never
         }
         Update: {
@@ -455,6 +463,10 @@ export type Database = {
           id?: number | null
           motivo_perda_analitico?: never
           oferta?: string | null
+          pais_destino?: never
+          pais_origem?: never
+          porto_destino?: never
+          porto_origem?: never
           rota_analitica?: never
         }
         Relationships: []
