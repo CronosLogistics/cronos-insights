@@ -86,7 +86,10 @@ export function PaginatedContent({
   className?: string;
 }) {
   return (
-    <div key={pageKey} className={cn(ANIMACAO_TRANSICAO[direction], className)}>
+    <div
+      key={pageKey}
+      className={cn("w-full min-w-0", ANIMACAO_TRANSICAO[direction], className)}
+    >
       {children}
     </div>
   );

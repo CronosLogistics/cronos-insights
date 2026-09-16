@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
+  ArrowLeftRight,
   BarChart3,
   BookOpen,
   Building2,
@@ -11,6 +12,7 @@ import {
   Clock,
   FileText,
   Info,
+  ListChecks,
   Network,
   Search,
   Target,
@@ -44,6 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  formatarDiferenca,
   formatarPct,
   type AnaliseCliente,
   type LinhaMotivo,
@@ -69,8 +72,29 @@ export const Route = createFileRoute("/_authenticated/clientes_por_cliente")({
 
 const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
+const CLIENT_STORAGE_KEY = "cronos-insights:por-cliente:cliente";
+
+function readSavedClient(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(CLIENT_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveClient(cliente: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (cliente) localStorage.setItem(CLIENT_STORAGE_KEY, cliente);
+    else localStorage.removeItem(CLIENT_STORAGE_KEY);
+  } catch {
+    // storage indisponível (modo privado, quota...)
+  }
+}
+
 function PorClientePage() {
-  const [cliente, setCliente] = useState<string | null>(null);
+  const [cliente, setCliente] = useState<string | null>(() => readSavedClient());
 
   const lista = useQuery({
     queryKey: ["cliente-lista"],
@@ -85,8 +109,19 @@ function PorClientePage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  useEffect(() => {
+    saveClient(cliente);
+  }, [cliente]);
+
+  // Descarta seleção salva se o cliente não existir mais na lista do produto.
+  useEffect(() => {
+    if (!lista.data || !cliente) return;
+    const existe = lista.data.some((opcao) => opcao.cliente === cliente);
+    if (!existe) setCliente(null);
+  }, [lista.data, cliente]);
+
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <ModuleIntro
         eyebrow="Inteligência"
         title="Por cliente"
@@ -301,12 +336,19 @@ function EstadoVazio() {
 function FichaSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="space-y-3 pt-6">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-7 w-20" />
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i} className={cn(i === 2 && "md:col-span-2 xl:col-span-1")}>
+            <CardContent className="space-y-4 pt-6">
+              <Skeleton className="h-4 w-28" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, j) => (
+                  <div key={j} className="space-y-2">
+                    <Skeleton className="h-7 w-14" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -329,7 +371,7 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
   const { indicadores: ind, perfil } = analise;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       <PanelBlock
         title="Indicadores do recorte"
         description={`Cliente: ${analise.cliente}`}
@@ -339,13 +381,14 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
           </Badge>
         }
       >
-        <div className="grid gap-3 lg:grid-cols-3">
+        <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-3">
           <GrupoIndicadores
             titulo="Volume"
             tom="volume"
             itens={[
               { titulo: "Rotas", valor: inteiro(ind.rotas), icone: BookOpen },
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
+              { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
               { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
               { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
             ]}
@@ -372,16 +415,23 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
                 icone: Clock,
                 tomIcone: "positivo",
               },
+              {
+                titulo: "Decisões",
+                valor: inteiro(ind.decisoes),
+                icone: ListChecks,
+              },
             ]}
           />
           <GrupoIndicadores
             titulo="Performance"
             tom="performance"
+            className="md:col-span-2 xl:col-span-1"
             itens={[
               {
                 titulo: "Taxa de aprovação",
                 valor: formatarPct(ind.taxaAprovacao),
-                icone: BarChart3,
+                icone: CheckCircle2,
+                tomIcone: "positivo",
               },
               {
                 titulo: "Taxa de reprovação",
@@ -389,9 +439,20 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
                 icone: TrendingDown,
               },
               {
+                titulo: "Conversão recorte",
+                valor: formatarPct(ind.conversaoRecorte),
+                icone: BarChart3,
+              },
+              {
                 titulo: "Média geral",
                 valor: formatarPct(ind.mediaGeral),
                 icone: Target,
+              },
+              {
+                titulo: "Diferença",
+                valor: formatarDiferenca(ind.diferenca),
+                icone: ArrowLeftRight,
+                tomIcone: ind.diferenca > 0 ? "positivo" : ind.diferenca < 0 ? "negativo" : "padrao",
               },
             ]}
           />
@@ -492,9 +553,11 @@ function GrupoIndicadores({
   titulo,
   tom,
   itens,
+  className,
 }: {
   titulo: string;
   tom: TomGrupo;
+  className?: string;
   itens: {
     titulo: string;
     valor: string;
@@ -503,17 +566,30 @@ function GrupoIndicadores({
   }[];
 }) {
   const estilo = tons[tom];
+  const cincoItens = itens.length >= 5;
+  const total = itens.length;
+
   return (
-    <div className="flex h-full min-h-[7.5rem] flex-col overflow-hidden rounded-lg border border-border bg-card">
+    <div
+      className={cn(
+        "flex h-full min-h-0 w-full min-w-0 flex-col rounded-lg border border-border bg-card",
+        className,
+      )}
+    >
       <div
         className={cn(
-          "px-4 py-2.5 text-sm font-bold leading-none",
+          "px-3 py-2 text-sm font-bold leading-none sm:px-4 sm:py-2.5",
           estilo.cabecalho,
         )}
       >
         + {titulo}
       </div>
-      <ul className="flex flex-1 items-stretch px-1 py-2 sm:px-2">
+      <ul
+        className={cn(
+          "grid w-full flex-1 gap-px bg-border/70",
+          cincoItens ? "grid-cols-6" : "grid-cols-2",
+        )}
+      >
         {itens.map((item, index) => {
           const Icone = item.icone;
           const corIcone =
@@ -522,20 +598,33 @@ function GrupoIndicadores({
               : item.tomIcone === "negativo"
                 ? "text-red-500"
                 : estilo.icone;
+          const ultimo = index === total - 1;
+
           return (
             <li
               key={item.titulo}
               className={cn(
-                "flex min-w-0 flex-1 items-center justify-center gap-2.5 px-2 py-3",
-                index > 0 && "border-l border-border/70",
+                "flex min-w-0 items-start gap-1.5 bg-card px-2 py-2.5 sm:gap-2 sm:px-2.5 sm:py-3",
+                // 5 itens — desktop (≥sm): 3+2; mobile: 2+2+1 (último em linha cheia).
+                cincoItens &&
+                  (index < 3
+                    ? "col-span-3 sm:col-span-2"
+                    : ultimo
+                      ? "col-span-6 sm:col-span-3"
+                      : "col-span-3"),
+                // Qualquer grade 2 colunas: se sobrar ímpar, o último ocupa a linha.
+                !cincoItens && total % 2 === 1 && ultimo && "col-span-2",
               )}
             >
-              <Icone className={cn("size-5 shrink-0", corIcone)} strokeWidth={1.75} />
-              <span className="min-w-0">
-                <span className="block font-heading text-2xl font-bold leading-none tracking-tight">
+              <Icone
+                className={cn("mt-0.5 size-3.5 shrink-0 sm:size-4", corIcone)}
+                strokeWidth={1.75}
+              />
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block break-words font-heading text-base font-bold leading-tight tracking-tight sm:text-lg xl:text-xl">
                   {item.valor}
                 </span>
-                <span className="mt-1.5 block text-xs leading-tight text-muted-foreground">
+                <span className="mt-0.5 block break-words text-[10px] leading-snug text-muted-foreground sm:text-[11px]">
                   {item.titulo}
                 </span>
               </span>

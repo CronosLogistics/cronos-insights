@@ -31,7 +31,10 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
             <Menu className="size-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 border-none p-0">
+        <SheetContent
+          side="left"
+          className="w-72 border-none bg-transparent p-0 shadow-none [&>button]:right-3 [&>button]:top-3 [&>button]:rounded-md [&>button]:text-white/75 [&>button]:opacity-100 [&>button]:ring-offset-transparent [&>button]:hover:bg-white/10 [&>button]:hover:text-white [&>button]:focus:ring-white/30 [&>button]:data-[state=open]:bg-transparent"
+        >
           <AppSidebar />
         </SheetContent>
       </Sheet>

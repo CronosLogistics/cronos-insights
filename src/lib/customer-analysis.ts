@@ -120,6 +120,16 @@ export function formatarPct(valor: number): string {
   })}%`;
 }
 
+/** Diferença de conversão em pontos percentuais (ex.: +3,2 p.p.). */
+export function formatarDiferenca(diferenca: number): string {
+  if (!Number.isFinite(diferenca)) return "—";
+  const sinal = diferenca > 0 ? "+" : "";
+  return `${sinal}${(diferenca * 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })} p.p.`;
+}
+
 function inteiroBR(valor: number): string {
   return valor.toLocaleString("pt-BR");
 }
@@ -325,11 +335,7 @@ function montarPerfil(rotas: LinhaRanking[], motivos: LinhaMotivo[]): Perfil {
 // ---------------------------------------------------------------------------
 
 function pontos(diferenca: number): string {
-  const sinal = diferenca > 0 ? "+" : "";
-  return `${sinal}${(diferenca * 100).toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })} p.p.`;
+  return formatarDiferenca(diferenca);
 }
 
 function montarInsightsPricing(

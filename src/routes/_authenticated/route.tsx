@@ -68,7 +68,7 @@ function AuthenticatedLayout() {
           title={current?.label ?? "Cronos Pricing Insights"}
           subtitle={current?.description ?? "Análise de Cotações"}
         />
-        <main className="flex-1 space-y-4 px-4 py-6 lg:px-8 lg:py-8">
+        <main className="min-w-0 w-full flex-1 space-y-4 px-4 py-6 lg:px-8 lg:py-8">
           <SemProdutoAviso />
           <Outlet />
         </main>

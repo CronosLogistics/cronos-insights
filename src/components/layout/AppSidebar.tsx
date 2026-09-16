@@ -22,7 +22,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </span>
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-6">
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-6 [scrollbar-color:rgba(255,255,255,0.22)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20">
         {navigation.map((group) => (
           <div key={group.title}>
             <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] opacity-50">

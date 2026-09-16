@@ -21,9 +21,9 @@ export function PanelBlock({
   className?: string;
 }) {
   return (
-    <Card className={cn("flex flex-col", className)}>
+    <Card className={cn("flex w-full min-w-0 flex-col", className)}>
       <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
-        <div>
+        <div className="min-w-0 flex-1">
           <CardTitle className="text-sm font-semibold">{title}</CardTitle>
           {description ? (
             <p className="mt-1 text-xs text-muted-foreground">{description}</p>
@@ -31,7 +31,7 @@ export function PanelBlock({
         </div>
         {action}
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col">{children}</CardContent>
+      <CardContent className="flex min-w-0 flex-1 flex-col">{children}</CardContent>
     </Card>
   );
 }
