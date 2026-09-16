@@ -16,15 +16,27 @@ export type ClienteOpcao = { cliente: string; ofertas: number };
 export const getClienteLista = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ClienteOpcao[]> => {
-    const { data, error } = await context.supabase
-      .from("v_cliente_lista")
-      .select("cliente,ofertas")
-      .limit(20000);
-    if (error) throw new Error(error.message);
-    const linhas = (data ?? []) as Array<{ cliente: string | null; ofertas: number | null }>;
-    return linhas
-      .filter((l): l is { cliente: string; ofertas: number | null } => Boolean(l.cliente))
-      .map((l) => ({ cliente: l.cliente, ofertas: Number(l.ofertas ?? 0) }))
+    // A API devolve no máximo 1000 linhas por resposta: pagina até esgotar.
+    const linhas: Array<{ cliente: string | null; ofertas: number | null }> = [];
+    for (let inicio = 0; ; inicio += PAGINA) {
+      const { data, error } = await context.supabase
+        .from("v_cliente_lista")
+        .select("cliente,ofertas")
+        .order("cliente", { ascending: true })
+        .range(inicio, inicio + PAGINA - 1);
+      if (error) throw new Error(error.message);
+      const lote = (data ?? []) as Array<{ cliente: string | null; ofertas: number | null }>;
+      linhas.push(...lote);
+      if (lote.length < PAGINA) break;
+    }
+    // Consolida eventuais repetições do mesmo nome.
+    const porCliente = new Map<string, number>();
+    for (const l of linhas) {
+      if (!l.cliente) continue;
+      porCliente.set(l.cliente, (porCliente.get(l.cliente) ?? 0) + Number(l.ofertas ?? 0));
+    }
+    return [...porCliente.entries()]
+      .map(([cliente, ofertas]) => ({ cliente, ofertas }))
       .sort((a, b) => a.cliente.localeCompare(b.cliente, "pt-BR"));
   });
 
