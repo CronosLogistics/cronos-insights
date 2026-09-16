@@ -61,8 +61,8 @@ export const getRotasOpcoesFiltro = createServerFn({ method: "GET" })
  * Filtros locais e agregações aplicados no banco; Produto via RLS (não aceito do frontend).
  */
 export const getAnaliseRotas = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) => parseFiltros(input))
   .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseRotas> => {
     const filtros = data;
     const client = context.supabase as unknown as {
