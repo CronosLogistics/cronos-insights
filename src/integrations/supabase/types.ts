@@ -531,6 +531,17 @@ export type Database = {
     Functions: {
       atualizar_analises: { Args: never; Returns: undefined }
       produto_do_usuario: { Args: never; Returns: string }
+      rotas_analise: {
+        Args: {
+          p_pais_destino?: string
+          p_pais_origem?: string
+          p_porto_destino?: string
+          p_porto_origem?: string
+          p_rota?: string
+        }
+        Returns: Json
+      }
+      rotas_opcoes_filtro: { Args: never; Returns: Json }
       tem_papel: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

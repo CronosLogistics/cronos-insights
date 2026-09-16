@@ -343,6 +343,122 @@ function montarOndeAtuar(
   return itens;
 }
 
+// ---------------------------------------------------------------------------
+// Caminho usado pela tela: agregações vindas do banco (public.rotas_analise).
+// ---------------------------------------------------------------------------
+
+type LinhaAgregada = {
+  item: string;
+  rotas: number;
+  aprovadas: number;
+  reprovadas: number;
+  em_analise: number;
+};
+
+export type AgregadoRotas = {
+  indicadores: {
+    rotas: number;
+    ofertas: number;
+    clientes: number;
+    rotas_distintas: number;
+    coloaders: number;
+    aprovadas: number;
+    reprovadas: number;
+    em_analise: number;
+  };
+  mediaAprovadas: number;
+  mediaReprovadas: number;
+  coloaders: LinhaAgregada[];
+  clientes: LinhaAgregada[];
+  agentes: LinhaAgregada[];
+  motivosTotal: number;
+  motivos: { motivo: string; reprovadas: number }[];
+  clienteColoader: {
+    cliente: string;
+    coloader: string;
+    rotas: number;
+    aprovadas: number;
+    reprovadas: number;
+    em_analise: number;
+  }[];
+};
+
+function ranking(linhas: LinhaAgregada[] | undefined): LinhaRanking[] {
+  return (linhas ?? []).map((l) => ({
+    item: l.item,
+    rotas: num(l.rotas),
+    aprovadas: num(l.aprovadas),
+    reprovadas: num(l.reprovadas),
+    emAnalise: num(l.em_analise),
+    conversao: conversao(num(l.aprovadas), num(l.reprovadas)),
+  }));
+}
+
+export function montarAnaliseRotas(
+  filtros: FiltrosRotas,
+  agregado: AgregadoRotas,
+): AnaliseRotas {
+  const i = agregado.indicadores;
+  const aprovadas = num(i?.aprovadas);
+  const reprovadas = num(i?.reprovadas);
+  const decisoes = aprovadas + reprovadas;
+  const conversaoRecorte = conversao(aprovadas, reprovadas);
+  const mediaGeral = conversao(num(agregado.mediaAprovadas), num(agregado.mediaReprovadas));
+
+  const indicadores: Indicadores = {
+    rotas: num(i?.rotas),
+    ofertas: num(i?.ofertas),
+    aprovadas,
+    reprovadas,
+    emAnalise: num(i?.em_analise),
+    taxaAprovacao: conversaoRecorte,
+    taxaReprovacao: decisoes > 0 ? reprovadas / decisoes : 0,
+    clientes: num(i?.clientes),
+    rotasDistintas: num(i?.rotas_distintas),
+    coloaders: num(i?.coloaders),
+    conversaoRecorte,
+    mediaGeral,
+    diferenca: conversaoRecorte - mediaGeral,
+    decisoes,
+  };
+
+  const coloaders = ranking(agregado.coloaders);
+  const clientes = ranking(agregado.clientes);
+  const agentes = ranking(agregado.agentes);
+
+  const totalReprovacoes = num(agregado.motivosTotal);
+  const motivos: LinhaMotivo[] = (agregado.motivos ?? []).map((m) => ({
+    motivo: m.motivo,
+    reprovadas: num(m.reprovadas),
+    participacao: totalReprovacoes > 0 ? num(m.reprovadas) / totalReprovacoes : 0,
+  }));
+
+  const clienteColoader: LinhaClienteColoader[] = (agregado.clienteColoader ?? []).map((c) => ({
+    cliente: c.cliente,
+    coloader: c.coloader,
+    rotas: num(c.rotas),
+    aprovadas: num(c.aprovadas),
+    reprovadas: num(c.reprovadas),
+    emAnalise: num(c.em_analise),
+    conversao: conversao(num(c.aprovadas), num(c.reprovadas)),
+  }));
+
+  const perfil = montarPerfil(coloaders, motivos);
+
+  return {
+    filtros,
+    indicadores,
+    perfil,
+    insightsPricing: montarInsightsPricing(indicadores, coloaders, perfil, motivos),
+    ondeAtuar: montarOndeAtuar(indicadores, coloaders, clientes),
+    coloaders: coloaders.slice(0, TOP_N),
+    clientes: clientes.slice(0, TOP_N),
+    agentes: agentes.slice(0, TOP_N),
+    motivos: motivos.slice(0, TOP_N),
+    clienteColoader: clienteColoader.slice(0, TOP_N),
+  };
+}
+
 export function analisarRotas(params: {
   filtros: FiltrosRotas;
   rows: RouteHistRow[];
