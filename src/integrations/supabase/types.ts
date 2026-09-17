@@ -532,6 +532,8 @@ export type Database = {
       agentes_analise: { Args: { p_agente?: string }; Returns: Json }
       agentes_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
+      coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
+      coloaders_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
       rotas_analise: {
         Args: {
