@@ -92,17 +92,17 @@ export const navigation: NavGroup[] = [
         icon: Users,
         description: "Inteligência de agentes: volume, conversão e cobertura.",
       },
+      {
+        label: "Analistas Pricing",
+        to: "/analistas",
+        icon: UserRound,
+        description: "Ficha de inteligência do analista de Pricing.",
+      },
     ],
   },
   {
     title: "Pessoas",
     items: [
-      {
-        label: "Analistas de Pricing",
-        to: "/analistas",
-        icon: UserRound,
-        description: "Produtividade e taxa de decisão por analista.",
-      },
       {
         label: "Vendedores",
         to: "/vendedores",
