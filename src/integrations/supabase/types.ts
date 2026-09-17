@@ -423,7 +423,6 @@ export type Database = {
       v_ofertas_analitico: {
         Row: {
           agente_analitico: string | null
-          analista_pricing: string | null
           cliente_analitico: string | null
           coloader_analitico: string | null
           flag_aprovada: number | null
@@ -440,7 +439,6 @@ export type Database = {
         }
         Insert: {
           agente_analitico?: never
-          analista_pricing?: never
           cliente_analitico?: never
           coloader_analitico?: never
           flag_aprovada?: never
@@ -457,7 +455,6 @@ export type Database = {
         }
         Update: {
           agente_analitico?: never
-          analista_pricing?: never
           cliente_analitico?: never
           coloader_analitico?: never
           flag_aprovada?: never
@@ -534,8 +531,6 @@ export type Database = {
     Functions: {
       agentes_analise: { Args: { p_agente?: string }; Returns: Json }
       agentes_opcoes_filtro: { Args: never; Returns: Json }
-      analistas_analise: { Args: { p_analista?: string }; Returns: Json }
-      analistas_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
       coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
