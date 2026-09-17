@@ -8,6 +8,13 @@
       "when": 1789670706763,
       "tag": "0000_create_analistas_analise",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789671713397,
+      "tag": "0001_analistas_ficha_pre_agregada",
+      "breakpoints": true
     }
   ]
 }
