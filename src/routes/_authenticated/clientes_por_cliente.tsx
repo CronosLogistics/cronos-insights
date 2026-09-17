@@ -72,6 +72,8 @@ export const Route = createFileRoute("/_authenticated/clientes_por_cliente")({
 
 const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
+const FILTRO_TODOS = "Todos";
+
 const CLIENT_STORAGE_KEY = "cronos-insights:por-cliente:cliente";
 
 function readSavedClient(): string | null {
@@ -115,7 +117,7 @@ function PorClientePage() {
 
   // Descarta seleção salva se o cliente não existir mais na lista do produto.
   useEffect(() => {
-    if (!lista.data || !cliente) return;
+    if (!lista.data || !cliente || cliente === FILTRO_TODOS) return;
     const existe = lista.data.some((opcao) => opcao.cliente === cliente);
     if (!existe) setCliente(null);
   }, [lista.data, cliente]);
@@ -191,15 +193,26 @@ function ClienteCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
   const temConteudo = Boolean(texto.trim() || value);
 
+  const itens = useMemo(() => {
+    const vistos = new Set<string>([FILTRO_TODOS]);
+    const lista = [FILTRO_TODOS];
+    for (const opcao of clientes) {
+      if (!opcao || vistos.has(opcao)) continue;
+      vistos.add(opcao);
+      lista.push(opcao);
+    }
+    return lista;
+  }, [clientes]);
+
   useEffect(() => {
     setTexto(value ?? "");
   }, [value]);
 
   const filtrados = useMemo(() => {
     const termo = texto.trim().toLocaleLowerCase("pt-BR");
-    if (!termo) return clientes;
-    return clientes.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
-  }, [texto, clientes]);
+    if (!termo) return itens;
+    return itens.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
+  }, [texto, itens]);
 
   function abrir() {
     setLargura(ancoraRef.current?.offsetWidth);
