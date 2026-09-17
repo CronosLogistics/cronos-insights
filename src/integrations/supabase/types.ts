@@ -529,6 +529,8 @@ export type Database = {
       }
     }
     Functions: {
+      agentes_analise: { Args: { p_agente?: string }; Returns: Json }
+      agentes_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
       produto_do_usuario: { Args: never; Returns: string }
       rotas_analise: {

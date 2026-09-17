@@ -1,0 +1,91 @@
+create or replace function public.agentes_opcoes_filtro()
+returns jsonb
+language sql
+stable
+set search_path to 'public'
+as $$
+  select jsonb_build_object(
+    'agentes',
+    coalesce((select jsonb_agg(distinct agente_analitico order by agente_analitico)
+              from public.v_ofertas_analitico), '[]'::jsonb)
+  );
+$$;
+
+revoke execute on function public.agentes_opcoes_filtro() from public, anon;
+grant execute on function public.agentes_opcoes_filtro() to authenticated;
+
+create or replace function public.agentes_analise(p_agente text default 'Todos'::text)
+returns jsonb
+language sql
+stable
+set search_path to 'public'
+as $$
+  with base as (
+    select *
+    from public.v_ofertas_analitico
+    where (p_agente = 'Todos' or agente_analitico = p_agente)
+  ),
+  ind as (
+    select
+      count(*)::bigint as rotas,
+      count(distinct nullif(btrim(coalesce(oferta, '')), ''))::bigint as ofertas,
+      count(distinct cliente_analitico)::bigint as clientes,
+      count(distinct rota_analitica)::bigint as rotas_distintas,
+      count(distinct coloader_analitico)::bigint as coloaders,
+      coalesce(sum(flag_aprovada), 0)::bigint as aprovadas,
+      coalesce(sum(flag_reprovada), 0)::bigint as reprovadas,
+      coalesce(sum(flag_em_analise), 0)::bigint as em_analise
+    from base
+  ),
+  rot as (
+    select rota_analitica as item,
+      count(*)::bigint as rotas,
+      coalesce(sum(flag_aprovada), 0)::bigint as aprovadas,
+      coalesce(sum(flag_reprovada), 0)::bigint as reprovadas,
+      coalesce(sum(flag_em_analise), 0)::bigint as em_analise
+    from base group by 1 order by 2 desc, 1 limit 10
+  ),
+  col as (
+    select coloader_analitico as item,
+      count(*)::bigint as rotas,
+      coalesce(sum(flag_aprovada), 0)::bigint as aprovadas,
+      coalesce(sum(flag_reprovada), 0)::bigint as reprovadas,
+      coalesce(sum(flag_em_analise), 0)::bigint as em_analise
+    from base group by 1 order by 2 desc, 1 limit 10
+  ),
+  cli as (
+    select cliente_analitico as item,
+      count(*)::bigint as rotas,
+      coalesce(sum(flag_aprovada), 0)::bigint as aprovadas,
+      coalesce(sum(flag_reprovada), 0)::bigint as reprovadas,
+      coalesce(sum(flag_em_analise), 0)::bigint as em_analise
+    from base group by 1 order by 2 desc, 1 limit 10
+  ),
+  mot_total as (select coalesce(sum(flag_reprovada), 0)::bigint as total from base),
+  mot as (
+    select motivo_perda_analitico as motivo, count(*)::bigint as reprovadas
+    from base where flag_reprovada = 1 group by 1 order by 2 desc, 1 limit 10
+  ),
+  rc as (
+    select rota_analitica as rota, coloader_analitico as coloader,
+      count(*)::bigint as rotas,
+      coalesce(sum(flag_aprovada), 0)::bigint as aprovadas,
+      coalesce(sum(flag_reprovada), 0)::bigint as reprovadas,
+      coalesce(sum(flag_em_analise), 0)::bigint as em_analise
+    from base group by 1, 2 order by 5 desc, 3 desc, 1, 2 limit 10
+  )
+  select jsonb_build_object(
+    'indicadores', (select to_jsonb(ind) from ind),
+    'mediaAprovadas', coalesce((select aprovadas from public.v_cliente_media_geral), 0),
+    'mediaReprovadas', coalesce((select reprovadas from public.v_cliente_media_geral), 0),
+    'rotas', coalesce((select jsonb_agg(to_jsonb(r) order by r.rotas desc, r.item) from rot r), '[]'::jsonb),
+    'coloaders', coalesce((select jsonb_agg(to_jsonb(c) order by c.rotas desc, c.item) from col c), '[]'::jsonb),
+    'clientes', coalesce((select jsonb_agg(to_jsonb(c) order by c.rotas desc, c.item) from cli c), '[]'::jsonb),
+    'motivosTotal', (select total from mot_total),
+    'motivos', coalesce((select jsonb_agg(to_jsonb(m) order by m.reprovadas desc, m.motivo) from mot m), '[]'::jsonb),
+    'rotaColoader', coalesce((select jsonb_agg(to_jsonb(x) order by x.reprovadas desc, x.rotas desc, x.rota, x.coloader) from rc x), '[]'::jsonb)
+  );
+$$;
+
+revoke execute on function public.agentes_analise(text) from public, anon;
+grant execute on function public.agentes_analise(text) to authenticated;
