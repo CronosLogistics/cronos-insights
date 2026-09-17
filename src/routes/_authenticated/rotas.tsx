@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import {
   ArrowLeftRight,
   BarChart3,
   BookOpen,
   Building2,
+  Check,
   CheckCircle2,
+  ChevronsUpDown,
   Clock,
   FileText,
   Info,
@@ -16,6 +18,7 @@ import {
   Target,
   TrendingDown,
   Users,
+  X,
   XCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -23,14 +26,17 @@ import {
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -42,6 +48,7 @@ import {
 } from "@/components/ui/table";
 import {
   FILTRO_TODOS,
+  ROTA_INCOMPLETA,
   formatarDiferenca,
   formatarPct,
   type AnaliseRotas,
@@ -74,26 +81,42 @@ export const Route = createFileRoute("/_authenticated/rotas")({
 
 const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
-const FILTROS_INICIAIS: FiltrosRotas = {
-  paisOrigem: FILTRO_TODOS,
-  portoOrigem: FILTRO_TODOS,
-  paisDestino: FILTRO_TODOS,
-  portoDestino: FILTRO_TODOS,
-  rota: FILTRO_TODOS,
+/** Seleção da UI: null = ainda não escolhido (não dispara a análise). */
+type FiltrosSelecao = {
+  [K in keyof FiltrosRotas]: string | null;
 };
 
+const FILTROS_VAZIOS: FiltrosSelecao = {
+  paisOrigem: null,
+  portoOrigem: null,
+  paisDestino: null,
+  portoDestino: null,
+  rota: null,
+};
+
+function temAlgumFiltro(f: FiltrosSelecao): boolean {
+  return Object.values(f).some((v) => v !== null);
+}
+
+/** Campos vazios viram "Todos" (sem restrição), como na planilha. */
+function paraConsulta(f: FiltrosSelecao): FiltrosRotas {
+  return {
+    paisOrigem: f.paisOrigem ?? FILTRO_TODOS,
+    portoOrigem: f.portoOrigem ?? FILTRO_TODOS,
+    paisDestino: f.paisDestino ?? FILTRO_TODOS,
+    portoDestino: f.portoDestino ?? FILTRO_TODOS,
+    rota: f.rota ?? FILTRO_TODOS,
+  };
+}
+
 function chaveFiltros(f: FiltrosRotas): string {
-  return [
-    f.paisOrigem,
-    f.portoOrigem,
-    f.paisDestino,
-    f.portoDestino,
-    f.rota,
-  ].join("|");
+  return [f.paisOrigem, f.portoOrigem, f.paisDestino, f.portoDestino, f.rota].join("|");
 }
 
 function RotasPage() {
-  const [filtros, setFiltros] = useState<FiltrosRotas>(FILTROS_INICIAIS);
+  const [filtros, setFiltros] = useState<FiltrosSelecao>(FILTROS_VAZIOS);
+  const [consulta, setConsulta] = useState<FiltrosRotas | null>(null);
+  const podePesquisar = temAlgumFiltro(filtros);
 
   const opcoes = useQuery({
     queryKey: ["rotas-opcoes-filtro"],
@@ -102,17 +125,23 @@ function RotasPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-rotas", filtros],
-    queryFn: () => getAnaliseRotas({ data: filtros }),
+    queryKey: ["analise-rotas", consulta],
+    queryFn: () => getAnaliseRotas({ data: consulta as FiltrosRotas }),
+    enabled: Boolean(consulta),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
 
-  function atualizar<K extends keyof FiltrosRotas>(campo: K, valor: string) {
-    setFiltros((atual) => ({ ...atual, [campo]: valor || FILTRO_TODOS }));
+  function atualizar<K extends keyof FiltrosSelecao>(campo: K, valor: string | null) {
+    setFiltros((atual) => ({ ...atual, [campo]: valor }));
   }
 
-  const resetKey = chaveFiltros(filtros);
+  function pesquisar() {
+    if (!podePesquisar) return;
+    setConsulta(paraConsulta(filtros));
+  }
+
+  const resetKey = consulta ? chaveFiltros(consulta) : "vazio";
 
   return (
     <div className="w-full min-w-0 space-y-6">
@@ -130,48 +159,71 @@ function RotasPage() {
 
           <div className="grid gap-4 lg:grid-cols-3">
             <GrupoFiltros titulo="Filtros de origem">
-              <FiltroSelect
+              <FiltroCombobox
                 label="País de origem"
+                placeholder="Digite ou selecione o país de origem"
                 value={filtros.paisOrigem}
-                onChange={(v) => atualizar("paisOrigem", v)}
+                onValueChange={(v) => atualizar("paisOrigem", v)}
                 opcoes={opcoes.data?.paisesOrigem ?? []}
                 carregando={opcoes.isPending}
               />
-              <FiltroSelect
+              <FiltroCombobox
                 label="Porto de origem"
+                placeholder="Digite ou selecione o porto de origem"
                 value={filtros.portoOrigem}
-                onChange={(v) => atualizar("portoOrigem", v)}
+                onValueChange={(v) => atualizar("portoOrigem", v)}
                 opcoes={opcoes.data?.portosOrigem ?? []}
                 carregando={opcoes.isPending}
               />
             </GrupoFiltros>
 
             <GrupoFiltros titulo="Filtros de destino">
-              <FiltroSelect
+              <FiltroCombobox
                 label="País de destino"
+                placeholder="Digite ou selecione o país de destino"
                 value={filtros.paisDestino}
-                onChange={(v) => atualizar("paisDestino", v)}
+                onValueChange={(v) => atualizar("paisDestino", v)}
                 opcoes={opcoes.data?.paisesDestino ?? []}
                 carregando={opcoes.isPending}
               />
-              <FiltroSelect
+              <FiltroCombobox
                 label="Porto de destino"
+                placeholder="Digite ou selecione o porto de destino"
                 value={filtros.portoDestino}
-                onChange={(v) => atualizar("portoDestino", v)}
+                onValueChange={(v) => atualizar("portoDestino", v)}
                 opcoes={opcoes.data?.portosDestino ?? []}
                 carregando={opcoes.isPending}
               />
             </GrupoFiltros>
 
             <GrupoFiltros titulo="Filtro de rota">
-              <FiltroSelect
+              <FiltroCombobox
                 label="Rota"
+                placeholder="Digite ou selecione a rota"
                 value={filtros.rota}
-                onChange={(v) => atualizar("rota", v)}
+                onValueChange={(v) => atualizar("rota", v)}
                 opcoes={opcoes.data?.rotas ?? []}
+                opcoesFixas={[ROTA_INCOMPLETA]}
                 carregando={opcoes.isPending}
               />
             </GrupoFiltros>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              onClick={pesquisar}
+              disabled={!podePesquisar || analise.isFetching}
+              className="gap-2"
+            >
+              <Search className="size-4" />
+              Pesquisar
+            </Button>
+            {!podePesquisar ? (
+              <p className="text-xs text-muted-foreground">
+                Preencha ao menos um filtro para pesquisar.
+              </p>
+            ) : null}
           </div>
 
           {opcoes.isError ? (
@@ -182,7 +234,9 @@ function RotasPage() {
         </CardContent>
       </Card>
 
-      {analise.isPending && !analise.data ? (
+      {!consulta ? (
+        <EstadoVazio />
+      ) : analise.isPending && !analise.data ? (
         <FichaSkeleton />
       ) : analise.isError && !analise.data ? (
         <p className="flex items-center gap-2 text-sm text-destructive">
@@ -209,23 +263,76 @@ function GrupoFiltros({ titulo, children }: { titulo: string; children: ReactNod
   );
 }
 
-function FiltroSelect({
+function FiltroCombobox({
   label,
+  placeholder,
   value,
-  onChange,
+  onValueChange,
   opcoes,
+  opcoesFixas = [],
   carregando,
 }: {
   label: string;
-  value: string;
-  onChange: (valor: string) => void;
+  placeholder: string;
+  value: string | null;
+  onValueChange: (valor: string | null) => void;
   opcoes: string[];
+  /** Opções sempre presentes (ex.: "(Rota incompleta)"), além das vindas do servidor. */
+  opcoesFixas?: string[];
   carregando: boolean;
 }) {
+  const [aberto, setAberto] = useState(false);
+  const [texto, setTexto] = useState(value ?? "");
+  const [largura, setLargura] = useState<number>();
+  const ancoraRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const temConteudo = Boolean(texto.trim() || value);
+
   const itens = useMemo(() => {
-    const base = opcoes.filter((o) => o !== FILTRO_TODOS);
-    return [FILTRO_TODOS, ...base];
-  }, [opcoes]);
+    const vistos = new Set<string>([FILTRO_TODOS]);
+    const lista = [FILTRO_TODOS];
+    for (const opcao of [...opcoesFixas, ...opcoes]) {
+      if (!opcao || vistos.has(opcao)) continue;
+      vistos.add(opcao);
+      lista.push(opcao);
+    }
+    return lista;
+  }, [opcoes, opcoesFixas]);
+
+  useEffect(() => {
+    setTexto(value ?? "");
+  }, [value]);
+
+  const filtrados = useMemo(() => {
+    const termo = texto.trim().toLocaleLowerCase("pt-BR");
+    if (!termo) return itens;
+    return itens.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
+  }, [texto, itens]);
+
+  function abrir() {
+    setLargura(ancoraRef.current?.offsetWidth);
+    setAberto(true);
+  }
+
+  function fechar() {
+    setAberto(false);
+    setTexto(value ?? "");
+  }
+
+  function selecionar(nome: string) {
+    onValueChange(nome);
+    setTexto(nome);
+    setAberto(false);
+  }
+
+  function limpar(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    onValueChange(null);
+    setTexto("");
+    setAberto(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
 
   if (carregando) {
     return (
@@ -239,19 +346,108 @@ function FiltroSelect({
   return (
     <div className="space-y-1.5">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={FILTRO_TODOS} />
-        </SelectTrigger>
-        <SelectContent>
-          {itens.map((opcao) => (
-            <SelectItem key={opcao} value={opcao}>
-              {opcao}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Popover
+        open={aberto}
+        onOpenChange={(proximo) => {
+          if (proximo) abrir();
+          else fechar();
+        }}
+      >
+        <PopoverAnchor asChild>
+          <div ref={ancoraRef} className="relative w-full">
+            <Input
+              ref={inputRef}
+              role="combobox"
+              aria-expanded={aberto}
+              autoComplete="off"
+              placeholder={placeholder}
+              value={texto}
+              onChange={(event) => {
+                setTexto(event.target.value);
+                abrir();
+              }}
+              onFocus={abrir}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  fechar();
+                }
+              }}
+              className={cn("pr-9", temConteudo && "pr-16")}
+            />
+            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+              {temConteudo ? (
+                <button
+                  type="button"
+                  aria-label={`Limpar ${label.toLocaleLowerCase("pt-BR")}`}
+                  className="rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={limpar}
+                >
+                  <X className="size-3.5" />
+                </button>
+              ) : null}
+              <ChevronsUpDown className="pointer-events-none size-4 opacity-50" />
+            </div>
+          </div>
+        </PopoverAnchor>
+        <PopoverContent
+          className="p-0"
+          align="start"
+          style={largura ? { width: largura } : undefined}
+          onOpenAutoFocus={(event) => event.preventDefault()}
+          onCloseAutoFocus={(event) => event.preventDefault()}
+          onPointerDownOutside={(event) => {
+            if (ancoraRef.current?.contains(event.target as Node)) {
+              event.preventDefault();
+            }
+          }}
+          onInteractOutside={(event) => {
+            if (ancoraRef.current?.contains(event.target as Node)) {
+              event.preventDefault();
+            }
+          }}
+        >
+          <Command shouldFilter={false}>
+            <CommandList>
+              <CommandEmpty>Nenhuma opção encontrada.</CommandEmpty>
+              <CommandGroup>
+                {filtrados.map((nome) => (
+                  <CommandItem key={nome} value={nome} onSelect={() => selecionar(nome)}>
+                    <Check
+                      className={cn(
+                        "size-4 shrink-0",
+                        value === nome ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <span className="truncate">{nome}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
+  );
+}
+
+function EstadoVazio() {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+          <Network className="size-6 text-muted-foreground" />
+        </span>
+        <p className="text-sm font-medium">
+          Defina os filtros e clique em Pesquisar para ver a análise.
+        </p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          Basta preencher ao menos um campo. Os demais ficam sem restrição até você
+          escolher um valor. A ficha só é calculada ao clicar na lupa.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -90,7 +90,7 @@ export const navigation: NavGroup[] = [
         label: "Agentes",
         to: "/agentes",
         icon: Users,
-        description: "Participação e efetividade dos agentes no exterior.",
+        description: "Inteligência de agentes: volume, conversão e cobertura.",
       },
     ],
   },

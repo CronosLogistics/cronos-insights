@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   montarAnaliseRotas,
   FILTRO_TODOS,
+  ROTA_INCOMPLETA,
   type AgregadoRotas,
   type AnaliseRotas,
   type FiltrosRotas,
@@ -47,12 +48,15 @@ export const getRotasOpcoesFiltro = createServerFn({ method: "GET" })
     const { data, error } = await client.rpc("rotas_opcoes_filtro");
     if (error) throw new Error(error.message);
     const raw = (data ?? {}) as Partial<RotasOpcoesFiltro>;
+    const rotas = [...(raw.rotas ?? [])];
+    if (!rotas.includes(ROTA_INCOMPLETA)) rotas.push(ROTA_INCOMPLETA);
+    rotas.sort((a, b) => a.localeCompare(b, "pt-BR"));
     return {
       paisesOrigem: raw.paisesOrigem ?? [],
       portosOrigem: raw.portosOrigem ?? [],
       paisesDestino: raw.paisesDestino ?? [],
       portosDestino: raw.portosDestino ?? [],
-      rotas: raw.rotas ?? [],
+      rotas,
     };
   });
 

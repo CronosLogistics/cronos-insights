@@ -54,6 +54,9 @@ export type FiltrosRotas = {
 
 export const FILTRO_TODOS = "Todos";
 
+/** Equivale a Rota_Analitica incompleta na planilha (origem ou destino vazio). */
+export const ROTA_INCOMPLETA = "(Rota incompleta)";
+
 /** Objeto completo consumido pela tela. */
 export type AnaliseRotas = {
   filtros: FiltrosRotas;
