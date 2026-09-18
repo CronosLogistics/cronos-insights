@@ -36,6 +36,13 @@
       "when": 1789740102535,
       "tag": "0004_create_motivos_perda_analise",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789753680398,
+      "tag": "0005_create_dashboard_analise",
+      "breakpoints": true
     }
   ]
 }
