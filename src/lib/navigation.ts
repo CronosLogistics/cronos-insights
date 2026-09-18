@@ -45,10 +45,10 @@ export const navigation: NavGroup[] = [
         description: "Indicadores de conversão, volume e tempo de resposta.",
       },
       {
-        label: "Cotações",
+        label: "Cotações em análise",
         to: "/cotacoes",
         icon: FileSpreadsheet,
-        description: "Carteira de ofertas, revisões e cotações em análise.",
+        description: "Fila de cotações em análise, ordenada pelo maior tempo em aberto.",
       },
     ],
   },
@@ -118,7 +118,8 @@ export const navigation: NavGroup[] = [
         label: "Motivos de Perda",
         to: "/motivos-perda",
         icon: TrendingDown,
-        description: "Reprovações por motivo, cliente e rota.",
+        description:
+          "Concentração de reprovações por motivo, rota, cliente, coloader e agente.",
       },
       {
         label: "Qualidade de Dados",
