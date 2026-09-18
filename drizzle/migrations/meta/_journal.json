@@ -57,6 +57,13 @@
       "when": 1789754653411,
       "tag": "0007_atualizar_analises_dashboard_base",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789755323128,
+      "tag": "0008_dashboard_resumo_padrao",
+      "breakpoints": true
     }
   ]
 }
