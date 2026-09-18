@@ -101,17 +101,6 @@ export const navigation: NavGroup[] = [
     ],
   },
   {
-    title: "Pessoas",
-    items: [
-      {
-        label: "Vendedores",
-        to: "/vendedores",
-        icon: Briefcase,
-        description: "Conversão comercial e carteira por vendedor.",
-      },
-    ],
-  },
-  {
     title: "Diagnóstico",
     items: [
       {
