@@ -662,19 +662,30 @@ function ConteudoDashboard({
         title="Oportunidades de Pricing"
         description="Insights recalculados a cada alteração dos filtros globais."
       >
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {analise.oportunidades.map((item) => (
+        <div className="flex flex-col gap-3">
+          {[
+            analise.oportunidades.slice(0, 3),
+            analise.oportunidades.slice(3, 5),
+            analise.oportunidades.slice(5, 7),
+          ].map((linha, idx) => (
             <div
-              key={item.titulo}
-              className="rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4"
+              key={idx}
+              className={`grid gap-3 ${linha.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}
             >
-              <div className="mb-2 flex items-start gap-2">
-                <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent">
-                  <Lightbulb className="size-3.5" />
-                </span>
-                <p className="text-xs font-semibold leading-snug">{item.titulo}</p>
-              </div>
-              <p className="text-sm text-muted-foreground">{item.texto}</p>
+              {linha.map((item) => (
+                <div
+                  key={item.titulo}
+                  className="rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4"
+                >
+                  <div className="mb-2 flex items-start gap-2">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent">
+                      <Lightbulb className="size-3.5" />
+                    </span>
+                    <p className="text-xs font-semibold leading-snug">{item.titulo}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{item.texto}</p>
+                </div>
+              ))}
             </div>
           ))}
         </div>
