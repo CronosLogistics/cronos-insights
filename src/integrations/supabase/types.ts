@@ -540,6 +540,7 @@ export type Database = {
       coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
+      qualidade_dados_analise: { Args: never; Returns: Json }
       rotas_analise: {
         Args: {
           p_pais_destino?: string

@@ -15,6 +15,13 @@
       "when": 1789671713397,
       "tag": "0001_analistas_ficha_pre_agregada",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789735548423,
+      "tag": "0002_create_qualidade_dados_analise",
+      "breakpoints": true
     }
   ]
 }
