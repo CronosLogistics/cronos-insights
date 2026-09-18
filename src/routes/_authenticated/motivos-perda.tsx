@@ -78,26 +78,27 @@ const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
 const MOTIVO_STORAGE_KEY = "cronos-insights:motivos-perda:selecao";
 
-function readSavedMotivo(): string {
-  if (typeof window === "undefined") return FILTRO_TODOS;
+function readSavedMotivo(): string | null {
+  if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(MOTIVO_STORAGE_KEY) ?? FILTRO_TODOS;
+    return localStorage.getItem(MOTIVO_STORAGE_KEY);
   } catch {
-    return FILTRO_TODOS;
+    return null;
   }
 }
 
-function saveMotivo(motivo: string) {
+function saveMotivo(motivo: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(MOTIVO_STORAGE_KEY, motivo);
+    if (motivo) localStorage.setItem(MOTIVO_STORAGE_KEY, motivo);
+    else localStorage.removeItem(MOTIVO_STORAGE_KEY);
   } catch {
     // storage indisponível
   }
 }
 
 function MotivosPage() {
-  const [motivo, setMotivo] = useState<string>(() => readSavedMotivo());
+  const [motivo, setMotivo] = useState<string | null>(() => readSavedMotivo());
 
   const opcoes = useQuery({
     queryKey: ["motivos-perda-opcoes-filtro"],
@@ -107,7 +108,8 @@ function MotivosPage() {
 
   const analise = useQuery({
     queryKey: ["analise-motivos-perda", motivo],
-    queryFn: () => getAnaliseMotivosPerda({ data: { motivo } }),
+    queryFn: () => getAnaliseMotivosPerda({ data: { motivo: motivo as string } }),
+    enabled: Boolean(motivo),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -117,9 +119,9 @@ function MotivosPage() {
   }, [motivo]);
 
   useEffect(() => {
-    if (!opcoes.data || motivo === FILTRO_TODOS) return;
+    if (!opcoes.data || !motivo || motivo === FILTRO_TODOS) return;
     const existe = opcoes.data.motivos.some((opcao) => opcao === motivo);
-    if (!existe) setMotivo(FILTRO_TODOS);
+    if (!existe) setMotivo(null);
   }, [opcoes.data, motivo]);
 
   return (
@@ -146,9 +148,6 @@ function MotivosPage() {
               opcoes={opcoes.data?.motivos ?? []}
               carregando={opcoes.isPending}
             />
-            <p className="text-xs text-muted-foreground">
-              Para limpar, selecione Todos no filtro.
-            </p>
           </div>
 
           {opcoes.data ? (
@@ -165,7 +164,9 @@ function MotivosPage() {
         </CardContent>
       </Card>
 
-      {analise.isPending && !analise.data ? (
+      {!motivo ? (
+        <EstadoVazio />
+      ) : analise.isPending && !analise.data ? (
         <FichaSkeleton />
       ) : analise.isError && !analise.data ? (
         <p className="flex items-center gap-2 text-sm text-destructive">
@@ -187,13 +188,13 @@ function FiltroMotivoCombobox({
   opcoes,
   carregando,
 }: {
-  value: string;
-  onValueChange: (valor: string) => void;
+  value: string | null;
+  onValueChange: (valor: string | null) => void;
   opcoes: string[];
   carregando: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [texto, setTexto] = useState(value);
+  const [texto, setTexto] = useState(value ?? "");
   const [largura, setLargura] = useState<number>();
   const ancoraRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -211,7 +212,7 @@ function FiltroMotivoCombobox({
   }, [opcoes]);
 
   useEffect(() => {
-    setTexto(value);
+    setTexto(value ?? "");
   }, [value]);
 
   const filtrados = useMemo(() => {
@@ -227,7 +228,7 @@ function FiltroMotivoCombobox({
 
   function fechar() {
     setAberto(false);
-    setTexto(value);
+    setTexto(value ?? "");
   }
 
   function selecionar(nome: string) {
@@ -239,8 +240,8 @@ function FiltroMotivoCombobox({
   function limpar(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    onValueChange(FILTRO_TODOS);
-    setTexto(FILTRO_TODOS);
+    onValueChange(null);
+    setTexto("");
     setAberto(true);
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -280,7 +281,7 @@ function FiltroMotivoCombobox({
             className={cn("pr-9", temConteudo && "pr-16")}
           />
           <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
-            {temConteudo && value !== FILTRO_TODOS ? (
+            {temConteudo ? (
               <button
                 type="button"
                 aria-label="Limpar motivo"
@@ -335,12 +336,29 @@ function FiltroMotivoCombobox({
   );
 }
 
+function EstadoVazio() {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+          <TrendingDown className="size-6 text-muted-foreground" />
+        </span>
+        <p className="text-sm font-medium">Selecione um motivo para visualizar a análise.</p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          A ficha só é calculada após a escolha do motivo, evitando processar toda a base
+          desnecessariamente.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function FichaSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} className={cn(i === 2 && "md:col-span-2 xl:col-span-1")}>
+      <div className="grid gap-3 md:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Card key={i}>
             <CardContent className="space-y-4 pt-6">
               <Skeleton className="h-4 w-28" />
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -388,7 +406,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: 
           </Badge>
         }
       >
-        <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid w-full min-w-0 gap-3 md:grid-cols-2">
           <GrupoIndicadores
             titulo="Volume"
             tom="volume"
@@ -424,7 +442,6 @@ function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: 
           <GrupoIndicadores
             titulo="Cobertura"
             tom="resultado"
-            className="md:col-span-2 xl:col-span-2"
             itens={[
               { titulo: "Rotas", valor: inteiro(ind.rotas), icone: RouteIcon },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
@@ -444,7 +461,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: 
             </span>
             <p className="text-sm font-medium">Nenhuma reprovação no recorte selecionado.</p>
             <p className="max-w-sm text-xs text-muted-foreground">
-              Selecione outro motivo ou use Todos para ver o conjunto completo.
+              Selecione outro motivo ou limpe o filtro para escolher novamente.
             </p>
           </CardContent>
         </Card>
