@@ -539,24 +539,6 @@ export type Database = {
       atualizar_analises: { Args: never; Returns: undefined }
       coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
-      dashboard_analise: {
-        Args: {
-          p_analista?: string
-          p_cliente?: string
-          p_coloader?: string
-          p_data_final?: string
-          p_data_inicial?: string
-          p_destino?: string
-          p_min_decisoes?: number
-          p_motivo?: string
-          p_origem?: string
-          p_resultado?: string
-          p_rota?: string
-          p_vendedor?: string
-        }
-        Returns: Json
-      }
-      dashboard_opcoes_filtro: { Args: never; Returns: Json }
       motivos_perda_analise: { Args: { p_motivo?: string }; Returns: Json }
       motivos_perda_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
