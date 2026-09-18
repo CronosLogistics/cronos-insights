@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Database } from "lucide-react";
+import { Database, RefreshCw } from "lucide-react";
 
-import { KpiCard } from "@/components/data/KpiCard";
-import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
-import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleIntro, TableSkeleton } from "@/components/data/Placeholders";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -15,8 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
-import { formatarDataHora, useKpisGerais, useUltimaImportacao } from "@/lib/analytics";
+import {
+  formatarPctQualidade,
+  larguraBarraPct,
+  type CampoPreenchimento,
+  type IndicadorQualidade,
+} from "@/lib/data-quality";
+import { getQualidadeDados } from "@/lib/data-quality-fn";
 
 export const Route = createFileRoute("/_authenticated/qualidade-dados")({
   head: () => ({
@@ -25,160 +27,190 @@ export const Route = createFileRoute("/_authenticated/qualidade-dados")({
       {
         name: "description",
         content:
-          "Consistência da base de cotações: campos não informados, duplicidades e padronização de portos.",
+          "Preenchimento e consistencia da tabela historica tbHistorico: indicadores de qualidade e preenchimento por campo.",
       },
       { property: "og:title", content: "Qualidade de Dados — Cronos Pricing Insights" },
       {
         property: "og:description",
-        content: "Monitoramento da confiabilidade da base analítica de Pricing.",
+        content: "Consistência e preenchimento da base histórica de cotações.",
       },
     ],
   }),
   component: QualidadePage,
 });
 
-function severidade(pct: number) {
-  if (pct >= 98) return { label: "Ótimo", variant: "secondary" as const };
-  if (pct >= 85) return { label: "Atenção", variant: "outline" as const };
-  return { label: "Crítico", variant: "destructive" as const };
-}
+const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
+
+const COLUNAS_INDICADORES = ["Indicador", "Quantidade", "% da base", "Impacto"];
+const COLUNAS_CAMPOS = ["Campo original", "Preenchidos", "Em branco", "% preenchimento"];
 
 function QualidadePage() {
-  const kpis = useKpisGerais();
-  const importacao = useUltimaImportacao();
-
-  const campos = useQuery({
+  const analise = useQuery({
     queryKey: ["qualidade-dados"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_qualidade_dados")
-        .select("*")
-        .order("preenchimento_pct", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => getQualidadeDados(),
+    staleTime: 5 * 60 * 1000,
   });
 
-  const pior = campos.data?.[0];
-  const media =
-    campos.data && campos.data.length > 0
-      ? campos.data.reduce((soma, item) => soma + Number(item.preenchimento_pct ?? 0), 0) /
-        campos.data.length
-      : 0;
-  const paginacao = usePaginacao(campos.data, "qualidade-dados");
+  return (
+    <div className="w-full min-w-0 space-y-6">
+      <ModuleIntro
+        eyebrow="Diagnóstico"
+        title="Qualidade de Dados"
+        description="Preenchimento e consistencia da tabela historica tbHistorico"
+      />
+
+      {analise.isPending ? (
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <TableSkeleton columns={COLUNAS_INDICADORES} rows={7} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <TableSkeleton columns={COLUNAS_CAMPOS} rows={10} />
+            </CardContent>
+          </Card>
+        </div>
+      ) : analise.isError ? (
+        <p className="flex items-center gap-2 text-sm text-destructive">
+          <RefreshCw className="size-4" />
+          Não foi possível calcular a qualidade dos dados agora.
+        </p>
+      ) : analise.data ? (
+        <ConteudoQualidade
+          indicadores={analise.data.indicadores}
+          campos={analise.data.campos}
+          linhasBase={analise.data.linhasBase}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function ConteudoQualidade({
+  indicadores,
+  campos,
+  linhasBase,
+}: {
+  indicadores: IndicadorQualidade[];
+  campos: CampoPreenchimento[];
+  linhasBase: number;
+}) {
+  const vazio = linhasBase === 0;
 
   return (
     <div className="space-y-6">
-      <ModuleIntro
-        eyebrow="Diagnóstico"
-        title="Qualidade dos dados"
-        description="Confiabilidade da base importada do relatório de Ofertas: percentual de preenchimento de cada campo analítico, campos críticos e data da última carga."
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          label="Registros analisados"
-          value={kpis.isPending ? "…" : (kpis.data?.ofertas ?? 0).toLocaleString("pt-BR")}
-          hint="Ofertas e revisões"
-        />
-        <KpiCard
-          label="Campos monitorados"
-          value={campos.isPending ? "…" : String(campos.data?.length ?? 0)}
-          hint="Colunas do relatório"
-        />
-        <KpiCard
-          label="Índice de preenchimento"
-          value={campos.isPending ? "…" : `${media.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}
-          hint="Média dos campos monitorados"
-        />
-        <KpiCard
-          label="Última carga"
-          value={importacao.isPending ? "…" : formatarDataHora(importacao.data?.concluido_em)}
-          hint={`Fonte: Ofertas.xlsx${importacao.data?.linhas ? ` · ${importacao.data.linhas.toLocaleString("pt-BR")} linhas` : ""}`}
-        />
-      </div>
-
-      {pior ? (
-        <PanelBlock
-          title="Campo com menor preenchimento"
-          description="Prioridade de correção na origem do relatório."
-        >
-          <p className="text-sm">
-            <span className="font-medium">{pior.campo}</span> — preenchido em{" "}
-            {Number(pior.preenchimento_pct ?? 0).toLocaleString("pt-BR")}% dos registros (
-            {Number(pior.vazios ?? 0).toLocaleString("pt-BR")} sem informação).
-          </p>
-        </PanelBlock>
+      {vazio ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+            <Database className="size-8 text-muted-foreground" />
+            <p className="text-sm font-medium">Nenhuma base histórica disponível</p>
+            <p className="max-w-md text-xs text-muted-foreground">
+              Não há registros de ofertas para o produto associado ao seu acesso.
+              Os indicadores abaixo ficam em zero.
+            </p>
+          </CardContent>
+        </Card>
       ) : null}
 
-      <PanelBlock
-        title="Preenchimento por campo"
-        description="Percentual de registros com informação em cada campo analítico."
-        action={
-          <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
-            <Database className="size-3" />
-            Dados reais
-          </Badge>
-        }
-      >
-        {campos.isPending ? (
-          <div className="space-y-2">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <Skeleton key={index} className="h-10 w-full" />
-            ))}
-          </div>
-        ) : (
-          <>
-            <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Campo</TableHead>
-                    <TableHead className="text-right">Preenchidos</TableHead>
-                    <TableHead className="text-right">Sem informação</TableHead>
-                    <TableHead className="text-right">Preenchimento</TableHead>
-                    <TableHead>Situação</TableHead>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[720px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Indicador</TableHead>
+                  <TableHead className="text-right">Quantidade</TableHead>
+                  <TableHead className="min-w-[200px]">% da base</TableHead>
+                  <TableHead>Impacto</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {indicadores.map((linha) => (
+                  <TableRow key={linha.indicador}>
+                    <TableCell className="font-medium">{linha.indicador}</TableCell>
+                    <TableCell className="whitespace-nowrap text-right tabular-nums">
+                      {inteiro(linha.quantidade)}
+                    </TableCell>
+                    <TableCell>
+                      <BarraPct
+                        fracao={linha.pctBase}
+                        rotulo={formatarPctQualidade(linha.pctBase)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{linha.impacto}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginacao.visiveis.map((item) => {
-                    const pct = Number(item.preenchimento_pct ?? 0);
-                    const nivel = severidade(pct);
-                    return (
-                      <TableRow key={item.campo}>
-                        <TableCell className="font-medium">{item.campo}</TableCell>
-                        <TableCell className="text-right">
-                          {Number(item.preenchidos ?? 0).toLocaleString("pt-BR")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {Number(item.vazios ?? 0).toLocaleString("pt-BR")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {pct.toLocaleString("pt-BR")}%
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={nivel.variant} className="font-normal">
-                            {nivel.label}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </PaginatedContent>
-            <TablePagination
-              pagina={paginacao.pagina}
-              totalPaginas={paginacao.totalPaginas}
-              porPagina={paginacao.porPagina}
-              total={paginacao.total}
-              inicio={paginacao.inicio}
-              onPagina={paginacao.setPagina}
-              onPorPagina={paginacao.setPorPagina}
-            />
-          </>
-        )}
-      </PanelBlock>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[720px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Campo original</TableHead>
+                  <TableHead className="text-right">Preenchidos</TableHead>
+                  <TableHead className="text-right">Em branco</TableHead>
+                  <TableHead className="min-w-[200px]">% preenchimento</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {campos.map((linha) => (
+                  <TableRow key={linha.campo}>
+                    <TableCell className="font-medium">{linha.campo}</TableCell>
+                    <TableCell className="whitespace-nowrap text-right tabular-nums">
+                      {inteiro(linha.preenchidos)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-right tabular-nums">
+                      {inteiro(linha.emBranco)}
+                    </TableCell>
+                    <TableCell>
+                      <BarraPct
+                        fracao={linha.pctPreenchimento}
+                        rotulo={formatarPctQualidade(linha.pctPreenchimento)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/**
+ * Barra proporcional ao percentual exibido (0% → vazia, 100% → completa).
+ * Não inverte o valor: 25% ocupa ~25% da largura.
+ */
+function BarraPct({ fracao, rotulo }: { fracao: number; rotulo: string }) {
+  const largura = larguraBarraPct(fracao);
+  return (
+    <div className="flex min-w-[160px] items-center gap-3">
+      <div
+        className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuenow={Math.round(largura)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={rotulo}
+      >
+        <div
+          className="h-full rounded-full bg-primary transition-[width]"
+          style={{ width: `${largura}%` }}
+        />
+      </div>
+      <span className="w-14 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+        {rotulo}
+      </span>
     </div>
   );
 }
