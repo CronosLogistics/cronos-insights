@@ -539,6 +539,8 @@ export type Database = {
       atualizar_analises: { Args: never; Returns: undefined }
       coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
+      motivos_perda_analise: { Args: { p_motivo?: string }; Returns: Json }
+      motivos_perda_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
       qualidade_dados_analise: { Args: never; Returns: Json }
       rotas_analise: {
