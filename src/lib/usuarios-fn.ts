@@ -137,7 +137,7 @@ export const criarUsuario = createServerFn({ method: "POST" })
       if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
         throw new Error("Este e-mail já está cadastrado.");
       }
-      throw new Error(criado.error.message);
+      throw erroDeSenha(criado.error.message);
     }
 
     const id = criado.data.user!.id;
