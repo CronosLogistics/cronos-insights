@@ -506,7 +506,24 @@ function CadastroUsuarios() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {form.id ? null : (
+                <div className="space-y-2">
+                  <Label htmlFor="usuario-senha">Senha de acesso</Label>
+                  <Input
+                    id="usuario-senha"
+                    type="text"
+                    value={form.senha}
+                    onChange={(event) => setForm({ ...form, senha: event.target.value })}
+                    placeholder="Mínimo de 8 caracteres"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Se ficar em branco, uma senha provisória é gerada e exibida ao salvar.
+                  </p>
+                </div>
+              )}
             </div>
+
           ) : null}
 
           <DialogFooter>
