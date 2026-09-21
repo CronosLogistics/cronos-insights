@@ -23,8 +23,8 @@ export function useProdutos() {
 }
 
 /**
- * Perfil do usuário autenticado: nome, produto associado e papel.
- * O produto é a dimensão que restringe todos os dados exibidos na aplicação —
+ * Perfil do usuário autenticado: nome, modalidades liberadas, status e papel.
+ * As modalidades são a dimensão que restringe todos os dados exibidos —
  * a restrição é aplicada no banco, nas políticas de acesso da base de ofertas.
  */
 export function usePerfil() {
@@ -35,22 +35,36 @@ export function usePerfil() {
     queryKey: ["perfil", userId],
     enabled: Boolean(userId),
     queryFn: async () => {
-      const [perfil, papeis] = await Promise.all([
+      const [perfil, vinculos, papeis] = await Promise.all([
         supabase
           .from("perfis")
-          .select("id,email,nome,produto_codigo,produtos(codigo,nome)")
+          .select("id,email,nome,ativo,produto_codigo")
           .eq("id", userId!)
           .maybeSingle(),
+        supabase
+          .from("perfis_produtos")
+          .select("produto_codigo,produtos(codigo,nome)")
+          .eq("user_id", userId!),
         supabase.from("papeis_usuario").select("role").eq("user_id", userId!),
       ]);
       if (perfil.error) throw perfil.error;
 
-      const produto = (perfil.data?.produtos ?? null) as Produto | null;
+      const modalidades = (vinculos.data ?? [])
+        .map((item) => ({
+          codigo: item.produto_codigo,
+          nome: (item.produtos as Produto | null)?.nome ?? item.produto_codigo,
+        }))
+        .sort((a, b) => a.codigo.localeCompare(b.codigo));
+
       return {
         nome: perfil.data?.nome ?? user?.email ?? "",
         email: perfil.data?.email ?? user?.email ?? "",
-        produtoCodigo: perfil.data?.produto_codigo ?? null,
-        produtoNome: produto?.nome ?? null,
+        ativo: perfil.data?.ativo !== false,
+        modalidades,
+        modalidadesCodigos: modalidades.map((item) => item.codigo),
+        /** Compatibilidade com telas que ainda leem um único produto. */
+        produtoCodigo: modalidades[0]?.codigo ?? perfil.data?.produto_codigo ?? null,
+        produtoNome: modalidades[0]?.nome ?? null,
         isAdmin: (papeis.data ?? []).some((item) => item.role === "admin"),
       };
     },

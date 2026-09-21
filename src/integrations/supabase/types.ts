@@ -220,6 +220,7 @@ export type Database = {
       }
       perfis: {
         Row: {
+          ativo: boolean
           created_at: string
           email: string | null
           id: string
@@ -228,6 +229,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ativo?: boolean
           created_at?: string
           email?: string | null
           id: string
@@ -236,6 +238,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ativo?: boolean
           created_at?: string
           email?: string | null
           id?: string
@@ -246,6 +249,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "perfis_produto_codigo_fkey"
+            columns: ["produto_codigo"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["codigo"]
+          },
+        ]
+      }
+      perfis_produtos: {
+        Row: {
+          created_at: string
+          id: string
+          produto_codigo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          produto_codigo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          produto_codigo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_produtos_produto_codigo_fkey"
             columns: ["produto_codigo"]
             isOneToOne: false
             referencedRelation: "produtos"
@@ -577,6 +609,7 @@ export type Database = {
       motivos_perda_analise: { Args: { p_motivo?: string }; Returns: Json }
       motivos_perda_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
+      produtos_do_usuario: { Args: never; Returns: string[] }
       qualidade_dados_analise: { Args: never; Returns: Json }
       rotas_analise: {
         Args: {
@@ -596,6 +629,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      usuario_ativo: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "usuario"

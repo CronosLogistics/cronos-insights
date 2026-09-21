@@ -51,9 +51,24 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
         <Input disabled placeholder="Buscar oferta, cliente, rota" className="pl-9" />
       </div>
 
-      <Badge variant="outline" className="hidden border-accent/40 text-accent lg:inline-flex">
-        {perfil.data?.produtoNome ?? "Produto não definido"}
-      </Badge>
+      <div className="hidden items-center gap-1 lg:flex">
+        {(perfil.data?.modalidades ?? []).length === 0 ? (
+          <Badge variant="outline" className="border-accent/40 text-accent">
+            Sem modalidade definida
+          </Badge>
+        ) : (
+          perfil.data?.modalidades.map((modalidade) => (
+            <Badge
+              key={modalidade.codigo}
+              variant="outline"
+              className="border-accent/40 text-accent"
+              title={modalidade.nome}
+            >
+              {modalidade.codigo}
+            </Badge>
+          ))
+        )}
+      </div>
 
 
 
@@ -78,7 +93,8 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
             </span>
             <span className="block truncate text-muted-foreground">{email}</span>
             <span className="block truncate text-accent">
-              Produto: {perfil.data?.produtoNome ?? "não definido"}
+              Modalidades:{" "}
+              {(perfil.data?.modalidadesCodigos ?? []).join(", ") || "não definidas"}
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

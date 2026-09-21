@@ -21,6 +21,13 @@
 - Filtros globais de período/modalidade nos módulos (hoje há busca por nome).
 - Parâmetros e cadastros de apoio em Configurações continuam visuais.
 
+## Cadastro de Usuários e múltiplas modalidades (concluído)
+- Tela administrativa Usuários: listar, pesquisar, filtrar por status, cadastrar,
+  editar, ativar/desativar e excluir; modalidades IA/EA/IM/EM por usuário.
+- Segurança no servidor: todas as operações exigem papel admin; acesso aos dados
+  usa `produto = ANY(produtos_do_usuario())` mais usuário ativo, nas políticas do banco.
+- Configurações deixa de editar produto único e aponta para Usuários.
+
 ## Produto como dimensão de acesso (concluído)
 - Catálogo `produtos` (IM, EM, IA, EA, IR, CA, S&A - IM) e `perfis` com produto por usuário.
 - Cadastro de acesso pede Nome e Produto; administração em Configurações permite trocar o produto.

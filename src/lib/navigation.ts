@@ -8,6 +8,7 @@ import {
   Users,
   UserRound,
   UserSearch,
+  UserCog,
   Briefcase,
   TrendingDown,
   ShieldCheck,
@@ -22,6 +23,8 @@ export type NavItem = {
   icon: LucideIcon;
   description: string;
   children?: NavItem[];
+  /** Visível apenas para administradores (a segurança real está no servidor). */
+  adminOnly?: boolean;
 };
 
 export type NavGroup = {
@@ -115,6 +118,13 @@ export const navigation: NavGroup[] = [
         to: "/qualidade-dados",
         icon: ShieldCheck,
         description: "Consistência da base e campos não informados.",
+      },
+      {
+        label: "Usuários",
+        to: "/usuarios",
+        icon: UserCog,
+        description: "Cadastro de usuários e modalidades de acesso.",
+        adminOnly: true,
       },
       {
         label: "Configurações",

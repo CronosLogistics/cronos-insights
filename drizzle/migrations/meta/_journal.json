@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789996334987,
+      "tag": "0000_usuarios_multiplas_modalidades",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789996608046,
+      "tag": "0001_views_multi_modalidade",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789996689262,
+      "tag": "0002_funcoes_multi_modalidade",
+      "breakpoints": true
+    }
+  ]
+}

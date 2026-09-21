@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Database } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -18,14 +18,8 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarDataHora } from "@/lib/analytics";
-import { usePerfil, useProdutos } from "@/hooks/useProduto";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { usePerfil } from "@/hooks/useProduto";
+
 
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -197,143 +191,65 @@ function HistoricoImportacoes() {
 
 
 /**
- * Acessos: cada usuário possui um Produto, que funciona como filtro
+ * Acessos: cada usuário possui uma ou mais modalidades, aplicadas como filtro
  * obrigatório dos dados em toda a aplicação. A restrição é garantida pelas
- * políticas de acesso do banco — aqui apenas administramos o vínculo.
+ * políticas de acesso do banco; a administração é feita na tela de Usuários.
  */
 function AcessosProduto() {
   const perfil = usePerfil();
-  const produtos = useProdutos();
-  const queryClient = useQueryClient();
-
-  const usuarios = useQuery({
-    queryKey: ["perfis-acessos"],
-    enabled: perfil.data?.isAdmin === true,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("perfis")
-        .select("id,nome,email,produto_codigo")
-        .order("email");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const atualizar = useMutation({
-    mutationFn: async ({ id, codigo }: { id: string; codigo: string }) => {
-      const { error } = await supabase
-        .from("perfis")
-        .update({ produto_codigo: codigo })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: async () => {
-      toast.success("Produto do usuário atualizado");
-      await queryClient.invalidateQueries();
-    },
-    onError: (error: Error) => {
-      toast.error("Não foi possível atualizar o produto", { description: error.message });
-    },
-  });
-
-  const paginacao = usePaginacao(usuarios.data, "acessos-produto");
 
   if (perfil.isPending) {
     return <Skeleton className="h-40 w-full" />;
   }
 
-  if (!perfil.data?.isAdmin) {
-    return (
-      <PanelBlock
-        title="Acessos"
-        description="Seu produto define os dados disponíveis em todas as telas."
-      >
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="text-muted-foreground">Produto associado ao seu acesso:</span>
-          <Badge variant="outline" className="border-accent/40 text-accent">
-            {perfil.data?.produtoNome ?? "não definido"}
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            A alteração é feita por um administrador.
-          </span>
-        </div>
-      </PanelBlock>
-    );
-  }
-
   return (
     <PanelBlock
-      title="Acessos e produto"
-      description="Defina o produto de cada usuário. Ele é aplicado como filtro obrigatório dos dados em todas as telas."
+      title="Acessos e modalidades"
+      description="As modalidades liberadas definem os dados disponíveis em todas as telas."
       action={
-        <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
-          <Database className="size-3" />
-          Administração
-        </Badge>
+        perfil.data?.isAdmin ? (
+          <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
+            <Database className="size-3" />
+            Administração
+          </Badge>
+        ) : null
       }
     >
-      {usuarios.isPending ? (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-10 w-full" />
-          ))}
+      <div className="space-y-3 text-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-muted-foreground">Modalidades do seu acesso:</span>
+          {(perfil.data?.modalidades ?? []).length === 0 ? (
+            <Badge variant="outline" className="border-accent/40 text-accent">
+              não definidas
+            </Badge>
+          ) : (
+            perfil.data?.modalidades.map((modalidade) => (
+              <Badge
+                key={modalidade.codigo}
+                variant="outline"
+                className="border-accent/40 text-accent"
+              >
+                {modalidade.codigo} · {modalidade.nome}
+              </Badge>
+            ))
+          )}
         </div>
-      ) : (
-        <>
-          <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead className="w-64">Produto</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginacao.visiveis.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="max-w-[220px] truncate">{item.nome ?? "—"}</TableCell>
-                    <TableCell className="max-w-[240px] truncate">{item.email ?? "—"}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={item.produto_codigo ?? ""}
-                        onValueChange={(codigo) => atualizar.mutate({ id: item.id, codigo })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o produto" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(produtos.data ?? []).map((produto) => (
-                            <SelectItem key={produto.codigo} value={produto.codigo}>
-                              {produto.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {paginacao.total === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground">
-                      Nenhum usuário cadastrado.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
-          </PaginatedContent>
-          <TablePagination
-            pagina={paginacao.pagina}
-            totalPaginas={paginacao.totalPaginas}
-            porPagina={paginacao.porPagina}
-            total={paginacao.total}
-            inicio={paginacao.inicio}
-            onPagina={paginacao.setPagina}
-            onPorPagina={paginacao.setPorPagina}
-          />
-        </>
-      )}
+
+        {perfil.data?.isAdmin ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-muted-foreground">
+              O cadastro de usuários e das modalidades de cada pessoa fica na tela Usuários.
+            </span>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/usuarios">Abrir Usuários</Link>
+            </Button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            A alteração das modalidades é feita por um administrador.
+          </p>
+        )}
+      </div>
     </PanelBlock>
   );
 }

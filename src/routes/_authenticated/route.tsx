@@ -8,16 +8,31 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePerfil } from "@/hooks/useProduto";
 import { navigation } from "@/lib/navigation";
 
-/** Sem produto associado, o banco não libera nenhum registro de ofertas. */
+/** Sem modalidade liberada (ou com acesso inativo) o banco não libera nenhuma oferta. */
 function SemProdutoAviso() {
   const perfil = usePerfil();
-  if (perfil.isPending || perfil.data?.produtoCodigo) return null;
+  if (perfil.isPending) return null;
+
+  if (perfil.data && !perfil.data.ativo) {
+    return (
+      <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
+        <p className="font-medium">Seu acesso está inativo</p>
+        <p className="text-muted-foreground">
+          Procure um administrador para reativar seu acesso. Enquanto isso, nenhuma oferta é
+          exibida nas telas.
+        </p>
+      </div>
+    );
+  }
+
+  if ((perfil.data?.modalidadesCodigos ?? []).length > 0) return null;
+
   return (
     <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
-      <p className="font-medium">Nenhum produto associado ao seu acesso</p>
+      <p className="font-medium">Nenhuma modalidade liberada para o seu acesso</p>
       <p className="text-muted-foreground">
-        Enquanto um administrador não definir seu produto em Configurações, nenhuma oferta será
-        exibida nas telas.
+        Enquanto um administrador não definir suas modalidades no cadastro de usuários, nenhuma
+        oferta será exibida nas telas.
       </p>
     </div>
   );
