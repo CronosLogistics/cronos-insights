@@ -167,7 +167,7 @@ export const definirSenhaUsuario = createServerFn({ method: "POST" })
       password: senha,
       email_confirm: true,
     });
-    if (error) throw new Error(error.message);
+    if (error) throw erroDeSenha(error.message);
     return { senha };
   });
 
