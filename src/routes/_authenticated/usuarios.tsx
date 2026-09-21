@@ -57,11 +57,13 @@ import {
   MODALIDADES,
   atualizarUsuario,
   criarUsuario,
+  definirSenhaUsuario,
   definirStatusUsuario,
   excluirUsuario,
   listarUsuarios,
   type UsuarioAdmin,
 } from "@/lib/usuarios-fn";
+
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
