@@ -186,22 +186,26 @@ function CadastroUsuarios() {
           email: valores.email,
           modalidades: valores.modalidades,
           ativo: valores.ativo,
+          senha: valores.senha,
         },
       });
-      return { tipo: "criacao" as const, senha: criado.senhaTemporaria };
+      return {
+        tipo: "criacao" as const,
+        senha: criado.senhaTemporaria,
+        email: valores.email.trim().toLowerCase(),
+      };
     },
     onSuccess: async (resultado) => {
       setForm(null);
       await recarregar();
       if (resultado.tipo === "criacao") {
-        toast.success("Usuário criado com sucesso.", {
-          description: `Senha provisória para o primeiro acesso: ${resultado.senha}`,
-          duration: 12000,
-        });
+        toast.success("Usuário criado com sucesso.");
+        setCredencial({ email: resultado.email, senha: resultado.senha });
       } else {
         toast.success("Usuário atualizado com sucesso.");
         toast.success("Permissões de acesso atualizadas com sucesso.");
       }
+
     },
     onError: (erro: Error) => toast.error(erro.message),
   });
