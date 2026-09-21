@@ -93,7 +93,8 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
             </span>
             <span className="block truncate text-muted-foreground">{email}</span>
             <span className="block truncate text-accent">
-              Produto: {perfil.data?.produtoNome ?? "não definido"}
+              Modalidades:{" "}
+              {(perfil.data?.modalidadesCodigos ?? []).join(", ") || "não definidas"}
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
