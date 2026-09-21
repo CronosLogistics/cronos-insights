@@ -29,6 +29,33 @@ async function exigirAdmin(context: Ctx) {
   if (error || data !== true) throw new Error("Acesso restrito a administradores.");
 }
 
+/** Senha provisória forte: maiúsculas, minúsculas, números e símbolo. */
+function gerarSenhaForte() {
+  const letras = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const minus = "abcdefghijkmnopqrstuvwxyz";
+  const nums = "23456789";
+  const simb = "!@#$%&*?";
+  const sorteio = (alfabeto: string, n: number) =>
+    Array.from({ length: n }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join("");
+  return (
+    sorteio(letras, 3) + sorteio(minus, 5) + sorteio(nums, 3) + sorteio(simb, 2)
+  );
+}
+
+/** Mensagem clara quando a senha é recusada por ser fraca/vazada. */
+function erroDeSenha(mensagem: string) {
+  const msg = mensagem.toLowerCase();
+  if (msg.includes("weak") || msg.includes("pwned") || msg.includes("easy to guess")) {
+    return new Error(
+      "Esta senha é muito comum e foi recusada. Use uma senha com letras maiúsculas e minúsculas, números e símbolos (ex.: Cronos@2026!bi).",
+    );
+  }
+  if (msg.includes("password") && msg.includes("least")) {
+    return new Error("A senha é curta demais. Use pelo menos 8 caracteres.");
+  }
+  return new Error(mensagem);
+}
+
 function validar(input: { nome: string; email: string; modalidades: string[] }) {
   const nome = input.nome.trim();
   const email = input.email.trim().toLowerCase();
@@ -111,7 +138,7 @@ export const criarUsuario = createServerFn({ method: "POST" })
     if (informada && informada.length < 8) {
       throw new Error("A senha deve ter pelo menos 8 caracteres.");
     }
-    const senhaTemporaria = informada || `Cronos@${Math.random().toString(36).slice(2, 10)}`;
+    const senhaTemporaria = informada || gerarSenhaForte();
     const criado = await supabaseAdmin.auth.admin.createUser({
       email,
       password: senhaTemporaria,
@@ -123,7 +150,7 @@ export const criarUsuario = createServerFn({ method: "POST" })
       if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
         throw new Error("Este e-mail já está cadastrado.");
       }
-      throw new Error(criado.error.message);
+      throw erroDeSenha(criado.error.message);
     }
 
     const id = criado.data.user!.id;
@@ -146,14 +173,14 @@ export const definirSenhaUsuario = createServerFn({ method: "POST" })
     if (informada && informada.length < 8) {
       throw new Error("A senha deve ter pelo menos 8 caracteres.");
     }
-    const senha = informada || `Cronos@${Math.random().toString(36).slice(2, 10)}`;
+    const senha = informada || gerarSenhaForte();
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.id, {
       password: senha,
       email_confirm: true,
     });
-    if (error) throw new Error(error.message);
+    if (error) throw erroDeSenha(error.message);
     return { senha };
   });
 
