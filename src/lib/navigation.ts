@@ -119,6 +119,13 @@ export const navigation: NavGroup[] = [
         description: "Consistência da base e campos não informados.",
       },
       {
+        label: "Usuários",
+        to: "/usuarios",
+        icon: UserCog,
+        description: "Cadastro de usuários e modalidades de acesso.",
+        adminOnly: true,
+      },
+      {
         label: "Configurações",
         to: "/configuracoes",
         icon: Settings,
