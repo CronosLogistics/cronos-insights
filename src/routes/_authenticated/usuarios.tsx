@@ -233,6 +233,21 @@ function CadastroUsuarios() {
     onError: (erro: Error) => toast.error(erro.message),
   });
 
+  const redefinirSenha = useMutation({
+    mutationFn: async ({ usuario, senha }: { usuario: UsuarioAdmin; senha: string }) => {
+      const resultado = await definirSenha({ data: { id: usuario.id, senha } });
+      return { email: usuario.email, senha: resultado.senha };
+    },
+    onSuccess: (resultado) => {
+      setSenhaForm(null);
+      toast.success("Senha definida com sucesso.");
+      setCredencial(resultado);
+    },
+    onError: (erro: Error) => toast.error(erro.message),
+  });
+
+
+
   const temFiltro = busca.trim().length > 0 || status !== "todos";
 
   return (
