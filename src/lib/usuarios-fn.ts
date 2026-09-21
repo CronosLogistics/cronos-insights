@@ -125,7 +125,7 @@ export const criarUsuario = createServerFn({ method: "POST" })
     if (informada && informada.length < 8) {
       throw new Error("A senha deve ter pelo menos 8 caracteres.");
     }
-    const senhaTemporaria = informada || `Cronos@${Math.random().toString(36).slice(2, 10)}`;
+    const senhaTemporaria = informada || gerarSenhaForte();
     const criado = await supabaseAdmin.auth.admin.createUser({
       email,
       password: senhaTemporaria,
@@ -160,7 +160,7 @@ export const definirSenhaUsuario = createServerFn({ method: "POST" })
     if (informada && informada.length < 8) {
       throw new Error("A senha deve ter pelo menos 8 caracteres.");
     }
-    const senha = informada || `Cronos@${Math.random().toString(36).slice(2, 10)}`;
+    const senha = informada || gerarSenhaForte();
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.id, {
