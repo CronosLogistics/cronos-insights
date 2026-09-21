@@ -540,6 +540,86 @@ function CadastroUsuarios() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={senhaForm !== null}
+        onOpenChange={(aberto) => (aberto ? null : setSenhaForm(null))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Definir senha</DialogTitle>
+            <DialogDescription>
+              {senhaForm ? `Nova senha de acesso para ${senhaForm.usuario.email}.` : null}
+            </DialogDescription>
+          </DialogHeader>
+          {senhaForm ? (
+            <div className="space-y-2">
+              <Label htmlFor="nova-senha">Senha</Label>
+              <Input
+                id="nova-senha"
+                type="text"
+                value={senhaForm.senha}
+                onChange={(event) => setSenhaForm({ ...senhaForm, senha: event.target.value })}
+                placeholder="Mínimo de 8 caracteres"
+              />
+              <p className="text-xs text-muted-foreground">
+                Em branco, uma senha provisória é gerada automaticamente.
+              </p>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSenhaForm(null)}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={redefinirSenha.isPending}
+              onClick={() => (senhaForm ? redefinirSenha.mutate(senhaForm) : null)}
+            >
+              Salvar senha
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={credencial !== null}
+        onOpenChange={(aberto) => (aberto ? null : setCredencial(null))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dados de acesso</DialogTitle>
+            <DialogDescription>
+              Copie e envie estes dados ao usuário. A senha não poderá ser consultada depois.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
+            <p>
+              <span className="text-muted-foreground">E-mail: </span>
+              <span className="font-medium">{credencial?.email}</span>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Senha: </span>
+              <span className="font-mono font-medium">{credencial?.senha}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!credencial) return;
+                void navigator.clipboard.writeText(
+                  `E-mail: ${credencial.email}\nSenha: ${credencial.senha}`,
+                );
+                toast.success("Dados copiados.");
+              }}
+            >
+              Copiar
+            </Button>
+            <Button onClick={() => setCredencial(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       <AlertDialog
         open={confirmar !== null}
         onOpenChange={(aberto) => (aberto ? null : setConfirmar(null))}
