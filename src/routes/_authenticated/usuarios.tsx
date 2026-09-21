@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, Pencil, Plus, Power, Search, Trash2, Users } from "lucide-react";
+import { KeyRound, MoreHorizontal, Pencil, Plus, Power, Search, Trash2, Users } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { PaginatedContent, TablePagination, usePaginacao } from "@/components/data/TablePagination";
@@ -57,11 +57,13 @@ import {
   MODALIDADES,
   atualizarUsuario,
   criarUsuario,
+  definirSenhaUsuario,
   definirStatusUsuario,
   excluirUsuario,
   listarUsuarios,
   type UsuarioAdmin,
 } from "@/lib/usuarios-fn";
+
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
@@ -88,9 +90,11 @@ type FormState = {
   email: string;
   modalidades: string[];
   ativo: boolean;
+  senha: string;
 };
 
-const FORM_VAZIO: FormState = { nome: "", email: "", modalidades: [], ativo: true };
+const FORM_VAZIO: FormState = { nome: "", email: "", modalidades: [], ativo: true, senha: "" };
+
 
 function UsuariosPage() {
   const perfil = usePerfil();
@@ -122,13 +126,17 @@ function CadastroUsuarios() {
   const atualizar = useServerFn(atualizarUsuario);
   const definirStatus = useServerFn(definirStatusUsuario);
   const excluir = useServerFn(excluirUsuario);
+  const definirSenha = useServerFn(definirSenhaUsuario);
 
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState<"todos" | "ativo" | "inativo">("todos");
   const [form, setForm] = useState<FormState | null>(null);
+  const [senhaForm, setSenhaForm] = useState<{ usuario: UsuarioAdmin; senha: string } | null>(null);
+  const [credencial, setCredencial] = useState<{ email: string; senha: string } | null>(null);
   const [confirmar, setConfirmar] = useState<
     { tipo: "desativar" | "excluir"; usuario: UsuarioAdmin } | null
   >(null);
+
 
   const usuarios = useQuery({
     queryKey: ["usuarios-admin"],
@@ -178,22 +186,26 @@ function CadastroUsuarios() {
           email: valores.email,
           modalidades: valores.modalidades,
           ativo: valores.ativo,
+          senha: valores.senha,
         },
       });
-      return { tipo: "criacao" as const, senha: criado.senhaTemporaria };
+      return {
+        tipo: "criacao" as const,
+        senha: criado.senhaTemporaria,
+        email: valores.email.trim().toLowerCase(),
+      };
     },
     onSuccess: async (resultado) => {
       setForm(null);
       await recarregar();
       if (resultado.tipo === "criacao") {
-        toast.success("Usuário criado com sucesso.", {
-          description: `Senha provisória para o primeiro acesso: ${resultado.senha}`,
-          duration: 12000,
-        });
+        toast.success("Usuário criado com sucesso.");
+        setCredencial({ email: resultado.email, senha: resultado.senha });
       } else {
         toast.success("Usuário atualizado com sucesso.");
         toast.success("Permissões de acesso atualizadas com sucesso.");
       }
+
     },
     onError: (erro: Error) => toast.error(erro.message),
   });
@@ -220,6 +232,21 @@ function CadastroUsuarios() {
     },
     onError: (erro: Error) => toast.error(erro.message),
   });
+
+  const redefinirSenha = useMutation({
+    mutationFn: async ({ usuario, senha }: { usuario: UsuarioAdmin; senha: string }) => {
+      const resultado = await definirSenha({ data: { id: usuario.id, senha } });
+      return { email: usuario.email, senha: resultado.senha };
+    },
+    onSuccess: (resultado) => {
+      setSenhaForm(null);
+      toast.success("Senha definida com sucesso.");
+      setCredencial(resultado);
+    },
+    onError: (erro: Error) => toast.error(erro.message),
+  });
+
+
 
   const temFiltro = busca.trim().length > 0 || status !== "todos";
 
@@ -340,12 +367,20 @@ function CadastroUsuarios() {
                                   email: usuario.email,
                                   modalidades: [...usuario.modalidades],
                                   ativo: usuario.ativo,
+                                  senha: "",
                                 })
                               }
                             >
                               <Pencil className="mr-2 size-4" />
                               Editar
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onSelect={() => setSenhaForm({ usuario, senha: "" })}
+                            >
+                              <KeyRound className="mr-2 size-4" />
+                              Definir senha
+                            </DropdownMenuItem>
+
                             <DropdownMenuItem
                               onSelect={() => {
                                 if (usuario.ativo) {
@@ -471,7 +506,24 @@ function CadastroUsuarios() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {form.id ? null : (
+                <div className="space-y-2">
+                  <Label htmlFor="usuario-senha">Senha de acesso</Label>
+                  <Input
+                    id="usuario-senha"
+                    type="text"
+                    value={form.senha}
+                    onChange={(event) => setForm({ ...form, senha: event.target.value })}
+                    placeholder="Mínimo de 8 caracteres"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Se ficar em branco, uma senha provisória é gerada e exibida ao salvar.
+                  </p>
+                </div>
+              )}
             </div>
+
           ) : null}
 
           <DialogFooter>
@@ -487,6 +539,86 @@ function CadastroUsuarios() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={senhaForm !== null}
+        onOpenChange={(aberto) => (aberto ? null : setSenhaForm(null))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Definir senha</DialogTitle>
+            <DialogDescription>
+              {senhaForm ? `Nova senha de acesso para ${senhaForm.usuario.email}.` : null}
+            </DialogDescription>
+          </DialogHeader>
+          {senhaForm ? (
+            <div className="space-y-2">
+              <Label htmlFor="nova-senha">Senha</Label>
+              <Input
+                id="nova-senha"
+                type="text"
+                value={senhaForm.senha}
+                onChange={(event) => setSenhaForm({ ...senhaForm, senha: event.target.value })}
+                placeholder="Mínimo de 8 caracteres"
+              />
+              <p className="text-xs text-muted-foreground">
+                Em branco, uma senha provisória é gerada automaticamente.
+              </p>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSenhaForm(null)}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={redefinirSenha.isPending}
+              onClick={() => (senhaForm ? redefinirSenha.mutate(senhaForm) : null)}
+            >
+              Salvar senha
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={credencial !== null}
+        onOpenChange={(aberto) => (aberto ? null : setCredencial(null))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dados de acesso</DialogTitle>
+            <DialogDescription>
+              Copie e envie estes dados ao usuário. A senha não poderá ser consultada depois.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
+            <p>
+              <span className="text-muted-foreground">E-mail: </span>
+              <span className="font-medium">{credencial?.email}</span>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Senha: </span>
+              <span className="font-mono font-medium">{credencial?.senha}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!credencial) return;
+                void navigator.clipboard.writeText(
+                  `E-mail: ${credencial.email}\nSenha: ${credencial.senha}`,
+                );
+                toast.success("Dados copiados.");
+              }}
+            >
+              Copiar
+            </Button>
+            <Button onClick={() => setCredencial(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <AlertDialog
         open={confirmar !== null}

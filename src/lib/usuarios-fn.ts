@@ -93,13 +93,25 @@ export const listarUsuarios = createServerFn({ method: "POST" })
 
 export const criarUsuario = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { nome: string; email: string; modalidades: string[]; ativo: boolean }) => input)
+  .inputValidator(
+    (input: {
+      nome: string;
+      email: string;
+      modalidades: string[];
+      ativo: boolean;
+      senha?: string;
+    }) => input,
+  )
   .handler(async ({ data, context }): Promise<{ senhaTemporaria: string }> => {
     await exigirAdmin(context as unknown as Ctx);
     const { nome, email, modalidades } = validar(data);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const senhaTemporaria = `Cronos@${Math.random().toString(36).slice(2, 10)}`;
+    const informada = (data.senha ?? "").trim();
+    if (informada && informada.length < 8) {
+      throw new Error("A senha deve ter pelo menos 8 caracteres.");
+    }
+    const senhaTemporaria = informada || `Cronos@${Math.random().toString(36).slice(2, 10)}`;
     const criado = await supabaseAdmin.auth.admin.createUser({
       email,
       password: senhaTemporaria,
@@ -123,6 +135,28 @@ export const criarUsuario = createServerFn({ method: "POST" })
     await sincronizarModalidades(supabaseAdmin, id, modalidades);
     return { senhaTemporaria };
   });
+
+/** Permite ao administrador definir manualmente a senha de acesso de um usuário. */
+export const definirSenhaUsuario = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; senha?: string }) => input)
+  .handler(async ({ data, context }): Promise<{ senha: string }> => {
+    await exigirAdmin(context as unknown as Ctx);
+    const informada = (data.senha ?? "").trim();
+    if (informada && informada.length < 8) {
+      throw new Error("A senha deve ter pelo menos 8 caracteres.");
+    }
+    const senha = informada || `Cronos@${Math.random().toString(36).slice(2, 10)}`;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.id, {
+      password: senha,
+      email_confirm: true,
+    });
+    if (error) throw new Error(error.message);
+    return { senha };
+  });
+
 
 export const atualizarUsuario = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
