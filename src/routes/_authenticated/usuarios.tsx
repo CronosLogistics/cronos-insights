@@ -367,12 +367,20 @@ function CadastroUsuarios() {
                                   email: usuario.email,
                                   modalidades: [...usuario.modalidades],
                                   ativo: usuario.ativo,
+                                  senha: "",
                                 })
                               }
                             >
                               <Pencil className="mr-2 size-4" />
                               Editar
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onSelect={() => setSenhaForm({ usuario, senha: "" })}
+                            >
+                              <KeyRound className="mr-2 size-4" />
+                              Definir senha
+                            </DropdownMenuItem>
+
                             <DropdownMenuItem
                               onSelect={() => {
                                 if (usuario.ativo) {
