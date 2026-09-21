@@ -23,7 +23,6 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMotivosPerdaRouteImport } from './routes/_authenticated/motivos-perda'
 import { Route as AuthenticatedQualidadeDadosRouteImport } from './routes/_authenticated/qualidade-dados'
 import { Route as AuthenticatedRotasRouteImport } from './routes/_authenticated/rotas'
-import { Route as AuthenticatedVendedoresRouteImport } from './routes/_authenticated/vendedores'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -98,11 +97,6 @@ const AuthenticatedRotasRoute = AuthenticatedRotasRouteImport.update({
   path: '/rotas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedVendedoresRoute = AuthenticatedVendedoresRouteImport.update({
-  id: '/vendedores',
-  path: '/vendedores',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -118,7 +112,6 @@ export interface FileRoutesByFullPath {
   '/motivos-perda': typeof AuthenticatedMotivosPerdaRoute
   '/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/rotas': typeof AuthenticatedRotasRoute
-  '/vendedores': typeof AuthenticatedVendedoresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,7 +127,6 @@ export interface FileRoutesByTo {
   '/motivos-perda': typeof AuthenticatedMotivosPerdaRoute
   '/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/rotas': typeof AuthenticatedRotasRoute
-  '/vendedores': typeof AuthenticatedVendedoresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,7 +144,6 @@ export interface FileRoutesById {
   '/_authenticated/motivos-perda': typeof AuthenticatedMotivosPerdaRoute
   '/_authenticated/qualidade-dados': typeof AuthenticatedQualidadeDadosRoute
   '/_authenticated/rotas': typeof AuthenticatedRotasRoute
-  '/_authenticated/vendedores': typeof AuthenticatedVendedoresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +161,6 @@ export interface FileRouteTypes {
     | '/motivos-perda'
     | '/qualidade-dados'
     | '/rotas'
-    | '/vendedores'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,7 +176,6 @@ export interface FileRouteTypes {
     | '/motivos-perda'
     | '/qualidade-dados'
     | '/rotas'
-    | '/vendedores'
   id:
     | '__root__'
     | '/'
@@ -203,7 +192,6 @@ export interface FileRouteTypes {
     | '/_authenticated/motivos-perda'
     | '/_authenticated/qualidade-dados'
     | '/_authenticated/rotas'
-    | '/_authenticated/vendedores'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -312,13 +300,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRotasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/vendedores': {
-      id: '/_authenticated/vendedores'
-      path: '/vendedores'
-      fullPath: '/vendedores'
-      preLoaderRoute: typeof AuthenticatedVendedoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
@@ -334,7 +315,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMotivosPerdaRoute: typeof AuthenticatedMotivosPerdaRoute
   AuthenticatedQualidadeDadosRoute: typeof AuthenticatedQualidadeDadosRoute
   AuthenticatedRotasRoute: typeof AuthenticatedRotasRoute
-  AuthenticatedVendedoresRoute: typeof AuthenticatedVendedoresRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -350,7 +330,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMotivosPerdaRoute: AuthenticatedMotivosPerdaRoute,
   AuthenticatedQualidadeDadosRoute: AuthenticatedQualidadeDadosRoute,
   AuthenticatedRotasRoute: AuthenticatedRotasRoute,
-  AuthenticatedVendedoresRoute: AuthenticatedVendedoresRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
