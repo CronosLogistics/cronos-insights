@@ -120,17 +120,22 @@ export const navigation: NavGroup[] = [
         description: "Consistência da base e campos não informados.",
       },
       {
+        label: "Configurações",
+        to: "/configuracoes",
+        icon: Settings,
+        description: "Parâmetros, períodos e regras de análise.",
+      },
+    ],
+  },
+  {
+    title: "Administração",
+    items: [
+      {
         label: "Usuários",
         to: "/usuarios",
         icon: UserCog,
         description: "Cadastro de usuários e modalidades de acesso.",
         adminOnly: true,
-      },
-      {
-        label: "Configurações",
-        to: "/configuracoes",
-        icon: Settings,
-        description: "Parâmetros, períodos e regras de análise.",
       },
     ],
   },
