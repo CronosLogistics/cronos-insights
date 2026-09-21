@@ -29,6 +29,20 @@ async function exigirAdmin(context: Ctx) {
   if (error || data !== true) throw new Error("Acesso restrito a administradores.");
 }
 
+/** Mensagem clara quando a senha é recusada por ser fraca/vazada. */
+function erroDeSenha(mensagem: string) {
+  const msg = mensagem.toLowerCase();
+  if (msg.includes("weak") || msg.includes("pwned") || msg.includes("easy to guess")) {
+    return new Error(
+      "Esta senha é muito comum e foi recusada. Use uma senha com letras maiúsculas e minúsculas, números e símbolos (ex.: Cronos@2026!bi).",
+    );
+  }
+  if (msg.includes("password") && msg.includes("least")) {
+    return new Error("A senha é curta demais. Use pelo menos 8 caracteres.");
+  }
+  return new Error(mensagem);
+}
+
 function validar(input: { nome: string; email: string; modalidades: string[] }) {
   const nome = input.nome.trim();
   const email = input.email.trim().toLowerCase();
