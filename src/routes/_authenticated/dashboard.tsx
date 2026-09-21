@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
+  Anchor,
+  BarChart3,
   Building2,
   Check,
   CheckCircle2,
@@ -9,11 +11,13 @@ import {
   Clock,
   FileText,
   Info,
-  Lightbulb,
   Network,
   Search,
   Ship,
+  SlidersHorizontal,
   TrendingDown,
+  TrendingUp,
+  Users,
   X,
   XCircle,
   type LucideIcon,
@@ -25,6 +29,13 @@ import { TablePagination, PaginatedContent, usePaginacao } from "@/components/da
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import {
   ChartContainer,
   ChartTooltip,
@@ -40,6 +51,13 @@ import {
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -57,6 +75,8 @@ import {
   type AnaliseDashboard,
   type FiltrosDashboard,
   type LinhaEvolucaoMensal,
+  type OportunidadeItem,
+  type OportunidadeTom,
 } from "@/lib/dashboard-analysis";
 import {
   getAnaliseDashboard,
@@ -658,38 +678,7 @@ function ConteudoDashboard({
         </div>
       </PanelBlock>
 
-      <PanelBlock
-        title="Oportunidades de Pricing"
-        description="Insights recalculados a cada alteração dos filtros globais."
-      >
-        <div className="flex flex-col gap-3">
-          {[
-            analise.oportunidades.slice(0, 3),
-            analise.oportunidades.slice(3, 5),
-            analise.oportunidades.slice(5, 7),
-          ].map((linha, idx) => (
-            <div
-              key={idx}
-              className={`grid gap-3 ${linha.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}
-            >
-              {linha.map((item) => (
-                <div
-                  key={item.titulo}
-                  className="rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4"
-                >
-                  <div className="mb-2 flex items-start gap-2">
-                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent">
-                      <Lightbulb className="size-3.5" />
-                    </span>
-                    <p className="text-xs font-semibold leading-snug">{item.titulo}</p>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{item.texto}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </PanelBlock>
+      <OportunidadesPricing itens={analise.oportunidades} />
 
       <PanelBlock
         title="Evolução mensal dos resultados"
@@ -768,6 +757,169 @@ function ConteudoDashboard({
 
 type TomGrupo = "volume" | "resultado" | "performance";
 type TomIcone = "padrao" | "positivo" | "negativo";
+
+const estiloOportunidade: Record<
+  OportunidadeTom,
+  { icone: string; badge: string; metrica: string; fundo?: string; Icone: LucideIcon }
+> = {
+  impacto: {
+    icone: "text-[#AC145A]",
+    badge: "bg-[#fce4ec] text-[#AC145A]",
+    metrica: "text-[#AC145A]",
+    fundo: "bg-[#fdf2f6]",
+    Icone: BarChart3,
+  },
+  estrategico: {
+    icone: "text-[#AC145A]",
+    badge: "bg-[#fce4ec] text-[#AC145A]",
+    metrica: "text-[#AC145A]",
+    Icone: Users,
+  },
+  reprovacao: {
+    icone: "text-[#c45c26]",
+    badge: "bg-[#fff0e8] text-[#c45c26]",
+    metrica: "text-[#AC145A]",
+    Icone: SlidersHorizontal,
+  },
+  concentracao: {
+    icone: "text-sky-600",
+    badge: "bg-sky-50 text-sky-700",
+    metrica: "text-[#AC145A]",
+    Icone: Anchor,
+  },
+  atencao: {
+    icone: "text-amber-600",
+    badge: "bg-amber-50 text-amber-700",
+    metrica: "text-[#AC145A]",
+    Icone: Clock,
+  },
+  tendencia: {
+    icone: "text-emerald-600",
+    badge: "bg-emerald-50 text-emerald-700",
+    metrica: "text-[#AC145A]",
+    Icone: TrendingUp,
+  },
+  destaque: {
+    icone: "text-sky-600",
+    badge: "bg-sky-50 text-sky-700",
+    metrica: "text-[#AC145A]",
+    Icone: Ship,
+  },
+};
+
+type OrdenacaoOportunidade = "impacto" | "alfabetica" | "tipo";
+
+function ordenarOportunidades(
+  itens: OportunidadeItem[],
+  ordenacao: OrdenacaoOportunidade,
+): OportunidadeItem[] {
+  const copia = [...itens];
+  if (ordenacao === "alfabetica") {
+    return copia.sort((a, b) => a.titulo.localeCompare(b.titulo, "pt-BR"));
+  }
+  if (ordenacao === "tipo") {
+    return copia.sort((a, b) => a.badge.localeCompare(b.badge, "pt-BR"));
+  }
+  return copia;
+}
+
+function OportunidadesPricing({ itens }: { itens: OportunidadeItem[] }) {
+  const [ordenacao, setOrdenacao] = useState<OrdenacaoOportunidade>("impacto");
+  const ordenados = useMemo(
+    () => ordenarOportunidades(itens, ordenacao),
+    [itens, ordenacao],
+  );
+
+  return (
+    <PanelBlock
+      title="Oportunidades de Pricing"
+      description="Principais insights que podem impactar sua conversão. Ordenados por potencial de ganho."
+      action={
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="hidden text-xs text-muted-foreground sm:inline">Ordenar por</span>
+          <Select
+            value={ordenacao}
+            onValueChange={(v) => setOrdenacao(v as OrdenacaoOportunidade)}
+          >
+            <SelectTrigger className="h-8 w-[132px] text-xs shadow-none">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="impacto">Impacto</SelectItem>
+              <SelectItem value="tipo">Tipo</SelectItem>
+              <SelectItem value="alfabetica">A–Z</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      }
+    >
+      <Carousel
+        opts={{ align: "start", dragFree: true, containScroll: "trimSnaps" }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-3">
+          {ordenados.map((item) => (
+            <CarouselItem
+              key={item.id}
+              className="basis-[min(100%,280px)] pl-3 sm:basis-[300px]"
+            >
+              <OportunidadeCard item={item} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <CarouselPrevious
+            variant="outline"
+            className="static left-auto top-auto size-8 translate-x-0 translate-y-0 rounded-full border-border text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-40"
+          />
+          <CarouselNext
+            variant="outline"
+            className="static left-auto top-auto size-8 translate-x-0 translate-y-0 rounded-full border-border text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-40"
+          />
+        </div>
+      </Carousel>
+    </PanelBlock>
+  );
+}
+
+function OportunidadeCard({ item }: { item: OportunidadeItem }) {
+  const estilo = estiloOportunidade[item.tom];
+  const Icone = estilo.Icone;
+
+  return (
+    <article
+      className={cn(
+        "flex h-full min-h-[200px] flex-col rounded-xl border border-border/80 p-4",
+        estilo.fundo ?? "bg-card",
+      )}
+      aria-label={item.texto}
+    >
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <span className={cn("mt-0.5", estilo.icone)}>
+          <Icone className="size-5" strokeWidth={1.75} />
+        </span>
+        <span
+          className={cn(
+            "rounded-full px-2.5 py-0.5 text-[11px] font-medium leading-5",
+            estilo.badge,
+          )}
+        >
+          {item.badge}
+        </span>
+      </div>
+
+      <h3 className="text-sm font-semibold leading-snug text-foreground">{item.titulo}</h3>
+      <p className="mt-1.5 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+        {item.detalhe}
+      </p>
+
+      <div className="mt-auto pt-4">
+        <p className={cn("text-2xl font-bold tracking-tight", estilo.metrica)}>{item.metrica}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{item.contexto}</p>
+      </div>
+    </article>
+  );
+}
 
 const tons: Record<TomGrupo, { cabecalho: string; icone: string }> = {
   volume: {

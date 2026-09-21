@@ -68,8 +68,27 @@ export type LinhaEvolucaoMensal = {
   conversao: number;
 };
 
+export type OportunidadeTom =
+  | "impacto"
+  | "estrategico"
+  | "reprovacao"
+  | "concentracao"
+  | "atencao"
+  | "tendencia"
+  | "destaque";
+
 export type OportunidadeItem = {
+  id: string;
   titulo: string;
+  /** Entidade ou contexto curto (ex.: rota, cliente). */
+  detalhe: string;
+  /** Valor em destaque (ex.: "18,2%", "38 dias"). */
+  metrica: string;
+  /** Texto auxiliar sob a métrica. */
+  contexto: string;
+  badge: string;
+  tom: OportunidadeTom;
+  /** Texto completo para acessibilidade / fallback. */
   texto: string;
 };
 
@@ -213,45 +232,167 @@ function montarOportunidades(
   const motivo = raw?.motivo_recorrente;
   const conc = raw?.concentracao;
 
+  const metricaRota = rotaBaixo?.item
+    ? `${arredPctPlanilha(num(rotaBaixo.conversao))}%`
+    : "—";
+  const contextoRota = rotaBaixo?.item
+    ? `de conversão em ${num(rotaBaixo.volume).toLocaleString("pt-BR")} rotas`
+    : "sem amostra no filtro";
+  const detalheRota = rotaBaixo?.item ?? "Nenhuma rota atende ao critério atual";
   const textoRota = rotaBaixo?.item
-    ? `${rotaBaixo.item} — ${arredPctPlanilha(num(rotaBaixo.conversao))}% de conversão em ${num(rotaBaixo.volume).toLocaleString("pt-BR")} rotas`
-    : "Nenhuma rota atende ao critério atual";
+    ? `${detalheRota} — ${metricaRota} ${contextoRota}`
+    : detalheRota;
 
+  const metricaCliente = clienteBaixo?.item
+    ? `${arredPctPlanilha(num(clienteBaixo.conversao))}%`
+    : "—";
+  const contextoCliente = clienteBaixo?.item
+    ? `de conversão em ${num(clienteBaixo.volume).toLocaleString("pt-BR")} rotas`
+    : "sem amostra no filtro";
+  const detalheCliente = clienteBaixo?.item ?? "Nenhum cliente atende ao critério atual";
   const textoCliente = clienteBaixo?.item
-    ? `${clienteBaixo.item} — ${arredPctPlanilha(num(clienteBaixo.conversao))}% de conversão em ${num(clienteBaixo.volume).toLocaleString("pt-BR")} rotas`
-    : "Nenhum cliente atende ao critério atual";
+    ? `${detalheCliente} — ${metricaCliente} ${contextoCliente}`
+    : detalheCliente;
 
-  const textoMelhor =
-    melhor?.rota && melhor?.coloader
-      ? `${melhor.rota} + ${melhor.coloader} — ${arredPctPlanilha(num(melhor.conversao))}% / ${num(melhor.decisoes).toLocaleString("pt-BR")} decisões`
-      : "Sem combinação com amostra mínima";
+  const temMelhor = Boolean(melhor?.rota && melhor?.coloader);
+  const detalheMelhor = temMelhor
+    ? `${melhor!.rota}\n${melhor!.coloader}`
+    : "Sem combinação com amostra mínima";
+  const metricaMelhor = temMelhor
+    ? `${arredPctPlanilha(num(melhor!.conversao))}%`
+    : "—";
+  const contextoMelhor = temMelhor
+    ? `${num(melhor!.decisoes).toLocaleString("pt-BR")} decisões`
+    : "amostra insuficiente";
+  const textoMelhor = temMelhor
+    ? `${melhor!.rota} + ${melhor!.coloader} — ${metricaMelhor} / ${contextoMelhor}`
+    : detalheMelhor;
 
+  const detalheMotivo = motivo?.motivo ?? "Sem reprovações no filtro atual";
+  const metricaMotivo = motivo?.motivo
+    ? num(motivo.reprovacoes).toLocaleString("pt-BR")
+    : "—";
+  const contextoMotivo = motivo?.motivo
+    ? `reprovações (${arredPctPlanilha(num(motivo.pct))}%)`
+    : "sem dados";
   const textoMotivo = motivo?.motivo
-    ? `${motivo.motivo} — ${num(motivo.reprovacoes).toLocaleString("pt-BR")} reprovações (${arredPctPlanilha(num(motivo.pct))}%)`
-    : "Sem reprovações no filtro atual";
+    ? `${detalheMotivo} — ${metricaMotivo} ${contextoMotivo}`
+    : detalheMotivo;
 
-  const textoConc =
-    conc?.rota && conc?.coloader
-      ? `${conc.rota} — ${conc.coloader} concentra ${arredPctPlanilha(num(conc.concentracao))}% de ${num(conc.volume_rota).toLocaleString("pt-BR")} rotas`
-      : "Sem rota de alto volume";
+  const temConc = Boolean(conc?.rota && conc?.coloader);
+  const detalheConc = temConc
+    ? `${conc!.rota}\n${conc!.coloader}`
+    : "Sem rota de alto volume";
+  const metricaConc = temConc
+    ? `${arredPctPlanilha(num(conc!.concentracao))}%`
+    : "—";
+  const contextoConc = temConc
+    ? `de ${num(conc!.volume_rota).toLocaleString("pt-BR")} rotas`
+    : "sem dados";
+  const textoConc = temConc
+    ? `${conc!.rota} — ${conc!.coloader} concentra ${metricaConc} de ${num(conc!.volume_rota).toLocaleString("pt-BR")} rotas`
+    : detalheConc;
 
-  let textoCotacao = "Nenhuma rota em análise";
+  const tendenciaTexto = montarTendencia(evolucao);
+  let metricaTendencia = "—";
+  let contextoTendencia = "série mensal";
+  let detalheTendencia = tendenciaTexto;
+  if (evolucao.length >= 2) {
+    const atual = evolucao[evolucao.length - 1]!;
+    const anterior = evolucao[evolucao.length - 2]!;
+    const diff = atual.conversao - anterior.conversao;
+    const sinal = diff >= 0 ? "+" : "";
+    metricaTendencia = `${sinal}${arredPctPlanilha(diff)} p.p.`;
+    contextoTendencia = `vs. ${formatarMesCurto(anterior.mes)}`;
+    detalheTendencia = `${formatarMesCurto(atual.mes)} — ${arredPctPlanilha(atual.conversao)}%`;
+  }
+
+  let detalheCotacao = "Nenhuma rota em análise";
+  let metricaCotacao = "—";
+  let contextoCotacao = "em aberto";
+  let textoCotacao = detalheCotacao;
   if (cotacaoAntiga) {
     const dias =
       cotacaoAntiga.diasEmAberto == null
         ? "—"
         : String(cotacaoAntiga.diasEmAberto);
+    detalheCotacao = `${cotacaoAntiga.oferta} — ${cotacaoAntiga.cliente}`;
+    metricaCotacao = cotacaoAntiga.diasEmAberto == null ? "—" : `${dias} dias`;
+    contextoCotacao = "em aberto";
     textoCotacao = `${cotacaoAntiga.oferta} — ${cotacaoAntiga.cliente} — ${cotacaoAntiga.rota} — ${dias} dias em aberto`;
   }
 
   return [
-    { titulo: "Rota alto volume + baixa conversão", texto: textoRota },
-    { titulo: "Cliente alto volume + baixa conversão", texto: textoCliente },
-    { titulo: "Melhor rota + coloader (amostra relevante)", texto: textoMelhor },
-    { titulo: "Motivo de reprovação recorrente", texto: textoMotivo },
-    { titulo: "Concentração de coloader por rota", texto: textoConc },
-    { titulo: "Cotação em análise mais antiga", texto: textoCotacao },
-    { titulo: "Tendência mensal", texto: montarTendencia(evolucao) },
+    {
+      id: "rota-baixo",
+      titulo: "Rota alto volume + baixa conversão",
+      detalhe: detalheRota,
+      metrica: metricaRota,
+      contexto: contextoRota,
+      badge: "Maior impacto",
+      tom: "impacto",
+      texto: textoRota,
+    },
+    {
+      id: "motivo-recorrente",
+      titulo: "Motivo de reprovação recorrente",
+      detalhe: detalheMotivo,
+      metrica: metricaMotivo,
+      contexto: contextoMotivo,
+      badge: "Reprovação",
+      tom: "reprovacao",
+      texto: textoMotivo,
+    },
+    {
+      id: "tendencia",
+      titulo: "Tendência mensal",
+      detalhe: detalheTendencia,
+      metrica: metricaTendencia,
+      contexto: contextoTendencia,
+      badge: "Tendência",
+      tom: "tendencia",
+      texto: tendenciaTexto,
+    },
+    {
+      id: "cliente-baixo",
+      titulo: "Cliente alto volume + baixa conversão",
+      detalhe: detalheCliente,
+      metrica: metricaCliente,
+      contexto: contextoCliente,
+      badge: "Cliente estratégico",
+      tom: "estrategico",
+      texto: textoCliente,
+    },
+    {
+      id: "concentracao",
+      titulo: "Concentração de coloader por rota",
+      detalhe: detalheConc,
+      metrica: metricaConc,
+      contexto: contextoConc,
+      badge: "Concentração",
+      tom: "concentracao",
+      texto: textoConc,
+    },
+    {
+      id: "melhor-rota-coloader",
+      titulo: "Melhor rota + coloader",
+      detalhe: detalheMelhor,
+      metrica: metricaMelhor,
+      contexto: contextoMelhor,
+      badge: "Destaque",
+      tom: "destaque",
+      texto: textoMelhor,
+    },
+    {
+      id: "cotacao-antiga",
+      titulo: "Cotação em análise mais antiga",
+      detalhe: detalheCotacao,
+      metrica: metricaCotacao,
+      contexto: contextoCotacao,
+      badge: "Atenção",
+      tom: "atencao",
+      texto: textoCotacao,
+    },
   ];
 }
 

@@ -80,26 +80,27 @@ const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
 const ANALISTA_STORAGE_KEY = "cronos-insights:analistas:analista";
 
-function readSavedAnalista(): string {
-  if (typeof window === "undefined") return FILTRO_TODOS;
+function readSavedAnalista(): string | null {
+  if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(ANALISTA_STORAGE_KEY) ?? FILTRO_TODOS;
+    return localStorage.getItem(ANALISTA_STORAGE_KEY);
   } catch {
-    return FILTRO_TODOS;
+    return null;
   }
 }
 
-function saveAnalista(analista: string) {
+function saveAnalista(analista: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(ANALISTA_STORAGE_KEY, analista);
+    if (analista) localStorage.setItem(ANALISTA_STORAGE_KEY, analista);
+    else localStorage.removeItem(ANALISTA_STORAGE_KEY);
   } catch {
     // storage indisponível
   }
 }
 
 function AnalistasPage() {
-  const [analista, setAnalista] = useState<string>(() => readSavedAnalista());
+  const [analista, setAnalista] = useState<string | null>(() => readSavedAnalista());
 
   const opcoes = useQuery({
     queryKey: ["analistas-opcoes-filtro"],
@@ -109,7 +110,8 @@ function AnalistasPage() {
 
   const analise = useQuery({
     queryKey: ["analise-analistas", analista],
-    queryFn: () => getAnaliseAnalistas({ data: { analista } }),
+    queryFn: () => getAnaliseAnalistas({ data: { analista: analista as string } }),
+    enabled: Boolean(analista),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -119,9 +121,9 @@ function AnalistasPage() {
   }, [analista]);
 
   useEffect(() => {
-    if (!opcoes.data || analista === FILTRO_TODOS) return;
+    if (!opcoes.data || !analista || analista === FILTRO_TODOS) return;
     const existe = opcoes.data.analistas.some((opcao) => opcao === analista);
-    if (!existe) setAnalista(FILTRO_TODOS);
+    if (!existe) setAnalista(null);
   }, [opcoes.data, analista]);
 
   return (
@@ -164,7 +166,9 @@ function AnalistasPage() {
         </CardContent>
       </Card>
 
-      {analise.isPending && !analise.data ? (
+      {!analista ? (
+        <EstadoVazio />
+      ) : analise.isPending && !analise.data ? (
         <FichaSkeleton />
       ) : analise.isError && !analise.data ? (
         <p className="flex items-center gap-2 text-sm text-destructive">
@@ -186,13 +190,13 @@ function FiltroAnalistaCombobox({
   opcoes,
   carregando,
 }: {
-  value: string;
-  onValueChange: (valor: string) => void;
+  value: string | null;
+  onValueChange: (valor: string | null) => void;
   opcoes: string[];
   carregando: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [texto, setTexto] = useState(value);
+  const [texto, setTexto] = useState(value ?? "");
   const [largura, setLargura] = useState<number>();
   const ancoraRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -210,7 +214,7 @@ function FiltroAnalistaCombobox({
   }, [opcoes]);
 
   useEffect(() => {
-    setTexto(value);
+    setTexto(value ?? "");
   }, [value]);
 
   const filtrados = useMemo(() => {
@@ -226,7 +230,7 @@ function FiltroAnalistaCombobox({
 
   function fechar() {
     setAberto(false);
-    setTexto(value);
+    setTexto(value ?? "");
   }
 
   function selecionar(nome: string) {
@@ -238,8 +242,8 @@ function FiltroAnalistaCombobox({
   function limpar(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    onValueChange(FILTRO_TODOS);
-    setTexto(FILTRO_TODOS);
+    onValueChange(null);
+    setTexto("");
     setAberto(true);
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -286,7 +290,7 @@ function FiltroAnalistaCombobox({
               className={cn("pr-9", temConteudo && "pr-16")}
             />
             <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
-              {temConteudo && value !== FILTRO_TODOS ? (
+              {temConteudo ? (
                 <button
                   type="button"
                   aria-label="Limpar analista"
@@ -339,6 +343,25 @@ function FiltroAnalistaCombobox({
         </PopoverContent>
       </Popover>
     </div>
+  );
+}
+
+function EstadoVazio() {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+          <Users className="size-6 text-muted-foreground" />
+        </span>
+        <p className="text-sm font-medium">
+          Selecione um analista pricing para visualizar a análise.
+        </p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          A ficha só é calculada após a escolha do analista, evitando processar toda a base
+          desnecessariamente. Use Todos no filtro para ver o conjunto completo do produto.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

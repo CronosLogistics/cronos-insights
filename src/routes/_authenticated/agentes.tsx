@@ -80,26 +80,27 @@ const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
 const AGENT_STORAGE_KEY = "cronos-insights:agentes:agente";
 
-function readSavedAgente(): string {
-  if (typeof window === "undefined") return FILTRO_TODOS;
+function readSavedAgente(): string | null {
+  if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(AGENT_STORAGE_KEY) ?? FILTRO_TODOS;
+    return localStorage.getItem(AGENT_STORAGE_KEY);
   } catch {
-    return FILTRO_TODOS;
+    return null;
   }
 }
 
-function saveAgente(agente: string) {
+function saveAgente(agente: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(AGENT_STORAGE_KEY, agente);
+    if (agente) localStorage.setItem(AGENT_STORAGE_KEY, agente);
+    else localStorage.removeItem(AGENT_STORAGE_KEY);
   } catch {
     // storage indisponível
   }
 }
 
 function AgentesPage() {
-  const [agente, setAgente] = useState<string>(() => readSavedAgente());
+  const [agente, setAgente] = useState<string | null>(() => readSavedAgente());
 
   const opcoes = useQuery({
     queryKey: ["agentes-opcoes-filtro"],
@@ -109,7 +110,8 @@ function AgentesPage() {
 
   const analise = useQuery({
     queryKey: ["analise-agentes", agente],
-    queryFn: () => getAnaliseAgentes({ data: { agente } }),
+    queryFn: () => getAnaliseAgentes({ data: { agente: agente as string } }),
+    enabled: Boolean(agente),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -120,9 +122,9 @@ function AgentesPage() {
 
   // Descarta seleção salva se o agente não existir mais no produto.
   useEffect(() => {
-    if (!opcoes.data || agente === FILTRO_TODOS) return;
+    if (!opcoes.data || !agente || agente === FILTRO_TODOS) return;
     const existe = opcoes.data.agentes.some((opcao) => opcao === agente);
-    if (!existe) setAgente(FILTRO_TODOS);
+    if (!existe) setAgente(null);
   }, [opcoes.data, agente]);
 
   return (
@@ -165,7 +167,9 @@ function AgentesPage() {
         </CardContent>
       </Card>
 
-      {analise.isPending && !analise.data ? (
+      {!agente ? (
+        <EstadoVazio />
+      ) : analise.isPending && !analise.data ? (
         <FichaSkeleton />
       ) : analise.isError && !analise.data ? (
         <p className="flex items-center gap-2 text-sm text-destructive">
@@ -187,13 +191,13 @@ function FiltroAgenteCombobox({
   opcoes,
   carregando,
 }: {
-  value: string;
-  onValueChange: (valor: string) => void;
+  value: string | null;
+  onValueChange: (valor: string | null) => void;
   opcoes: string[];
   carregando: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [texto, setTexto] = useState(value);
+  const [texto, setTexto] = useState(value ?? "");
   const [largura, setLargura] = useState<number>();
   const ancoraRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -211,7 +215,7 @@ function FiltroAgenteCombobox({
   }, [opcoes]);
 
   useEffect(() => {
-    setTexto(value);
+    setTexto(value ?? "");
   }, [value]);
 
   const filtrados = useMemo(() => {
@@ -227,7 +231,7 @@ function FiltroAgenteCombobox({
 
   function fechar() {
     setAberto(false);
-    setTexto(value);
+    setTexto(value ?? "");
   }
 
   function selecionar(nome: string) {
@@ -239,8 +243,8 @@ function FiltroAgenteCombobox({
   function limpar(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    onValueChange(FILTRO_TODOS);
-    setTexto(FILTRO_TODOS);
+    onValueChange(null);
+    setTexto("");
     setAberto(true);
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -287,7 +291,7 @@ function FiltroAgenteCombobox({
               className={cn("pr-9", temConteudo && "pr-16")}
             />
             <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
-              {temConteudo && value !== FILTRO_TODOS ? (
+              {temConteudo ? (
                 <button
                   type="button"
                   aria-label="Limpar agente"
@@ -340,6 +344,23 @@ function FiltroAgenteCombobox({
         </PopoverContent>
       </Popover>
     </div>
+  );
+}
+
+function EstadoVazio() {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-muted">
+          <Users className="size-6 text-muted-foreground" />
+        </span>
+        <p className="text-sm font-medium">Selecione um agente para visualizar a análise.</p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          A ficha só é calculada após a escolha do agente, evitando processar toda a base
+          desnecessariamente. Use Todos no filtro para ver o conjunto completo do produto.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
