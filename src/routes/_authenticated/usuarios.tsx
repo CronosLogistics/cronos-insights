@@ -126,13 +126,17 @@ function CadastroUsuarios() {
   const atualizar = useServerFn(atualizarUsuario);
   const definirStatus = useServerFn(definirStatusUsuario);
   const excluir = useServerFn(excluirUsuario);
+  const definirSenha = useServerFn(definirSenhaUsuario);
 
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState<"todos" | "ativo" | "inativo">("todos");
   const [form, setForm] = useState<FormState | null>(null);
+  const [senhaForm, setSenhaForm] = useState<{ usuario: UsuarioAdmin; senha: string } | null>(null);
+  const [credencial, setCredencial] = useState<{ email: string; senha: string } | null>(null);
   const [confirmar, setConfirmar] = useState<
     { tipo: "desativar" | "excluir"; usuario: UsuarioAdmin } | null
   >(null);
+
 
   const usuarios = useQuery({
     queryKey: ["usuarios-admin"],
