@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, Pencil, Plus, Power, Search, Trash2, Users } from "lucide-react";
+import { KeyRound, MoreHorizontal, Pencil, Plus, Power, Search, Trash2, Users } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { PaginatedContent, TablePagination, usePaginacao } from "@/components/data/TablePagination";
