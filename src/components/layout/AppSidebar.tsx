@@ -2,10 +2,20 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Activity, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
+import { usePerfil } from "@/hooks/useProduto";
 import { navigation, type NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const perfil = usePerfil();
+  const isAdmin = perfil.data?.isAdmin === true;
+  const grupos = navigation
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.adminOnly || isAdmin),
+    }))
+    .filter((group) => group.items.length > 0);
+
   return (
     <aside className="surface-vinho flex h-full w-72 flex-col">
       <div className="flex items-center gap-3 px-6 py-6">
