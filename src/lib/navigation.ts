@@ -22,6 +22,8 @@ export type NavItem = {
   icon: LucideIcon;
   description: string;
   children?: NavItem[];
+  /** Visível apenas para administradores (a segurança real está no servidor). */
+  adminOnly?: boolean;
 };
 
 export type NavGroup = {
