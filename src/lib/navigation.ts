@@ -123,7 +123,7 @@ export const navigation: NavGroup[] = [
         label: "Configurações",
         to: "/configuracoes",
         icon: Settings,
-        description: "Parâmetros, períodos e regras de análise.",
+        description: "Histórico das cargas do relatório de Ofertas.",
       },
     ],
   },

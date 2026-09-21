@@ -1,13 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Database } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -18,9 +16,6 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarDataHora } from "@/lib/analytics";
-import { usePerfil } from "@/hooks/useProduto";
-
-
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -28,36 +23,17 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
       { title: "Configurações — Cronos Pricing Insights" },
       {
         name: "description",
-        content:
-          "Parâmetros da análise de Pricing: períodos, regras de decisão, cadastros de apoio e acessos.",
+        content: "Histórico das cargas do relatório de Ofertas mantido no OneDrive.",
       },
       { property: "og:title", content: "Configurações — Cronos Pricing Insights" },
       {
         property: "og:description",
-        content: "Parâmetros e cadastros de apoio da plataforma de Pricing.",
+        content: "Histórico das cargas do relatório de Ofertas.",
       },
     ],
   }),
   component: ConfiguracoesPage,
 });
-
-const groups = [
-  {
-    title: "Parâmetros de análise",
-    description: "Período padrão, mínimo de decisões por dimensão e faixas de atenção.",
-    rows: ["Período padrão", "Mínimo de decisões", "Faixas de atenção"],
-  },
-  {
-    title: "Cadastros de apoio",
-    description: "De/para de portos, agrupamento de clientes e normalização de coloaders.",
-    rows: ["De/para de portos", "Agrupamento de clientes", "Normalização de coloaders"],
-  },
-  {
-    title: "Cargas e histórico",
-    description: "Origem dos arquivos, controle de importação e base histórica.",
-    rows: ["Importações", "Controle de histórico", "Retenção"],
-  },
-];
 
 function ConfiguracoesPage() {
   return (
@@ -65,33 +41,8 @@ function ConfiguracoesPage() {
       <ModuleIntro
         eyebrow="Administração"
         title="Configurações"
-        description="Área reservada para os parâmetros que sustentam a análise de Pricing. Nesta etapa apenas a estrutura visual está definida."
+        description="Histórico das cargas do relatório de Ofertas."
       />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {groups.map((group) => (
-          <PanelBlock
-            key={group.title}
-            title={group.title}
-            description={group.description}
-            action={<Badge variant="secondary">Em construção</Badge>}
-          >
-            <div className="space-y-3">
-              {group.rows.map((row, index) => (
-                <div key={row}>
-                  {index > 0 ? <Separator className="mb-3" /> : null}
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-muted-foreground">{row}</span>
-                    <Skeleton className="h-8 w-28 rounded-md" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </PanelBlock>
-        ))}
-      </div>
-
-      <AcessosProduto />
 
       <HistoricoImportacoes />
     </div>
@@ -185,71 +136,6 @@ function HistoricoImportacoes() {
           />
         </>
       )}
-    </PanelBlock>
-  );
-}
-
-
-/**
- * Acessos: cada usuário possui uma ou mais modalidades, aplicadas como filtro
- * obrigatório dos dados em toda a aplicação. A restrição é garantida pelas
- * políticas de acesso do banco; a administração é feita na tela de Usuários.
- */
-function AcessosProduto() {
-  const perfil = usePerfil();
-
-  if (perfil.isPending) {
-    return <Skeleton className="h-40 w-full" />;
-  }
-
-  return (
-    <PanelBlock
-      title="Acessos e modalidades"
-      description="As modalidades liberadas definem os dados disponíveis em todas as telas."
-      action={
-        perfil.data?.isAdmin ? (
-          <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
-            <Database className="size-3" />
-            Administração
-          </Badge>
-        ) : null
-      }
-    >
-      <div className="space-y-3 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground">Modalidades do seu acesso:</span>
-          {(perfil.data?.modalidades ?? []).length === 0 ? (
-            <Badge variant="outline" className="border-accent/40 text-accent">
-              não definidas
-            </Badge>
-          ) : (
-            perfil.data?.modalidades.map((modalidade) => (
-              <Badge
-                key={modalidade.codigo}
-                variant="outline"
-                className="border-accent/40 text-accent"
-              >
-                {modalidade.codigo} · {modalidade.nome}
-              </Badge>
-            ))
-          )}
-        </div>
-
-        {perfil.data?.isAdmin ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-muted-foreground">
-              O cadastro de usuários e das modalidades de cada pessoa fica na tela Usuários.
-            </span>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/usuarios">Abrir Usuários</Link>
-            </Button>
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            A alteração das modalidades é feita por um administrador.
-          </p>
-        )}
-      </div>
     </PanelBlock>
   );
 }
