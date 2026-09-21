@@ -88,9 +88,11 @@ type FormState = {
   email: string;
   modalidades: string[];
   ativo: boolean;
+  senha: string;
 };
 
-const FORM_VAZIO: FormState = { nome: "", email: "", modalidades: [], ativo: true };
+const FORM_VAZIO: FormState = { nome: "", email: "", modalidades: [], ativo: true, senha: "" };
+
 
 function UsuariosPage() {
   const perfil = usePerfil();
