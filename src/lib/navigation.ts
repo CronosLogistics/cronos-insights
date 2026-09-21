@@ -8,6 +8,7 @@ import {
   Users,
   UserRound,
   UserSearch,
+  UserCog,
   Briefcase,
   TrendingDown,
   ShieldCheck,
