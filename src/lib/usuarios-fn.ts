@@ -29,6 +29,19 @@ async function exigirAdmin(context: Ctx) {
   if (error || data !== true) throw new Error("Acesso restrito a administradores.");
 }
 
+/** Senha provisória forte: maiúsculas, minúsculas, números e símbolo. */
+function gerarSenhaForte() {
+  const letras = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const minus = "abcdefghijkmnopqrstuvwxyz";
+  const nums = "23456789";
+  const simb = "!@#$%&*?";
+  const sorteio = (alfabeto: string, n: number) =>
+    Array.from({ length: n }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join("");
+  return (
+    sorteio(letras, 3) + sorteio(minus, 5) + sorteio(nums, 3) + sorteio(simb, 2)
+  );
+}
+
 /** Mensagem clara quando a senha é recusada por ser fraca/vazada. */
 function erroDeSenha(mensagem: string) {
   const msg = mensagem.toLowerCase();
