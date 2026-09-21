@@ -117,7 +117,7 @@ export const criarUsuario = createServerFn({ method: "POST" })
     const id = criado.data.user!.id;
     const { error } = await supabaseAdmin
       .from("perfis")
-      .upsert({ id, email, nome, ativo: data.ativo !== false, produto_codigo: modalidades[0] });
+      .upsert({ id, email, nome, ativo: data.ativo !== false, produto_codigo: modalidades[0] ?? null });
     if (error) throw new Error(error.message);
 
     await sincronizarModalidades(supabaseAdmin, id, modalidades);
@@ -148,7 +148,7 @@ export const atualizarUsuario = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin
       .from("perfis")
-      .update({ nome, email, ativo: data.ativo, produto_codigo: modalidades[0] })
+      .update({ nome, email, ativo: data.ativo, produto_codigo: modalidades[0] ?? null })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
 
