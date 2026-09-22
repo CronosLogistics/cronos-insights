@@ -5,6 +5,12 @@ import { Database, RefreshCw } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+  type ColunasOrdenacao,
+} from "@/components/data/table-sort";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +26,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -61,6 +66,21 @@ type Oferta = {
   vendedor: string | null;
   pricing: string | null;
   data_abertura: string | null;
+};
+
+const COLUNAS_OFERTAS: ColunasOrdenacao<Oferta> = {
+  oferta: { tipo: "texto" },
+  revisao: { tipo: "numero" },
+  cliente: { tipo: "texto" },
+  rota: {
+    tipo: "texto",
+    valor: (row) => `${row.origem ?? ""} → ${row.destino ?? ""}`,
+  },
+  modalidade: { tipo: "texto" },
+  analise: { tipo: "texto" },
+  vendedor: { tipo: "texto" },
+  pricing: { tipo: "texto" },
+  data_abertura: { tipo: "texto" },
 };
 
 function formatDate(value: string | null) {
@@ -164,7 +184,11 @@ function CotacoesPage() {
   }, [resumo.data]);
 
   const filtrosKey = `${busca}|${modalidade}|${analise}`;
-  const paginacao = usePaginacao(lista.data, filtrosKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    lista.data,
+    COLUNAS_OFERTAS,
+  );
+  const paginacao = usePaginacao(ordenadas, `${filtrosKey}:${chaveReset}`);
 
   return (
     <div className="space-y-6">
@@ -251,19 +275,82 @@ function CotacoesPage() {
             </p>
           ) : (
             <>
+              <BotaoExportarTabela
+                nomeArquivo="cotacoes"
+                colunas={[
+                  { rotulo: "Oferta", valor: (l) => l.oferta },
+                  { rotulo: "Rev.", valor: (l) => l.revisao },
+                  { rotulo: "Cliente", valor: (l) => l.cliente },
+                  {
+                    rotulo: "Origem→Destino",
+                    valor: (l) => `${l.origem ?? "—"} → ${l.destino ?? "—"}`,
+                  },
+                  { rotulo: "Modalidade", valor: (l) => l.modalidade },
+                  { rotulo: "Situação", valor: (l) => l.analise },
+                  { rotulo: "Vendedor", valor: (l) => l.vendedor },
+                  { rotulo: "Pricing", valor: (l) => l.pricing },
+                  { rotulo: "Abertura", valor: (l) => l.data_abertura },
+                ]}
+                linhas={ordenadas}
+              />
               <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Oferta</TableHead>
-                      <TableHead>Rev.</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Origem → Destino</TableHead>
-                      <TableHead>Modalidade</TableHead>
-                      <TableHead>Situação</TableHead>
-                      <TableHead>Vendedor</TableHead>
-                      <TableHead>Pricing</TableHead>
-                      <TableHead>Abertura</TableHead>
+                      <CabecalhoOrdenavel
+                        label="Oferta"
+                        coluna="oferta"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Rev."
+                        coluna="revisao"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Cliente"
+                        coluna="cliente"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Origem → Destino"
+                        coluna="rota"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Modalidade"
+                        coluna="modalidade"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Situação"
+                        coluna="analise"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Vendedor"
+                        coluna="vendedor"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Pricing"
+                        coluna="pricing"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
+                      <CabecalhoOrdenavel
+                        label="Abertura"
+                        coluna="data_abertura"
+                        ordenacao={ordenacao}
+                        onOrdenar={alternar}
+                      />
                     </TableRow>
                   </TableHeader>
                   <TableBody>

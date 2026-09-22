@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Database, RefreshCw } from "lucide-react";
 
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+  type ColunasOrdenacao,
+  type TipoOrdenacao,
+} from "@/components/data/table-sort";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,11 +19,14 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { formatarValor, type Linha } from "@/lib/analytics";
+
+function tipoOrdenacaoColuna(tipo: Coluna["tipo"]): TipoOrdenacao {
+  return tipo === "numero" || tipo === "pct" || tipo === "decimal" ? "numero" : "texto";
+}
 
 export type Coluna = {
   key: string;
@@ -72,7 +82,20 @@ export function RankingModule({
   const linhas = lista.data;
   const top = (linhas ?? []).slice(0, 10);
   const maior = Math.max(...top.map((linha) => Number(linha[campoValor] ?? 0)), 1);
-  const paginacao = usePaginacao(linhas, `${queryKey}:${busca}`);
+
+  const colunasOrdenacao = useMemo(() => {
+    const mapa: ColunasOrdenacao<Linha> = {};
+    for (const coluna of colunas) {
+      mapa[coluna.key] = { tipo: tipoOrdenacaoColuna(coluna.tipo) };
+    }
+    return mapa;
+  }, [colunas]);
+
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    linhas,
+    colunasOrdenacao,
+  );
+  const paginacao = usePaginacao(ordenadas, `${queryKey}:${busca}:${chaveReset}`);
 
   return (
     <div className="space-y-6">
@@ -155,17 +178,33 @@ export function RankingModule({
             </p>
           ) : (
             <>
+              <BotaoExportarTabela
+                nomeArquivo={tableTitle}
+                colunas={colunas.map((coluna) => ({
+                  rotulo: coluna.label,
+                  valor: (linha: Linha) => {
+                    const bruto = linha[coluna.key];
+                    if (coluna.tipo === "pct" || coluna.tipo === "numero" || coluna.tipo === "decimal") {
+                      return bruto == null || bruto === "" ? null : Number(bruto);
+                    }
+                    return bruto == null ? null : String(bruto);
+                  },
+                }))}
+                linhas={ordenadas}
+              />
               <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       {colunas.map((coluna) => (
-                        <TableHead
+                        <CabecalhoOrdenavel
                           key={coluna.key}
-                          className={coluna.tipo && coluna.tipo !== "texto" ? "text-right" : ""}
-                        >
-                          {coluna.label}
-                        </TableHead>
+                          label={coluna.label}
+                          coluna={coluna.key}
+                          ordenacao={ordenacao}
+                          onOrdenar={alternar}
+                          align={coluna.tipo && coluna.tipo !== "texto" ? "right" : "left"}
+                        />
                       ))}
                     </TableRow>
                   </TableHeader>

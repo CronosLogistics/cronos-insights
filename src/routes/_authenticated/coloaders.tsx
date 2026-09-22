@@ -25,7 +25,15 @@ import {
 } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
+import {
+  CabecalhoOrdenavel,
+  COLUNAS_MOTIVOS,
+  COLUNAS_RANKING,
+  colunasCruzamento,
+  useOrdenacaoTabela,
+} from "@/components/data/table-sort";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -42,7 +50,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -722,10 +729,23 @@ function TabelaRanking({
   linhas: LinhaRanking[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, COLUNAS_RANKING);
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock className="h-full" title={titulo} description={descricao}>
       <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <BotaoExportarTabela
+          nomeArquivo={`ranking-${rotuloItem.toLocaleLowerCase("pt-BR")}`}
+          colunas={[
+            { rotulo: rotuloItem, valor: (l) => l.item },
+            { rotulo: "Rotas", valor: (l) => l.rotas },
+            { rotulo: "Aprovadas", valor: (l) => l.aprovadas },
+            { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
+            { rotulo: "Em análise", valor: (l) => l.emAnalise },
+            { rotulo: "Conversão", valor: (l) => l.conversao },
+          ]}
+          linhas={ordenadas}
+        />
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -734,12 +754,47 @@ function TabelaRanking({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{rotuloItem}</TableHead>
-                <TableHead className="text-right">Rotas</TableHead>
-                <TableHead className="text-right">Aprovadas</TableHead>
-                <TableHead className="text-right">Reprovadas</TableHead>
-                <TableHead className="text-right">Em análise</TableHead>
-                <TableHead className="text-right">Conversão</TableHead>
+                <CabecalhoOrdenavel
+                  label={rotuloItem}
+                  coluna="item"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                />
+                <CabecalhoOrdenavel
+                  label="Rotas"
+                  coluna="rotas"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="Aprovadas"
+                  coluna="aprovadas"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="Reprovadas"
+                  coluna="reprovadas"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="Em análise"
+                  coluna="emAnalise"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="Conversão"
+                  coluna="conversao"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -778,7 +833,8 @@ function TabelaMotivos({
   linhas: LinhaMotivo[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, COLUNAS_MOTIVOS);
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
       className="h-full"
@@ -786,6 +842,15 @@ function TabelaMotivos({
       description="Distribuição das reprovações do recorte por motivo."
     >
       <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <BotaoExportarTabela
+          nomeArquivo="motivos-reprovacao"
+          colunas={[
+            { rotulo: "Motivo", valor: (l) => l.motivo },
+            { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
+            { rotulo: "% das reprovações", valor: (l) => l.participacao },
+          ]}
+          linhas={ordenadas}
+        />
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -794,9 +859,26 @@ function TabelaMotivos({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Motivo</TableHead>
-                <TableHead className="text-right">Reprovadas</TableHead>
-                <TableHead className="text-right">% das reprovações</TableHead>
+                <CabecalhoOrdenavel
+                  label="Motivo"
+                  coluna="motivo"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                />
+                <CabecalhoOrdenavel
+                  label="Reprovadas"
+                  coluna="reprovadas"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="% das reprovações"
+                  coluna="participacao"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -832,28 +914,91 @@ function TabelaRotaCliente({
   linhas: LinhaRotaCliente[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const colunas = useMemo(
+    () =>
+      colunasCruzamento<LinhaRotaCliente>(
+        (l) => l.rota,
+        (l) => l.cliente,
+      ),
+    [],
+  );
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, colunas);
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
       title="Oportunidades — Rota × Cliente"
       description="Combinações Rota × Cliente com mais reprovações (desempate por volume)."
       action={<Search className="size-4 text-muted-foreground" />}
     >
-      <PaginatedContent
-        pageKey={paginacao.pageKey}
-        direction={paginacao.transicao}
-        className="overflow-x-auto"
-      >
+      <div className="flex flex-col gap-3">
+        <BotaoExportarTabela
+          nomeArquivo="cruzamento-rota-cliente"
+          colunas={[
+            { rotulo: "Dimensão 1", valor: (l) => l.rota },
+            { rotulo: "Dimensão 2", valor: (l) => l.cliente },
+            { rotulo: "Rotas", valor: (l) => l.rotas },
+            { rotulo: "Aprovadas", valor: (l) => l.aprovadas },
+            { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
+            { rotulo: "Em análise", valor: (l) => l.emAnalise },
+            { rotulo: "Conversão", valor: (l) => l.conversao },
+          ]}
+          linhas={ordenadas}
+        />
+        <PaginatedContent
+          pageKey={paginacao.pageKey}
+          direction={paginacao.transicao}
+          className="overflow-x-auto"
+        >
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Dimensão 1</TableHead>
-              <TableHead>Dimensão 2</TableHead>
-              <TableHead className="text-right">Rotas</TableHead>
-              <TableHead className="text-right">Aprovadas</TableHead>
-              <TableHead className="text-right">Reprovadas</TableHead>
-              <TableHead className="text-right">Em análise</TableHead>
-              <TableHead className="text-right">Conversão</TableHead>
+              <CabecalhoOrdenavel
+                label="Dimensão 1"
+                coluna="dim1"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+              />
+              <CabecalhoOrdenavel
+                label="Dimensão 2"
+                coluna="dim2"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+              />
+              <CabecalhoOrdenavel
+                label="Rotas"
+                coluna="rotas"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Aprovadas"
+                coluna="aprovadas"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Reprovadas"
+                coluna="reprovadas"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Em análise"
+                coluna="emAnalise"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Conversão"
+                coluna="conversao"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -871,16 +1016,17 @@ function TabelaRotaCliente({
             {linhas.length === 0 ? <VazioTabela colunas={7} /> : null}
           </TableBody>
         </Table>
-      </PaginatedContent>
-      <TablePagination
-        pagina={paginacao.pagina}
-        totalPaginas={paginacao.totalPaginas}
-        porPagina={paginacao.porPagina}
-        total={paginacao.total}
-        inicio={paginacao.inicio}
-        onPagina={paginacao.setPagina}
-        onPorPagina={paginacao.setPorPagina}
-      />
+        </PaginatedContent>
+        <TablePagination
+          pagina={paginacao.pagina}
+          totalPaginas={paginacao.totalPaginas}
+          porPagina={paginacao.porPagina}
+          total={paginacao.total}
+          inicio={paginacao.inicio}
+          onPagina={paginacao.setPagina}
+          onPorPagina={paginacao.setPorPagina}
+        />
+      </div>
     </PanelBlock>
   );
 }

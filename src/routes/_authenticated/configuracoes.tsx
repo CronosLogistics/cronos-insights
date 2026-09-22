@@ -4,18 +4,30 @@ import { Database } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+} from "@/components/data/table-sort";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarDataHora } from "@/lib/analytics";
+
+const COLUNAS_IMPORTACOES = {
+  fonte: { tipo: "texto" as const },
+  iniciado_em: { tipo: "texto" as const },
+  concluido_em: { tipo: "texto" as const },
+  linhas: { tipo: "numero" as const },
+  situacao: { tipo: "texto" as const },
+};
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -63,7 +75,11 @@ function HistoricoImportacoes() {
     },
   });
 
-  const paginacao = usePaginacao(importacoes.data, "importacoes-historico");
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    importacoes.data,
+    COLUNAS_IMPORTACOES,
+  );
+  const paginacao = usePaginacao(ordenadas, `importacoes-historico:${chaveReset}`);
 
   return (
     <PanelBlock
@@ -83,16 +99,53 @@ function HistoricoImportacoes() {
           ))}
         </div>
       ) : (
-        <>
+        <div className="space-y-3">
+          <BotaoExportarTabela
+            nomeArquivo="historico-cargas"
+            colunas={[
+              { rotulo: "Fonte", valor: (l) => l.fonte },
+              { rotulo: "Início", valor: (l) => l.iniciado_em },
+              { rotulo: "Conclusão", valor: (l) => l.concluido_em },
+              { rotulo: "Linhas", valor: (l) => l.linhas },
+              { rotulo: "Situação", valor: (l) => l.situacao },
+            ]}
+            linhas={ordenadas}
+          />
           <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fonte</TableHead>
-                  <TableHead>Início</TableHead>
-                  <TableHead>Conclusão</TableHead>
-                  <TableHead className="text-right">Linhas</TableHead>
-                  <TableHead>Situação</TableHead>
+                  <CabecalhoOrdenavel
+                    label="Fonte"
+                    coluna="fonte"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                  />
+                  <CabecalhoOrdenavel
+                    label="Início"
+                    coluna="iniciado_em"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                  />
+                  <CabecalhoOrdenavel
+                    label="Conclusão"
+                    coluna="concluido_em"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                  />
+                  <CabecalhoOrdenavel
+                    label="Linhas"
+                    coluna="linhas"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="Situação"
+                    coluna="situacao"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                  />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -134,7 +187,7 @@ function HistoricoImportacoes() {
             onPagina={paginacao.setPagina}
             onPorPagina={paginacao.setPorPagina}
           />
-        </>
+        </div>
       )}
     </PanelBlock>
   );

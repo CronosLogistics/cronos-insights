@@ -3,12 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Database, RefreshCw } from "lucide-react";
 
 import { ModuleIntro, TableSkeleton } from "@/components/data/Placeholders";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+  type ColunasOrdenacao,
+} from "@/components/data/table-sort";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -41,8 +46,22 @@ export const Route = createFileRoute("/_authenticated/qualidade-dados")({
 
 const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
-const COLUNAS_INDICADORES = ["Indicador", "Quantidade", "% da base", "Impacto"];
-const COLUNAS_CAMPOS = ["Campo original", "Preenchidos", "Em branco", "% preenchimento"];
+const COLUNAS_INDICADORES_LABELS = ["Indicador", "Quantidade", "% da base", "Impacto"];
+const COLUNAS_CAMPOS_LABELS = ["Campo original", "Preenchidos", "Em branco", "% preenchimento"];
+
+const COLUNAS_INDICADORES: ColunasOrdenacao<IndicadorQualidade> = {
+  indicador: { tipo: "texto" },
+  quantidade: { tipo: "numero" },
+  pctBase: { tipo: "numero" },
+  impacto: { tipo: "texto" },
+};
+
+const COLUNAS_CAMPOS: ColunasOrdenacao<CampoPreenchimento> = {
+  campo: { tipo: "texto" },
+  preenchidos: { tipo: "numero" },
+  emBranco: { tipo: "numero" },
+  pctPreenchimento: { tipo: "numero" },
+};
 
 function QualidadePage() {
   const analise = useQuery({
@@ -63,12 +82,12 @@ function QualidadePage() {
         <div className="space-y-6">
           <Card>
             <CardContent className="pt-6">
-              <TableSkeleton columns={COLUNAS_INDICADORES} rows={7} />
+              <TableSkeleton columns={COLUNAS_INDICADORES_LABELS} rows={7} />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <TableSkeleton columns={COLUNAS_CAMPOS} rows={10} />
+              <TableSkeleton columns={COLUNAS_CAMPOS_LABELS} rows={10} />
             </CardContent>
           </Card>
         </div>
@@ -98,6 +117,16 @@ function ConteudoQualidade({
   linhasBase: number;
 }) {
   const vazio = linhasBase === 0;
+  const {
+    ordenadas: indicadoresOrd,
+    ordenacao: ordenacaoInd,
+    alternar: alternarInd,
+  } = useOrdenacaoTabela(indicadores, COLUNAS_INDICADORES);
+  const {
+    ordenadas: camposOrd,
+    ordenacao: ordenacaoCampos,
+    alternar: alternarCampos,
+  } = useOrdenacaoTabela(campos, COLUNAS_CAMPOS);
 
   return (
     <div className="space-y-6">
@@ -115,19 +144,51 @@ function ConteudoQualidade({
       ) : null}
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="space-y-3 pt-6">
+          <BotaoExportarTabela
+            nomeArquivo="qualidade-indicadores"
+            colunas={[
+              { rotulo: "Indicador", valor: (l) => l.indicador },
+              { rotulo: "Quantidade", valor: (l) => l.quantidade },
+              { rotulo: "% da base", valor: (l) => l.pctBase },
+              { rotulo: "Impacto", valor: (l) => l.impacto },
+            ]}
+            linhas={indicadoresOrd}
+          />
           <div className="overflow-x-auto">
             <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Indicador</TableHead>
-                  <TableHead className="text-right">Quantidade</TableHead>
-                  <TableHead className="min-w-[200px]">% da base</TableHead>
-                  <TableHead>Impacto</TableHead>
+                  <CabecalhoOrdenavel
+                    label="Indicador"
+                    coluna="indicador"
+                    ordenacao={ordenacaoInd}
+                    onOrdenar={alternarInd}
+                  />
+                  <CabecalhoOrdenavel
+                    label="Quantidade"
+                    coluna="quantidade"
+                    ordenacao={ordenacaoInd}
+                    onOrdenar={alternarInd}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="% da base"
+                    coluna="pctBase"
+                    ordenacao={ordenacaoInd}
+                    onOrdenar={alternarInd}
+                    className="min-w-[200px]"
+                  />
+                  <CabecalhoOrdenavel
+                    label="Impacto"
+                    coluna="impacto"
+                    ordenacao={ordenacaoInd}
+                    onOrdenar={alternarInd}
+                  />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {indicadores.map((linha) => (
+                {indicadoresOrd.map((linha) => (
                   <TableRow key={linha.indicador}>
                     <TableCell className="font-medium">{linha.indicador}</TableCell>
                     <TableCell className="whitespace-nowrap text-right tabular-nums">
@@ -149,19 +210,52 @@ function ConteudoQualidade({
       </Card>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="space-y-3 pt-6">
+          <BotaoExportarTabela
+            nomeArquivo="qualidade-campos"
+            colunas={[
+              { rotulo: "Campo original", valor: (l) => l.campo },
+              { rotulo: "Preenchidos", valor: (l) => l.preenchidos },
+              { rotulo: "Em branco", valor: (l) => l.emBranco },
+              { rotulo: "% preenchimento", valor: (l) => l.pctPreenchimento },
+            ]}
+            linhas={camposOrd}
+          />
           <div className="overflow-x-auto">
             <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Campo original</TableHead>
-                  <TableHead className="text-right">Preenchidos</TableHead>
-                  <TableHead className="text-right">Em branco</TableHead>
-                  <TableHead className="min-w-[200px]">% preenchimento</TableHead>
+                  <CabecalhoOrdenavel
+                    label="Campo original"
+                    coluna="campo"
+                    ordenacao={ordenacaoCampos}
+                    onOrdenar={alternarCampos}
+                  />
+                  <CabecalhoOrdenavel
+                    label="Preenchidos"
+                    coluna="preenchidos"
+                    ordenacao={ordenacaoCampos}
+                    onOrdenar={alternarCampos}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="Em branco"
+                    coluna="emBranco"
+                    ordenacao={ordenacaoCampos}
+                    onOrdenar={alternarCampos}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="% preenchimento"
+                    coluna="pctPreenchimento"
+                    ordenacao={ordenacaoCampos}
+                    onOrdenar={alternarCampos}
+                    className="min-w-[200px]"
+                  />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {campos.map((linha) => (
+                {camposOrd.map((linha) => (
                   <TableRow key={linha.campo}>
                     <TableCell className="font-medium">{linha.campo}</TableCell>
                     <TableCell className="whitespace-nowrap text-right tabular-nums">

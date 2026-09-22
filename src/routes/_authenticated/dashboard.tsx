@@ -26,6 +26,12 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+  type ColunasOrdenacao,
+} from "@/components/data/table-sort";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,7 +69,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -78,6 +83,14 @@ import {
   type OportunidadeItem,
   type OportunidadeTom,
 } from "@/lib/dashboard-analysis";
+
+const COLUNAS_EVOLUCAO_DASHBOARD: ColunasOrdenacao<LinhaEvolucaoMensal> = {
+  mes: { tipo: "texto" },
+  rotas: { tipo: "numero" },
+  aprovadas: { tipo: "numero" },
+  reprovadas: { tipo: "numero" },
+  conversao: { tipo: "numero" },
+};
 import {
   getAnaliseDashboard,
   getDashboardOpcoesFiltro,
@@ -1028,7 +1041,11 @@ function TabelaEvolucaoMensal({
   linhas: LinhaEvolucaoMensal[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    linhas,
+    COLUNAS_EVOLUCAO_DASHBOARD,
+  );
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   const conversoes = linhas.map((l) => l.conversao);
   const minCv = conversoes.length ? Math.min(...conversoes) : 0;
   const maxCv = conversoes.length ? Math.max(...conversoes) : 0;
@@ -1044,6 +1061,17 @@ function TabelaEvolucaoMensal({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+      <BotaoExportarTabela
+        nomeArquivo="evolucao-mensal"
+        colunas={[
+          { rotulo: "Mês", valor: (l) => l.mes },
+          { rotulo: "Rotas", valor: (l) => l.rotas },
+          { rotulo: "Aprovadas", valor: (l) => l.aprovadas },
+          { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
+          { rotulo: "Conversão", valor: (l) => l.conversao },
+        ]}
+        linhas={ordenadas}
+      />
       <PaginatedContent
         pageKey={paginacao.pageKey}
         direction={paginacao.transicao}
@@ -1052,11 +1080,40 @@ function TabelaEvolucaoMensal({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Mês</TableHead>
-              <TableHead className="text-right">Rotas</TableHead>
-              <TableHead className="text-right">Aprovadas</TableHead>
-              <TableHead className="text-right">Reprovadas</TableHead>
-              <TableHead className="text-right">Conversão</TableHead>
+              <CabecalhoOrdenavel
+                label="Mês"
+                coluna="mes"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+              />
+              <CabecalhoOrdenavel
+                label="Rotas"
+                coluna="rotas"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Aprovadas"
+                coluna="aprovadas"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Reprovadas"
+                coluna="reprovadas"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
+              <CabecalhoOrdenavel
+                label="Conversão"
+                coluna="conversao"
+                ordenacao={ordenacao}
+                onOrdenar={alternar}
+                align="right"
+              />
             </TableRow>
           </TableHeader>
           <TableBody>

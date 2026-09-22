@@ -7,6 +7,12 @@ import { KeyRound, MoreHorizontal, Pencil, Plus, Power, Search, Trash2, Users } 
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { PaginatedContent, TablePagination, usePaginacao } from "@/components/data/TablePagination";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+  type ColunasOrdenacao,
+} from "@/components/data/table-sort";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,6 +69,19 @@ import {
   listarUsuarios,
   type UsuarioAdmin,
 } from "@/lib/usuarios-fn";
+
+const COLUNAS_USUARIOS: ColunasOrdenacao<UsuarioAdmin> = {
+  nome: { tipo: "texto" },
+  email: { tipo: "texto" },
+  modalidades: {
+    tipo: "texto",
+    valor: (u) => u.modalidades.join(", "),
+  },
+  ativo: {
+    tipo: "texto",
+    valor: (u) => (u.ativo ? "Ativo" : "Inativo"),
+  },
+};
 
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
@@ -156,7 +175,11 @@ function CadastroUsuarios() {
     });
   }, [usuarios.data, busca, status]);
 
-  const paginacao = usePaginacao(filtrados, `usuarios-${busca}-${status}`);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    filtrados,
+    COLUNAS_USUARIOS,
+  );
+  const paginacao = usePaginacao(ordenadas, `usuarios-${busca}-${status}-${chaveReset}`);
 
   async function recarregar() {
     await queryClient.invalidateQueries({ queryKey: ["usuarios-admin"] });
@@ -301,7 +324,17 @@ function CadastroUsuarios() {
             ))}
           </div>
         ) : (
-          <>
+          <div className="space-y-3">
+            <BotaoExportarTabela
+              nomeArquivo="usuarios"
+              colunas={[
+                { rotulo: "Nome", valor: (l) => l.nome },
+                { rotulo: "E-mail", valor: (l) => l.email },
+                { rotulo: "Modalidades", valor: (l) => l.modalidades.join(", ") },
+                { rotulo: "Status", valor: (l) => (l.ativo ? "Ativo" : "Inativo") },
+              ]}
+              linhas={ordenadas}
+            />
             <PaginatedContent
               pageKey={paginacao.pageKey}
               direction={paginacao.transicao}
@@ -310,10 +343,30 @@ function CadastroUsuarios() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>Modalidades</TableHead>
-                    <TableHead>Status</TableHead>
+                    <CabecalhoOrdenavel
+                      label="Nome"
+                      coluna="nome"
+                      ordenacao={ordenacao}
+                      onOrdenar={alternar}
+                    />
+                    <CabecalhoOrdenavel
+                      label="E-mail"
+                      coluna="email"
+                      ordenacao={ordenacao}
+                      onOrdenar={alternar}
+                    />
+                    <CabecalhoOrdenavel
+                      label="Modalidades"
+                      coluna="modalidades"
+                      ordenacao={ordenacao}
+                      onOrdenar={alternar}
+                    />
+                    <CabecalhoOrdenavel
+                      label="Status"
+                      coluna="ativo"
+                      ordenacao={ordenacao}
+                      onOrdenar={alternar}
+                    />
                     <TableHead className="w-16 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -425,7 +478,7 @@ function CadastroUsuarios() {
               onPagina={paginacao.setPagina}
               onPorPagina={paginacao.setPorPagina}
             />
-          </>
+          </div>
         )}
       </PanelBlock>
 

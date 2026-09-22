@@ -19,6 +19,11 @@ import {
 } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
+import { BotaoExportarTabela } from "@/components/data/table-export";
+import {
+  CabecalhoOrdenavel,
+  useOrdenacaoTabela,
+} from "@/components/data/table-sort";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +41,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -54,6 +58,24 @@ import {
   getMotivosPerdaOpcoesFiltro,
 } from "@/lib/motivos-perda-analysis-fn";
 import { cn } from "@/lib/utils";
+
+const COLUNAS_DIMENSAO = {
+  item: { tipo: "texto" as const },
+  reprovacoes: { tipo: "numero" as const },
+  pctMotivo: { tipo: "numero" as const },
+};
+
+const COLUNAS_ROTA_CLIENTE = {
+  rota: { tipo: "texto" as const },
+  cliente: { tipo: "texto" as const },
+  reprovacoes: { tipo: "numero" as const },
+};
+
+const COLUNAS_EVOLUCAO = {
+  mes: { tipo: "texto" as const },
+  reprovacoes: { tipo: "numero" as const },
+  pctMes: { tipo: "numero" as const },
+};
 
 export const Route = createFileRoute("/_authenticated/motivos-perda")({
   head: () => ({
@@ -687,10 +709,23 @@ function TabelaDimensao({
   linhas: LinhaMotivoDimensao[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    linhas,
+    COLUNAS_DIMENSAO,
+  );
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock className="h-full" title={titulo} description={descricao}>
       <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <BotaoExportarTabela
+          nomeArquivo={`motivo-${rotuloItem.toLocaleLowerCase("pt-BR")}`}
+          colunas={[
+            { rotulo: rotuloItem, valor: (l) => l.item },
+            { rotulo: "Reprovações", valor: (l) => l.reprovacoes },
+            { rotulo: "% do motivo", valor: (l) => l.pctMotivo },
+          ]}
+          linhas={ordenadas}
+        />
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -699,9 +734,26 @@ function TabelaDimensao({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{rotuloItem}</TableHead>
-                <TableHead className="text-right">Reprovações</TableHead>
-                <TableHead className="text-right">% do motivo</TableHead>
+                <CabecalhoOrdenavel
+                  label={rotuloItem}
+                  coluna="item"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                />
+                <CabecalhoOrdenavel
+                  label="Reprovações"
+                  coluna="reprovacoes"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="% do motivo"
+                  coluna="pctMotivo"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -737,7 +789,11 @@ function TabelaRotaCliente({
   linhas: LinhaRotaCliente[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    linhas,
+    COLUNAS_ROTA_CLIENTE,
+  );
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
       className="h-full"
@@ -746,6 +802,15 @@ function TabelaRotaCliente({
       action={<Network className="size-4 text-muted-foreground" />}
     >
       <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <BotaoExportarTabela
+          nomeArquivo="cruzamento-rota-cliente"
+          colunas={[
+            { rotulo: "Rota", valor: (l) => l.rota },
+            { rotulo: "Cliente", valor: (l) => l.cliente },
+            { rotulo: "Reprovações", valor: (l) => l.reprovacoes },
+          ]}
+          linhas={ordenadas}
+        />
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -754,9 +819,25 @@ function TabelaRotaCliente({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Rota</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Reprovações</TableHead>
+                <CabecalhoOrdenavel
+                  label="Rota"
+                  coluna="rota"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                />
+                <CabecalhoOrdenavel
+                  label="Cliente"
+                  coluna="cliente"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                />
+                <CabecalhoOrdenavel
+                  label="Reprovações"
+                  coluna="reprovacoes"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -792,7 +873,11 @@ function TabelaEvolucao({
   linhas: LinhaEvolucaoMensal[];
   resetKey: string;
 }) {
-  const paginacao = usePaginacao(linhas, resetKey);
+  const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
+    linhas,
+    COLUNAS_EVOLUCAO,
+  );
+  const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
       className="h-full"
@@ -801,6 +886,15 @@ function TabelaEvolucao({
       action={<CalendarDays className="size-4 text-muted-foreground" />}
     >
       <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <BotaoExportarTabela
+          nomeArquivo="evolucao-mensal"
+          colunas={[
+            { rotulo: "Mês", valor: (l) => formatarMesRotulo(l.mes) },
+            { rotulo: "Reprovações", valor: (l) => l.reprovacoes },
+            { rotulo: "% das reprovações do mês", valor: (l) => l.pctMes },
+          ]}
+          linhas={ordenadas}
+        />
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -809,9 +903,26 @@ function TabelaEvolucao({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mês</TableHead>
-                <TableHead className="text-right">Reprovações</TableHead>
-                <TableHead className="text-right">% das reprovações do mês</TableHead>
+                <CabecalhoOrdenavel
+                  label="Mês"
+                  coluna="mes"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                />
+                <CabecalhoOrdenavel
+                  label="Reprovações"
+                  coluna="reprovacoes"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
+                <CabecalhoOrdenavel
+                  label="% das reprovações do mês"
+                  coluna="pctMes"
+                  ordenacao={ordenacao}
+                  onOrdenar={alternar}
+                  align="right"
+                />
               </TableRow>
             </TableHeader>
             <TableBody>
