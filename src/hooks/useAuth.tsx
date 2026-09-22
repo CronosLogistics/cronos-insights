@@ -24,12 +24,22 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  // Último usuário observado: ao trocar (ou sair), descarta tudo que foi lido
+  // com as permissões do acesso anterior.
+  const usuarioAnterior = useRef<string | null>(null);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      const idAtual = nextSession?.user?.id ?? null;
+      if (usuarioAnterior.current !== null && usuarioAnterior.current !== idAtual) {
+        queryClient.clear();
+      }
+      usuarioAnterior.current = idAtual;
       setSession(nextSession);
       setLoading(false);
     });
+
 
     supabase.auth.getSession().then(({ data: { session: current } }) => {
       setSession(current);
