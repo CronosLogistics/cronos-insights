@@ -26,7 +26,7 @@ function parseColoader(input: unknown): { coloader: string } {
  * Lista de coloaders/armadores do produto do usuário.
  * Produto garantido pela RLS de public.ofertas.
  */
-export const getColoadersOpcoesFiltro = createServerFn({ method: "GET" })
+export const getColoadersOpcoesFiltro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ColoadersOpcoesFiltro> => {
     const client = context.supabase as unknown as {
@@ -48,7 +48,7 @@ export const getColoadersOpcoesFiltro = createServerFn({ method: "GET" })
  * Ficha analítica completa de Coloaders / Armadores.
  * Filtro de coloader e agregações no banco; Produto via RLS (não aceito do frontend).
  */
-export const getAnaliseColoaders = createServerFn({ method: "GET" })
+export const getAnaliseColoaders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseColoader(input))
   .handler(async ({ context, data }): Promise<AnaliseColoaders> => {

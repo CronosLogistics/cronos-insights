@@ -26,7 +26,7 @@ function parseAnalista(input: unknown): { analista: string } {
  * Lista de Analistas Pricing do produto do usuário (ARRUMAR + vazio → Não informado).
  * Produto garantido pela RLS de public.ofertas.
  */
-export const getAnalistasOpcoesFiltro = createServerFn({ method: "GET" })
+export const getAnalistasOpcoesFiltro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AnalistasOpcoesFiltro> => {
     const client = context.supabase as unknown as {
@@ -48,7 +48,7 @@ export const getAnalistasOpcoesFiltro = createServerFn({ method: "GET" })
  * Ficha analítica completa de Analistas Pricing.
  * Filtro de analista e agregações no banco; Produto via RLS (não aceito do frontend).
  */
-export const getAnaliseAnalistas = createServerFn({ method: "GET" })
+export const getAnaliseAnalistas = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseAnalista(input))
   .handler(async ({ context, data }): Promise<AnaliseAnalistas> => {

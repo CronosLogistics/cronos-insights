@@ -56,7 +56,7 @@ function lista(raw: unknown): string[] {
  * Opções dos filtros globais + min/max de Data_Base do produto do usuário.
  * Produto garantido pela RLS de public.ofertas.
  */
-export const getDashboardOpcoesFiltro = createServerFn({ method: "GET" })
+export const getDashboardOpcoesFiltro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DashboardOpcoesFiltro> => {
     const client = context.supabase as unknown as {
@@ -89,7 +89,7 @@ export const getDashboardOpcoesFiltro = createServerFn({ method: "GET" })
  * Amostra mínima = MIN_DECISOES (TRATAMENTO!B5).
  * Cotação em análise mais antiga: primeira da fila COTAÇÕES_EM_ANALISE.
  */
-export const getAnaliseDashboard = createServerFn({ method: "GET" })
+export const getAnaliseDashboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseDashboard> => {
