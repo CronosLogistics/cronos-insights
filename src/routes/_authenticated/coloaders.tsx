@@ -63,6 +63,7 @@ import {
   type LinhaRotaCliente,
 } from "@/lib/coloader-analysis";
 import { getColoadersOpcoesFiltro, getAnaliseColoaders } from "@/lib/coloader-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/coloaders")({
@@ -108,6 +109,7 @@ function saveColoader(coloader: string | null) {
 }
 
 function ColoadersPage() {
+  const termos = useTerminologia();
   const [coloader, setColoader] = useState<string | null>(() => readSavedColoader());
 
   const opcoes = useQuery({
@@ -139,8 +141,8 @@ function ColoadersPage() {
     <div className="w-full min-w-0 space-y-6">
       <ModuleIntro
         eyebrow="Inteligência"
-        title="Coloaders / Armadores"
-        description="Ficha analítica detalhada de um coloader / armador."
+        title={termos.coloaderPlural}
+        description={`Ficha analítica detalhada de um ${termos.coloaderLabelMinusculo}.`}
       />
 
       <Card>
@@ -151,7 +153,7 @@ function ColoadersPage() {
 
           <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4 sm:max-w-md">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Filtro de Coloader / Armador
+              Filtro de {termos.coloaderLabel}
             </p>
             <FiltroColoaderCombobox
               value={coloader}
@@ -260,7 +262,7 @@ function FiltroColoaderCombobox({
   if (carregando) {
     return (
       <div className="space-y-1.5">
-        <p className="text-xs text-muted-foreground">Coloader / Armador</p>
+        <p className="text-xs text-muted-foreground">{termos.coloaderLabel}</p>
         <Skeleton className="h-9 w-full rounded-md" />
       </div>
     );
@@ -268,7 +270,7 @@ function FiltroColoaderCombobox({
 
   return (
     <div className="space-y-1.5">
-      <p className="text-xs text-muted-foreground">Coloader / Armador</p>
+      <p className="text-xs text-muted-foreground">{termos.coloaderLabel}</p>
       <Popover
         open={aberto}
         onOpenChange={(proximo) => {
@@ -283,7 +285,7 @@ function FiltroColoaderCombobox({
               role="combobox"
               aria-expanded={aberto}
               autoComplete="off"
-              placeholder="Digite ou selecione o coloader / armador"
+              placeholder={`Digite ou selecione o ${termos.coloaderLabelMinusculo}`}
               value={texto}
               onChange={(event) => {
                 setTexto(event.target.value);
@@ -356,6 +358,7 @@ function FiltroColoaderCombobox({
 }
 
 function EstadoVazio() {
+  const termos = useTerminologia();
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
@@ -363,7 +366,7 @@ function EstadoVazio() {
           <Anchor className="size-6 text-muted-foreground" />
         </span>
         <p className="text-sm font-medium">
-          Selecione um coloader / armador para visualizar a análise.
+          Selecione um {termos.coloaderLabelMinusculo} para visualizar a análise.
         </p>
         <p className="max-w-sm text-xs text-muted-foreground">
           A ficha só é calculada após a escolha do coloader, evitando processar toda a base
@@ -409,6 +412,7 @@ function FichaSkeleton() {
 }
 
 function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: string }) {
+  const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
   const semDados = ind.rotas === 0;
 
@@ -419,7 +423,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
         description={
           analise.coloader === FILTRO_TODOS
             ? "Volume, resultado e performance de todos os coloaders do produto."
-            : `Coloader / Armador: ${analise.coloader}`
+            : `${termos.coloaderLabel}: ${analise.coloader}`
         }
         action={
           <Badge className="border-transparent bg-accent text-accent-foreground hover:bg-accent">

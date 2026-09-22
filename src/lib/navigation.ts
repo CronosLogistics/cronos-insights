@@ -62,7 +62,7 @@ export const navigation: NavGroup[] = [
         label: "Rotas",
         to: "/rotas",
         icon: RouteIcon,
-        description: "Origem e destino, portos, países e alternativas de rota.",
+        description: "Origem e destino, {terminaisPlural}, países e alternativas de rota.",
       },
       {
         label: "Clientes",
@@ -84,7 +84,7 @@ export const navigation: NavGroup[] = [
         ],
       },
       {
-        label: "Coloaders / Armadores",
+        label: "{coloaderPlural}",
         to: "/coloaders",
         icon: Ship,
         description: "Desempenho de parceiros de transporte por rota.",
