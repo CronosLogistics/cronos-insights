@@ -29,6 +29,13 @@
       "when": 1789997569626,
       "tag": "0003_agentes_resumos_precalculados",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790085647870,
+      "tag": "0004_coloaders_resumos_precalculados",
+      "breakpoints": true
     }
   ]
 }
