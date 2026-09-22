@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
-  Anchor,
   ArrowLeftRight,
   BarChart3,
   BookOpen,
