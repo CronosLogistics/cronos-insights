@@ -150,7 +150,6 @@ function NavLinkItem({
   nested?: boolean;
 }) {
   const termos = useTerminologia();
-  const termos = useTerminologia();
   if (!item.to) return null;
 
   return (

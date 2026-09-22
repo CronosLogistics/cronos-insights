@@ -206,6 +206,7 @@ function FiltroColoaderCombobox({
   opcoes: string[];
   carregando: boolean;
 }) {
+  const termos = useTerminologia();
   const [aberto, setAberto] = useState(false);
   const [texto, setTexto] = useState(value ?? "");
   const [largura, setLargura] = useState<number>();
