@@ -65,6 +65,7 @@ import {
   type LinhaRanking,
 } from "@/lib/route-analysis";
 import { getAnaliseRotas, getRotasOpcoesFiltro } from "@/lib/route-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/rotas")({
