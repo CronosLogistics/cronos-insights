@@ -86,9 +86,10 @@ export const navigation: NavGroup[] = [
         ],
       },
       {
-        label: "{coloaderPlural}",
+        label: "{coloaderMenu}",
         to: "/coloaders",
         icon: Ship,
+        iconKey: "coloaderIcone",
         description: "Desempenho de parceiros de transporte por rota.",
       },
       {
