@@ -1,5 +1,14 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,20 +24,31 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  // Último usuário observado: ao trocar (ou sair), descarta tudo que foi lido
+  // com as permissões do acesso anterior.
+  const usuarioAnterior = useRef<string | null>(null);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      const idAtual = nextSession?.user?.id ?? null;
+      if (usuarioAnterior.current !== null && usuarioAnterior.current !== idAtual) {
+        queryClient.clear();
+      }
+      usuarioAnterior.current = idAtual;
       setSession(nextSession);
       setLoading(false);
     });
 
+
     supabase.auth.getSession().then(({ data: { session: current } }) => {
+      usuarioAnterior.current = current?.user?.id ?? null;
       setSession(current);
       setLoading(false);
     });
 
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -37,9 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signOut: async () => {
         await supabase.auth.signOut();
+        queryClient.clear();
       },
     }),
-    [session, loading],
+    [session, loading, queryClient],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
