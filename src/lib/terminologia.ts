@@ -1,3 +1,5 @@
+import { Anchor, Container, Plane, PlaneTakeoff, Ship, type LucideIcon } from "lucide-react";
+
 import { usePerfil } from "@/hooks/useProduto";
 
 /**
@@ -16,8 +18,14 @@ export type Terminologia = {
   /** Rótulo do parceiro de transporte, ex.: "Coloader / Armador". */
   coloaderLabel: string;
   coloaderLabelMinusculo: string;
-  /** Plural usado em menus e títulos, ex.: "Coloaders / Armadores". */
+  /** Plural usado em títulos, ex.: "Coloaders / Armadores". */
   coloaderPlural: string;
+  /** Rótulo curto usado no menu, ex.: "Coloaders" | "Cias. aéreas". */
+  coloaderMenu: string;
+  /** Ícone do item de menu. */
+  coloaderIcone: LucideIcon;
+  /** Ícone usado dentro da tela (estado vazio / ficha). */
+  coloaderIconeFicha: LucideIcon;
 };
 
 const MARITIMO: Terminologia = {
@@ -28,6 +36,9 @@ const MARITIMO: Terminologia = {
   coloaderLabel: "Coloader / Armador",
   coloaderLabelMinusculo: "coloader / armador",
   coloaderPlural: "Coloaders / Armadores",
+  coloaderMenu: "Coloaders",
+  coloaderIcone: Ship,
+  coloaderIconeFicha: Anchor,
 };
 
 const AEREO: Terminologia = {
@@ -37,7 +48,10 @@ const AEREO: Terminologia = {
   terminaisPlural: "aeroportos",
   coloaderLabel: "Coloader / Cia. aérea",
   coloaderLabelMinusculo: "coloader / cia. aérea",
-  coloaderPlural: "Coloaders / Cias. aéreas",
+  coloaderPlural: "Cias. aéreas",
+  coloaderMenu: "Cias. aéreas",
+  coloaderIcone: Plane,
+  coloaderIconeFicha: PlaneTakeoff,
 };
 
 const MISTO: Terminologia = {
@@ -48,6 +62,9 @@ const MISTO: Terminologia = {
   coloaderLabel: "Coloader / Transportador",
   coloaderLabelMinusculo: "coloader / transportador",
   coloaderPlural: "Coloaders / Transportadores",
+  coloaderMenu: "Coloaders",
+  coloaderIcone: Container,
+  coloaderIconeFicha: Container,
 };
 
 const CODIGOS_AEREOS = new Set(["IA", "EA"]);

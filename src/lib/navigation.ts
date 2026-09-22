@@ -23,6 +23,8 @@ export type NavItem = {
   icon: LucideIcon;
   description: string;
   children?: NavItem[];
+  /** Ícone que varia com a terminologia do usuário (aéreo/marítimo). */
+  iconKey?: "coloaderIcone";
   /** Visível apenas para administradores (a segurança real está no servidor). */
   adminOnly?: boolean;
 };
@@ -84,9 +86,10 @@ export const navigation: NavGroup[] = [
         ],
       },
       {
-        label: "{coloaderPlural}",
+        label: "{coloaderMenu}",
         to: "/coloaders",
         icon: Ship,
+        iconKey: "coloaderIcone",
         description: "Desempenho de parceiros de transporte por rota.",
       },
       {

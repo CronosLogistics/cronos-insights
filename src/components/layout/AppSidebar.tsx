@@ -150,6 +150,7 @@ function NavLinkItem({
   nested?: boolean;
 }) {
   const termos = useTerminologia();
+  const Icone = item.iconKey ? termos[item.iconKey] : item.icon;
   if (!item.to) return null;
 
   return (
@@ -168,7 +169,7 @@ function NavLinkItem({
           "bg-sidebar-accent opacity-100 shadow-[inset-2px_0_0_0_var(--color-cronos)]",
       }}
     >
-      <item.icon className={cn("shrink-0", nested ? "size-3.5" : "size-4")} />
+      <Icone className={cn("shrink-0", nested ? "size-3.5" : "size-4")} />
       <span className="truncate">{aplicarTerminologia(item.label, termos)}</span>
     </Link>
   );
