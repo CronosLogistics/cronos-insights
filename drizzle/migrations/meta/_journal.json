@@ -43,6 +43,13 @@
       "when": 1790085924444,
       "tag": "0005_coloaders_funcoes_security_definer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790086288128,
+      "tag": "0006_rotas_base_precalculada",
+      "breakpoints": true
     }
   ]
 }
