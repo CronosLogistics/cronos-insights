@@ -50,6 +50,13 @@
       "when": 1790086288128,
       "tag": "0006_rotas_base_precalculada",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790086547007,
+      "tag": "0007_otimizar_opcoes_filtro_rotas",
+      "breakpoints": true
     }
   ]
 }
