@@ -18,8 +18,14 @@ export type Terminologia = {
   /** Rótulo do parceiro de transporte, ex.: "Coloader / Armador". */
   coloaderLabel: string;
   coloaderLabelMinusculo: string;
-  /** Plural usado em menus e títulos, ex.: "Coloaders / Armadores". */
+  /** Plural usado em títulos, ex.: "Coloaders / Armadores". */
   coloaderPlural: string;
+  /** Rótulo curto usado no menu, ex.: "Coloaders" | "Cias. aéreas". */
+  coloaderMenu: string;
+  /** Ícone do item de menu. */
+  coloaderIcone: LucideIcon;
+  /** Ícone usado dentro da tela (estado vazio / ficha). */
+  coloaderIconeFicha: LucideIcon;
 };
 
 const MARITIMO: Terminologia = {
