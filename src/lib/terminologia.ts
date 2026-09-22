@@ -1,3 +1,5 @@
+import { Anchor, Container, Plane, PlaneTakeoff, Ship, type LucideIcon } from "lucide-react";
+
 import { usePerfil } from "@/hooks/useProduto";
 
 /**
