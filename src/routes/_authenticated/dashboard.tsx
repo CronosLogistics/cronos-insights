@@ -95,6 +95,7 @@ import {
   getAnaliseDashboard,
   getDashboardOpcoesFiltro,
 } from "@/lib/dashboard-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 /** Escala de cores da planilha (E30:E41): vermelho → amarelo → verde. */
@@ -328,6 +329,7 @@ function chaveFiltros(f: FiltrosDashboard): string {
 }
 
 function DashboardPage() {
+  const termos = useTerminologia();
   const [salvo] = useState(() => readSavedDashboard());
   const [filtros, setFiltros] = useState<FiltrosUi>(salvo.filtros);
   const [consulta, setConsulta] = useState<FiltrosDashboard | null>(salvo.consulta);
@@ -476,7 +478,7 @@ function DashboardPage() {
               carregando={opcoes.isPending}
             />
             <FiltroCombobox
-              label="Coloader / Armador"
+              label={termos.coloaderLabel}
               placeholder="Todos"
               value={filtros.coloader}
               onValueChange={(v) => atualizar("coloader", v ?? "")}

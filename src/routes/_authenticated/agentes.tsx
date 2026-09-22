@@ -62,6 +62,7 @@ import {
   type LinhaRotaColoader,
 } from "@/lib/agent-analysis";
 import { getAgentesOpcoesFiltro, getAnaliseAgentes } from "@/lib/agent-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/agentes")({
@@ -406,6 +407,7 @@ function FichaSkeleton() {
 }
 
 function Ficha({ analise, resetKey }: { analise: AnaliseAgentes; resetKey: string }) {
+  const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
   const semDados = ind.rotas === 0;
 
@@ -561,7 +563,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAgentes; resetKey: strin
         />
         <TabelaRanking
           titulo="Coloaders do agente"
-          descricao="Desempenho por coloader/armador."
+          descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
           rotuloItem="Item"
           linhas={analise.coloaders}
           resetKey={`${resetKey}-coloaders`}

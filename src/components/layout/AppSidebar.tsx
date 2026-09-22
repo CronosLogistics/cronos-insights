@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { usePerfil } from "@/hooks/useProduto";
 import { navigation, type NavItem } from "@/lib/navigation";
+import { aplicarTerminologia, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -82,6 +83,7 @@ function NavGroupItem({
   onNavigate?: () => void;
 }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const termos = useTerminologia();
   const ativo = childAtivo(item, pathname);
   const [abertoManual, setAbertoManual] = useState<boolean | null>(null);
   const aberto = abertoManual ?? ativo;
@@ -98,7 +100,9 @@ function NavGroupItem({
         )}
       >
         <item.icon className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+        <span className="min-w-0 flex-1 truncate">
+          {aplicarTerminologia(item.label, termos)}
+        </span>
         <ChevronRight
           className={cn(
             "size-4 shrink-0 opacity-60 transition-transform duration-300 ease-out",
@@ -145,6 +149,7 @@ function NavLinkItem({
   onNavigate?: () => void;
   nested?: boolean;
 }) {
+  const termos = useTerminologia();
   if (!item.to) return null;
 
   return (
@@ -164,7 +169,7 @@ function NavLinkItem({
       }}
     >
       <item.icon className={cn("shrink-0", nested ? "size-3.5" : "size-4")} />
-      <span className="truncate">{item.label}</span>
+      <span className="truncate">{aplicarTerminologia(item.label, termos)}</span>
     </Link>
   );
 }

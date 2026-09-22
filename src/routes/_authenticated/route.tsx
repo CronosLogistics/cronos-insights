@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { usePerfil } from "@/hooks/useProduto";
 import { navigation } from "@/lib/navigation";
+import { aplicarTerminologia, useTerminologia } from "@/lib/terminologia";
 
 /** Sem modalidade liberada (ou com acesso inativo) o banco não libera nenhuma oferta. */
 function SemProdutoAviso() {
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { session, loading } = useAuth();
+  const termos = useTerminologia();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
@@ -80,8 +82,8 @@ function AuthenticatedLayout() {
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <AppHeader
-          title={current?.label ?? "Cronos Pricing Insights"}
-          subtitle={current?.description ?? "Análise de Cotações"}
+          title={aplicarTerminologia(current?.label ?? "Cronos Pricing Insights", termos)}
+          subtitle={aplicarTerminologia(current?.description ?? "Análise de Cotações", termos)}
         />
         <main className="min-w-0 w-full flex-1 space-y-4 px-4 py-6 lg:px-8 lg:py-8">
           <SemProdutoAviso />

@@ -65,6 +65,7 @@ import {
   type LinhaRanking,
 } from "@/lib/route-analysis";
 import { getAnaliseRotas, getRotasOpcoesFiltro } from "@/lib/route-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/rotas")({
@@ -121,6 +122,7 @@ function chaveFiltros(f: FiltrosRotas): string {
 }
 
 function RotasPage() {
+  const termos = useTerminologia();
   const [filtros, setFiltros] = useState<FiltrosSelecao>(FILTROS_VAZIOS);
   const [consulta, setConsulta] = useState<FiltrosRotas | null>(null);
   const podePesquisar = temAlgumFiltro(filtros);
@@ -175,8 +177,8 @@ function RotasPage() {
                 carregando={opcoes.isPending}
               />
               <FiltroCombobox
-                label="Porto de origem"
-                placeholder="Digite ou selecione o porto de origem"
+                label={`${termos.terminal} de origem`}
+                placeholder={`Digite ou selecione o ${termos.terminalMinusculo} de origem`}
                 value={filtros.portoOrigem}
                 onValueChange={(v) => atualizar("portoOrigem", v)}
                 opcoes={opcoes.data?.portosOrigem ?? []}
@@ -194,8 +196,8 @@ function RotasPage() {
                 carregando={opcoes.isPending}
               />
               <FiltroCombobox
-                label="Porto de destino"
-                placeholder="Digite ou selecione o porto de destino"
+                label={`${termos.terminal} de destino`}
+                placeholder={`Digite ou selecione o ${termos.terminalMinusculo} de destino`}
                 value={filtros.portoDestino}
                 onValueChange={(v) => atualizar("portoDestino", v)}
                 opcoes={opcoes.data?.portosDestino ?? []}
@@ -493,6 +495,7 @@ function FichaSkeleton() {
 }
 
 function Ficha({ analise, resetKey }: { analise: AnaliseRotas; resetKey: string }) {
+  const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
   const semDados = ind.rotas === 0;
 
@@ -637,7 +640,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseRotas; resetKey: string 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaRanking
           titulo="Coloaders da rota"
-          descricao="Volume e conversão por coloader/armador."
+          descricao={`Volume e conversão por ${termos.coloaderLabelMinusculo}.`}
           rotuloItem="Item"
           linhas={analise.coloaders}
           resetKey={`${resetKey}-coloaders`}

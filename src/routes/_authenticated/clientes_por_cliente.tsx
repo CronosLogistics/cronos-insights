@@ -61,6 +61,7 @@ import {
   type LinhaRotaColoader,
 } from "@/lib/customer-analysis";
 import { getAnaliseCliente, getClienteLista } from "@/lib/customer-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/clientes_por_cliente")({
@@ -388,6 +389,7 @@ function FichaSkeleton() {
 }
 
 function Ficha({ analise }: { analise: AnaliseCliente }) {
+  const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
 
   return (
@@ -529,7 +531,7 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
 
       <TabelaRanking
         titulo="Coloaders do cliente"
-        descricao="Desempenho por coloader/armador."
+        descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
         rotuloItem="Coloader"
         linhas={analise.coloaders}
         resetKey={analise.cliente}
