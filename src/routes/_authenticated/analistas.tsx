@@ -62,6 +62,7 @@ import {
   type LinhaRotaAgente,
 } from "@/lib/analyst-analysis";
 import { getAnalistasOpcoesFiltro, getAnaliseAnalistas } from "@/lib/analyst-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/analistas")({
@@ -407,6 +408,7 @@ function FichaSkeleton() {
 }
 
 function Ficha({ analise, resetKey }: { analise: AnaliseAnalistas; resetKey: string }) {
+  const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
   const semDados = ind.rotas === 0;
 
@@ -572,7 +574,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAnalistas; resetKey: str
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaRanking
           titulo="Coloaders do analista"
-          descricao="Desempenho por coloader/armador."
+          descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
           rotuloItem="Item"
           linhas={analise.coloaders}
           resetKey={`${resetKey}-coloaders`}

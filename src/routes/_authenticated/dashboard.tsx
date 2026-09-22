@@ -95,6 +95,7 @@ import {
   getAnaliseDashboard,
   getDashboardOpcoesFiltro,
 } from "@/lib/dashboard-analysis-fn";
+import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 /** Escala de cores da planilha (E30:E41): vermelho → amarelo → verde. */
