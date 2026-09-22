@@ -42,12 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
     supabase.auth.getSession().then(({ data: { session: current } }) => {
+      usuarioAnterior.current = current?.user?.id ?? null;
       setSession(current);
       setLoading(false);
     });
 
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -56,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signOut: async () => {
         await supabase.auth.signOut();
+        queryClient.clear();
       },
     }),
     [session, loading],
