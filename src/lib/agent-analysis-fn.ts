@@ -26,7 +26,7 @@ function parseAgente(input: unknown): { agente: string } {
  * Lista de agentes do produto do usuário (ARRUMAR + vazio → Não informado).
  * Produto garantido pela RLS de public.ofertas.
  */
-export const getAgentesOpcoesFiltro = createServerFn({ method: "GET" })
+export const getAgentesOpcoesFiltro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AgentesOpcoesFiltro> => {
     const client = context.supabase as unknown as {
@@ -46,7 +46,7 @@ export const getAgentesOpcoesFiltro = createServerFn({ method: "GET" })
  * Ficha analítica completa de Agentes.
  * Filtro de agente e agregações no banco; Produto via RLS (não aceito do frontend).
  */
-export const getAnaliseAgentes = createServerFn({ method: "GET" })
+export const getAnaliseAgentes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseAgente(input))
   .handler(async ({ context, data }): Promise<AnaliseAgentes> => {

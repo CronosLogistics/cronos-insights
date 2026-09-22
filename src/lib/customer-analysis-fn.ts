@@ -13,7 +13,7 @@ export type ClienteOpcao = { cliente: string; ofertas: number };
  * O filtro por produto é garantido pela RLS de public.ofertas (a visão é
  * security_invoker). Ordena alfabeticamente, como o SORT() da planilha.
  */
-export const getClienteLista = createServerFn({ method: "GET" })
+export const getClienteLista = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ClienteOpcao[]> => {
     // A API devolve no máximo 1000 linhas por resposta: pagina até esgotar.
@@ -45,7 +45,7 @@ export const getClienteLista = createServerFn({ method: "GET" })
  * selecionado (Inclui_Filtro = 1) e a média geral do produto, ambos filtrados
  * no banco, e faz as agregações/rankings na calculadora.
  */
-export const getAnaliseCliente = createServerFn({ method: "GET" })
+export const getAnaliseCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: { cliente: string }) => {
     if (!input || typeof input.cliente !== "string" || input.cliente.trim() === "") {

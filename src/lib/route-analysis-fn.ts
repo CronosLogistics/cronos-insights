@@ -39,7 +39,7 @@ function parseFiltros(input: unknown): FiltrosRotas {
  * Opções dos filtros locais da ficha Rotas.
  * Agregação feita no banco; Produto garantido pela RLS de public.ofertas.
  */
-export const getRotasOpcoesFiltro = createServerFn({ method: "GET" })
+export const getRotasOpcoesFiltro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<RotasOpcoesFiltro> => {
     const client = context.supabase as unknown as {
@@ -64,7 +64,7 @@ export const getRotasOpcoesFiltro = createServerFn({ method: "GET" })
  * Ficha analítica completa de Rotas.
  * Filtros locais e agregações aplicados no banco; Produto via RLS (não aceito do frontend).
  */
-export const getAnaliseRotas = createServerFn({ method: "GET" })
+export const getAnaliseRotas = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseRotas> => {

@@ -25,7 +25,7 @@ function parseMotivo(input: unknown): { motivo: string } {
  * Lista de motivos de reprovação do produto do usuário.
  * Produto garantido pela RLS de public.ofertas.
  */
-export const getMotivosPerdaOpcoesFiltro = createServerFn({ method: "GET" })
+export const getMotivosPerdaOpcoesFiltro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MotivosPerdaOpcoesFiltro> => {
     const client = context.supabase as unknown as {
@@ -47,7 +47,7 @@ export const getMotivosPerdaOpcoesFiltro = createServerFn({ method: "GET" })
  * Ficha analítica completa de Motivos de Perda.
  * Filtro de motivo e agregações no banco; Produto via RLS (não aceito do frontend).
  */
-export const getAnaliseMotivosPerda = createServerFn({ method: "GET" })
+export const getAnaliseMotivosPerda = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseMotivo(input))
   .handler(async ({ context, data }): Promise<AnaliseMotivosPerda> => {

@@ -11,7 +11,7 @@ import {
  * Qualidade dos Dados (aba QUALIDADE_DADOS).
  * Sem filtros de frontend: Produto aplicado só via RLS no banco.
  */
-export const getQualidadeDados = createServerFn({ method: "GET" })
+export const getQualidadeDados = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AnaliseQualidadeDados> => {
     const client = context.supabase as unknown as {
