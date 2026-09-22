@@ -364,7 +364,7 @@ function EstadoVazio() {
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
         <span className="flex size-12 items-center justify-center rounded-full bg-muted">
-          <Anchor className="size-6 text-muted-foreground" />
+          <termos.coloaderIconeFicha className="size-6 text-muted-foreground" />
         </span>
         <p className="text-sm font-medium">
           Selecione um {termos.coloaderLabelMinusculo} para visualizar a análise.
@@ -514,7 +514,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <span className="flex size-12 items-center justify-center rounded-full bg-muted">
-              <Anchor className="size-6 text-muted-foreground" />
+              <termos.coloaderIconeFicha className="size-6 text-muted-foreground" />
             </span>
             <p className="text-sm font-medium">Nenhum registro no recorte selecionado.</p>
             <p className="max-w-sm text-xs text-muted-foreground">
