@@ -36,6 +36,9 @@ const MARITIMO: Terminologia = {
   coloaderLabel: "Coloader / Armador",
   coloaderLabelMinusculo: "coloader / armador",
   coloaderPlural: "Coloaders / Armadores",
+  coloaderMenu: "Coloaders",
+  coloaderIcone: Ship,
+  coloaderIconeFicha: Anchor,
 };
 
 const AEREO: Terminologia = {
@@ -45,7 +48,10 @@ const AEREO: Terminologia = {
   terminaisPlural: "aeroportos",
   coloaderLabel: "Coloader / Cia. aérea",
   coloaderLabelMinusculo: "coloader / cia. aérea",
-  coloaderPlural: "Coloaders / Cias. aéreas",
+  coloaderPlural: "Cias. aéreas",
+  coloaderMenu: "Cias. aéreas",
+  coloaderIcone: Plane,
+  coloaderIconeFicha: PlaneTakeoff,
 };
 
 const MISTO: Terminologia = {
@@ -56,6 +62,9 @@ const MISTO: Terminologia = {
   coloaderLabel: "Coloader / Transportador",
   coloaderLabelMinusculo: "coloader / transportador",
   coloaderPlural: "Coloaders / Transportadores",
+  coloaderMenu: "Coloaders",
+  coloaderIcone: Container,
+  coloaderIconeFicha: Container,
 };
 
 const CODIGOS_AEREOS = new Set(["IA", "EA"]);
