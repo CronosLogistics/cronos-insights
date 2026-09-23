@@ -565,20 +565,36 @@ export type Database = {
     }
     Functions: {
       agentes_analise: {
-        Args: {
-          p_agente?: string
-          p_data_final?: string
-          p_data_inicial?: string
-        }
+        Args: { p_agente?: string; p_anos?: number[]; p_meses?: number[] }
         Returns: Json
       }
       agentes_analise_padrao: { Args: { p_agente?: string }; Returns: Json }
+      agentes_analise_periodo_calc: {
+        Args: { p_agente?: string; p_anos?: number[]; p_meses?: number[] }
+        Returns: Json
+      }
       agentes_opcoes_filtro: { Args: never; Returns: Json }
-      analistas_analise: { Args: { p_analista?: string }; Returns: Json }
+      analistas_analise: {
+        Args: { p_analista?: string; p_anos?: number[]; p_meses?: number[] }
+        Returns: Json
+      }
+      analistas_analise_padrao: { Args: { p_analista?: string }; Returns: Json }
+      analistas_analise_periodo_calc: {
+        Args: { p_analista?: string; p_anos?: number[]; p_meses?: number[] }
+        Returns: Json
+      }
       analistas_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
       atualizar_analises_periodo: { Args: never; Returns: undefined }
-      coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
+      coloaders_analise: {
+        Args: { p_anos?: number[]; p_coloader?: string; p_meses?: number[] }
+        Returns: Json
+      }
+      coloaders_analise_padrao: { Args: { p_coloader?: string }; Returns: Json }
+      coloaders_analise_periodo_calc: {
+        Args: { p_anos?: number[]; p_coloader?: string; p_meses?: number[] }
+        Returns: Json
+      }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
       dashboard_analise: {
         Args: {
@@ -615,15 +631,34 @@ export type Database = {
         Returns: Json
       }
       dashboard_opcoes_filtro: { Args: never; Returns: Json }
-      motivos_perda_analise: { Args: { p_motivo?: string }; Returns: Json }
+      motivos_perda_analise: {
+        Args: { p_anos?: number[]; p_meses?: number[]; p_motivo?: string }
+        Returns: Json
+      }
+      motivos_perda_analise_padrao: {
+        Args: { p_motivo?: string }
+        Returns: Json
+      }
+      motivos_perda_analise_periodo_calc: {
+        Args: { p_anos?: number[]; p_meses?: number[]; p_motivo?: string }
+        Returns: Json
+      }
       motivos_perda_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
       produtos_do_usuario: { Args: never; Returns: string[] }
-      qualidade_dados_analise: { Args: never; Returns: Json }
+      qualidade_dados_analise: {
+        Args: { p_anos?: number[]; p_meses?: number[] }
+        Returns: Json
+      }
+      qualidade_dados_analise_padrao: { Args: never; Returns: Json }
+      qualidade_dados_analise_periodo_calc: {
+        Args: { p_anos?: number[]; p_meses?: number[] }
+        Returns: Json
+      }
       rotas_analise: {
         Args: {
-          p_data_final?: string
-          p_data_inicial?: string
+          p_anos?: number[]
+          p_meses?: number[]
           p_pais_destino?: string
           p_pais_origem?: string
           p_porto_destino?: string
@@ -634,6 +669,18 @@ export type Database = {
       }
       rotas_analise_padrao: {
         Args: {
+          p_pais_destino?: string
+          p_pais_origem?: string
+          p_porto_destino?: string
+          p_porto_origem?: string
+          p_rota?: string
+        }
+        Returns: Json
+      }
+      rotas_analise_periodo_calc: {
+        Args: {
+          p_anos?: number[]
+          p_meses?: number[]
           p_pais_destino?: string
           p_pais_origem?: string
           p_porto_destino?: string

@@ -68,7 +68,7 @@ function ClientesPage() {
         const rows = (data ?? []) as unknown as Linha[];
         return rows.filter((row) =>
           dataNoPeriodo(
-            typeof row.ultima_oferta === "string" ? row.ultima_oferta : null,
+            typeof row["ultima_oferta"] === "string" ? row["ultima_oferta"] : null,
             periodo,
           ),
         );
