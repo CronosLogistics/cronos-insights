@@ -99,6 +99,13 @@
       "when": 1790190061147,
       "tag": "0013_otimizar_motivos_perda_periodo",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790190477543,
+      "tag": "0014_qualidade_dados_periodo_resumo",
+      "breakpoints": true
     }
   ]
 }
