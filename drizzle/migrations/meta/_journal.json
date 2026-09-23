@@ -120,6 +120,13 @@
       "when": 1790190918678,
       "tag": "0016_indexar_agentes_periodo_todos",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790191386781,
+      "tag": "0017_otimizar_coloaders_periodo_dimensoes",
+      "breakpoints": true
     }
   ]
 }
