@@ -92,6 +92,13 @@
       "when": 1790189674608,
       "tag": "0012_otimizar_analistas_periodo_dimensoes",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790190061147,
+      "tag": "0013_otimizar_motivos_perda_periodo",
+      "breakpoints": true
     }
   ]
 }
