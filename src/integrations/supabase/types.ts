@@ -458,7 +458,6 @@ export type Database = {
           analista_pricing: string | null
           cliente_analitico: string | null
           coloader_analitico: string | null
-          data_abertura: string | null
           flag_aprovada: number | null
           flag_em_analise: number | null
           flag_reprovada: number | null
@@ -476,7 +475,6 @@ export type Database = {
           analista_pricing?: never
           cliente_analitico?: never
           coloader_analitico?: never
-          data_abertura?: never
           flag_aprovada?: never
           flag_em_analise?: never
           flag_reprovada?: never
@@ -494,7 +492,6 @@ export type Database = {
           analista_pricing?: never
           cliente_analitico?: never
           coloader_analitico?: never
-          data_abertura?: never
           flag_aprovada?: never
           flag_em_analise?: never
           flag_reprovada?: never
@@ -567,21 +564,12 @@ export type Database = {
       }
     }
     Functions: {
-      agentes_analise: {
-        Args: { p_agente?: string; p_data_final?: string; p_data_inicial?: string }
-        Returns: Json
-      }
+      agentes_analise: { Args: { p_agente?: string }; Returns: Json }
       agentes_opcoes_filtro: { Args: never; Returns: Json }
-      analistas_analise: {
-        Args: { p_analista?: string; p_data_final?: string; p_data_inicial?: string }
-        Returns: Json
-      }
+      analistas_analise: { Args: { p_analista?: string }; Returns: Json }
       analistas_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
-      coloaders_analise: {
-        Args: { p_coloader?: string; p_data_final?: string; p_data_inicial?: string }
-        Returns: Json
-      }
+      coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
       dashboard_analise: {
         Args: {
@@ -618,21 +606,13 @@ export type Database = {
         Returns: Json
       }
       dashboard_opcoes_filtro: { Args: never; Returns: Json }
-      motivos_perda_analise: {
-        Args: { p_data_final?: string; p_data_inicial?: string; p_motivo?: string }
-        Returns: Json
-      }
+      motivos_perda_analise: { Args: { p_motivo?: string }; Returns: Json }
       motivos_perda_opcoes_filtro: { Args: never; Returns: Json }
       produto_do_usuario: { Args: never; Returns: string }
       produtos_do_usuario: { Args: never; Returns: string[] }
-      qualidade_dados_analise: {
-        Args: { p_data_final?: string; p_data_inicial?: string }
-        Returns: Json
-      }
+      qualidade_dados_analise: { Args: never; Returns: Json }
       rotas_analise: {
         Args: {
-          p_data_final?: string
-          p_data_inicial?: string
           p_pais_destino?: string
           p_pais_origem?: string
           p_porto_destino?: string
