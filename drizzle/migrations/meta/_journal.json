@@ -57,6 +57,13 @@
       "when": 1790086547007,
       "tag": "0007_otimizar_opcoes_filtro_rotas",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790183716806,
+      "tag": "0008_filtro_periodo_agentes_rotas",
+      "breakpoints": true
     }
   ]
 }

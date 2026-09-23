@@ -564,11 +564,20 @@ export type Database = {
       }
     }
     Functions: {
-      agentes_analise: { Args: { p_agente?: string }; Returns: Json }
+      agentes_analise: {
+        Args: {
+          p_agente?: string
+          p_data_final?: string
+          p_data_inicial?: string
+        }
+        Returns: Json
+      }
+      agentes_analise_padrao: { Args: { p_agente?: string }; Returns: Json }
       agentes_opcoes_filtro: { Args: never; Returns: Json }
       analistas_analise: { Args: { p_analista?: string }; Returns: Json }
       analistas_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
+      atualizar_analises_periodo: { Args: never; Returns: undefined }
       coloaders_analise: { Args: { p_coloader?: string }; Returns: Json }
       coloaders_opcoes_filtro: { Args: never; Returns: Json }
       dashboard_analise: {
@@ -612,6 +621,18 @@ export type Database = {
       produtos_do_usuario: { Args: never; Returns: string[] }
       qualidade_dados_analise: { Args: never; Returns: Json }
       rotas_analise: {
+        Args: {
+          p_data_final?: string
+          p_data_inicial?: string
+          p_pais_destino?: string
+          p_pais_origem?: string
+          p_porto_destino?: string
+          p_porto_origem?: string
+          p_rota?: string
+        }
+        Returns: Json
+      }
+      rotas_analise_padrao: {
         Args: {
           p_pais_destino?: string
           p_pais_origem?: string
