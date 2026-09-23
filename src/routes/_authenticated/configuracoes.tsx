@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarDataHora } from "@/lib/analytics";
+import { usePerfil } from "@/hooks/useProduto";
 
 const COLUNAS_IMPORTACOES = {
   fonte: { tipo: "texto" as const },
@@ -48,6 +49,20 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
 });
 
 function ConfiguracoesPage() {
+  const perfil = usePerfil();
+  if (perfil.isPending) return <Skeleton className="h-64 w-full" />;
+  if (!perfil.data?.isAdmin) {
+    return (
+      <PanelBlock
+        title="Acesso restrito"
+        description="As configurações estão disponíveis apenas para administradores."
+      >
+        <p className="text-sm text-muted-foreground">
+          Solicite acesso a um administrador, se necessário.
+        </p>
+      </PanelBlock>
+    );
+  }
   return (
     <div className="space-y-6">
       <ModuleIntro

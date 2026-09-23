@@ -127,6 +127,7 @@ export const navigation: NavGroup[] = [
         to: "/configuracoes",
         icon: Settings,
         description: "Histórico das cargas do relatório de Ofertas.",
+        adminOnly: true,
       },
     ],
   },
