@@ -148,6 +148,13 @@
       "when": 1790192542041,
       "tag": "0020_dashboard_opcoes_precalculadas",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790193112033,
+      "tag": "0021_importacoes_somente_admin",
+      "breakpoints": true
     }
   ]
 }
