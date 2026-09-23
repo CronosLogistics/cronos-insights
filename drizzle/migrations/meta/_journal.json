@@ -64,6 +64,13 @@
       "when": 1790183716806,
       "tag": "0008_filtro_periodo_agentes_rotas",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790183779508,
+      "tag": "0009_atualizar_analises_inclui_periodo",
+      "breakpoints": true
     }
   ]
 }
