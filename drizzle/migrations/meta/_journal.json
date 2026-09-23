@@ -71,6 +71,13 @@
       "when": 1790183779508,
       "tag": "0009_atualizar_analises_inclui_periodo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790189247900,
+      "tag": "0010_filtro_ano_mes_analises",
+      "breakpoints": true
     }
   ]
 }
