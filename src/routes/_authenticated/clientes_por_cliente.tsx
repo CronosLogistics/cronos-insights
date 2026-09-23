@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -105,6 +106,8 @@ function saveClient(cliente: string | null) {
 
 function PorClientePage() {
   const [cliente, setCliente] = useState<string | null>(() => readSavedClient());
+  const [dataInicial, setDataInicial] = useState<string | null>(null);
+  const [dataFinal, setDataFinal] = useState<string | null>(null);
 
   const lista = useQuery({
     queryKey: ["cliente-lista"],
@@ -113,8 +116,15 @@ function PorClientePage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-cliente", cliente],
-    queryFn: () => getAnaliseCliente({ data: { cliente: cliente as string } }),
+    queryKey: ["analise-cliente", cliente, dataInicial, dataFinal],
+    queryFn: () =>
+      getAnaliseCliente({
+        data: {
+          cliente: cliente as string,
+          dataInicial,
+          dataFinal,
+        },
+      }),
     enabled: Boolean(cliente),
     staleTime: 5 * 60 * 1000,
   });
@@ -130,6 +140,8 @@ function PorClientePage() {
     if (!existe) setCliente(null);
   }, [lista.data, cliente]);
 
+  const resetKey = `${cliente ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+
   return (
     <div className="w-full min-w-0 space-y-6">
       <ModuleIntro
@@ -139,28 +151,40 @@ function PorClientePage() {
       />
 
       <Card>
-        <CardContent className="space-y-2 pt-6">
+        <CardContent className="space-y-4 pt-6">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            Cliente
+            Pesquisa
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="w-full sm:max-w-md">
-              {lista.isPending ? (
-                <Skeleton className="h-9 w-full rounded-md" />
-              ) : (
-                <ClienteCombobox
-                  clientes={(lista.data ?? []).map((opcao) => opcao.cliente)}
-                  value={cliente}
-                  onValueChange={setCliente}
-                />
-              )}
-            </div>
-            {lista.data ? (
-              <Badge variant="secondary" className="w-fit">
-                {inteiro(lista.data.length)} clientes no produto
-              </Badge>
-            ) : null}
+
+          <FiltroPeriodo
+            dataInicial={dataInicial}
+            dataFinal={dataFinal}
+            onDataInicialChange={setDataInicial}
+            onDataFinalChange={setDataFinal}
+            className="max-w-xl"
+          />
+
+          <div className="max-w-xl space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Filtro de cliente
+            </p>
+            {lista.isPending ? (
+              <Skeleton className="h-9 w-full rounded-md" />
+            ) : (
+              <ClienteCombobox
+                clientes={(lista.data ?? []).map((opcao) => opcao.cliente)}
+                value={cliente}
+                onValueChange={setCliente}
+              />
+            )}
           </div>
+
+          {lista.data ? (
+            <Badge variant="secondary" className="w-fit">
+              {inteiro(lista.data.length)} clientes no produto
+            </Badge>
+          ) : null}
+
           {lista.isError ? (
             <p className="text-sm text-destructive">
               Não foi possível carregar a lista de clientes.
@@ -179,7 +203,7 @@ function PorClientePage() {
           Não foi possível calcular a análise deste cliente.
         </p>
       ) : analise.data ? (
-        <Ficha analise={analise.data} />
+        <Ficha analise={analise.data} resetKey={resetKey} />
       ) : null}
     </div>
   );
@@ -388,7 +412,7 @@ function FichaSkeleton() {
   );
 }
 
-function Ficha({ analise }: { analise: AnaliseCliente }) {
+function Ficha({ analise, resetKey }: { analise: AnaliseCliente; resetKey: string }) {
   const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
 
@@ -509,7 +533,7 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
           </ul>
         </PanelBlock>
 
-        <TabelaMotivos linhas={analise.motivos} resetKey={analise.cliente} />
+        <TabelaMotivos linhas={analise.motivos} resetKey={`${resetKey}-motivos`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -526,7 +550,7 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         descricao="Volume e conversão por rota (origem → destino)."
         rotuloItem="Rota"
         linhas={analise.rotas}
-        resetKey={analise.cliente}
+        resetKey={`${resetKey}-rotas`}
       />
 
       <TabelaRanking
@@ -534,7 +558,7 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
         rotuloItem="Coloader"
         linhas={analise.coloaders}
-        resetKey={analise.cliente}
+        resetKey={`${resetKey}-coloaders`}
       />
 
       <TabelaRanking
@@ -542,10 +566,10 @@ function Ficha({ analise }: { analise: AnaliseCliente }) {
         descricao="Desempenho por agente no exterior."
         rotuloItem="Agente"
         linhas={analise.agentes}
-        resetKey={analise.cliente}
+        resetKey={`${resetKey}-agentes`}
       />
 
-      <TabelaRotaColoader linhas={analise.rotaColoader} resetKey={analise.cliente} />
+      <TabelaRotaColoader linhas={analise.rotaColoader} resetKey={`${resetKey}-rota-coloader`} />
     </div>
   );
 }

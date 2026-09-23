@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -91,7 +92,13 @@ const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
 /** Seleção da UI: null = ainda não escolhido (não dispara a análise). */
 type FiltrosSelecao = {
-  [K in keyof FiltrosRotas]: string | null;
+  paisOrigem: string | null;
+  portoOrigem: string | null;
+  paisDestino: string | null;
+  portoDestino: string | null;
+  rota: string | null;
+  dataInicial: string | null;
+  dataFinal: string | null;
 };
 
 const FILTROS_VAZIOS: FiltrosSelecao = {
@@ -100,10 +107,20 @@ const FILTROS_VAZIOS: FiltrosSelecao = {
   paisDestino: null,
   portoDestino: null,
   rota: null,
+  dataInicial: null,
+  dataFinal: null,
 };
 
 function temAlgumFiltro(f: FiltrosSelecao): boolean {
-  return Object.values(f).some((v) => v !== null);
+  return (
+    f.paisOrigem !== null ||
+    f.portoOrigem !== null ||
+    f.paisDestino !== null ||
+    f.portoDestino !== null ||
+    f.rota !== null ||
+    f.dataInicial !== null ||
+    f.dataFinal !== null
+  );
 }
 
 /** Campos vazios viram "Todos" (sem restrição), como na planilha. */
@@ -114,11 +131,21 @@ function paraConsulta(f: FiltrosSelecao): FiltrosRotas {
     paisDestino: f.paisDestino ?? FILTRO_TODOS,
     portoDestino: f.portoDestino ?? FILTRO_TODOS,
     rota: f.rota ?? FILTRO_TODOS,
+    dataInicial: f.dataInicial,
+    dataFinal: f.dataFinal,
   };
 }
 
 function chaveFiltros(f: FiltrosRotas): string {
-  return [f.paisOrigem, f.portoOrigem, f.paisDestino, f.portoDestino, f.rota].join("|");
+  return [
+    f.paisOrigem,
+    f.portoOrigem,
+    f.paisDestino,
+    f.portoDestino,
+    f.rota,
+    f.dataInicial,
+    f.dataFinal,
+  ].join("|");
 }
 
 function RotasPage() {
@@ -141,7 +168,7 @@ function RotasPage() {
     placeholderData: keepPreviousData,
   });
 
-  function atualizar<K extends keyof FiltrosSelecao>(campo: K, valor: string | null) {
+  function atualizar<K extends keyof FiltrosSelecao>(campo: K, valor: FiltrosSelecao[K]) {
     setFiltros((atual) => ({ ...atual, [campo]: valor }));
   }
 
@@ -165,6 +192,14 @@ function RotasPage() {
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             Pesquisa
           </p>
+
+          <FiltroPeriodo
+            dataInicial={filtros.dataInicial}
+            dataFinal={filtros.dataFinal}
+            onDataInicialChange={(v) => atualizar("dataInicial", v)}
+            onDataFinalChange={(v) => atualizar("dataFinal", v)}
+            className="max-w-xl"
+          />
 
           <div className="grid gap-4 lg:grid-cols-3">
             <GrupoFiltros titulo="Filtros de origem">
@@ -230,7 +265,7 @@ function RotasPage() {
             </Button>
             {!podePesquisar ? (
               <p className="text-xs text-muted-foreground">
-                Preencha ao menos um filtro para pesquisar.
+                Preencha ao menos um filtro (ou o período) para pesquisar.
               </p>
             ) : null}
           </div>

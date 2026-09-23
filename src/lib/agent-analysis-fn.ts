@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parsePeriodo } from "@/lib/filtro-periodo";
 import {
   FILTRO_TODOS,
   montarAnaliseAgentes,
@@ -13,13 +14,20 @@ export type AgentesOpcoesFiltro = {
   agentes: string[];
 };
 
-function parseAgente(input: unknown): { agente: string } {
+function parseFiltros(input: unknown): {
+  agente: string;
+  dataInicial: string | null;
+  dataFinal: string | null;
+} {
   const raw = (input ?? {}) as Record<string, unknown>;
+  const periodo = parsePeriodo(raw);
   const valor = raw["agente"];
-  if (typeof valor !== "string") return { agente: FILTRO_TODOS };
-  const t = valor.trim();
-  if (t === "" || t === FILTRO_TODOS) return { agente: FILTRO_TODOS };
-  return { agente: normalizarAgente(t) };
+  let agente = FILTRO_TODOS;
+  if (typeof valor === "string") {
+    const t = valor.trim();
+    if (t !== "" && t !== FILTRO_TODOS) agente = normalizarAgente(t);
+  }
+  return { agente, ...periodo };
 }
 
 /**
@@ -48,9 +56,9 @@ export const getAgentesOpcoesFiltro = createServerFn({ method: "POST" })
  */
 export const getAnaliseAgentes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => parseAgente(input))
+  .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseAgentes> => {
-    const { agente } = data;
+    const { agente, dataInicial, dataFinal } = data;
     const client = context.supabase as unknown as {
       rpc: (
         fn: string,
@@ -60,6 +68,8 @@ export const getAnaliseAgentes = createServerFn({ method: "POST" })
 
     const { data: agregado, error } = await client.rpc("agentes_analise", {
       p_agente: agente,
+      p_data_inicial: dataInicial,
+      p_data_final: dataFinal,
     });
     if (error) throw new Error(error.message);
 

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parsePeriodo } from "@/lib/filtro-periodo";
 import { analisarCliente, type AnaliseCliente, type HistRow } from "@/lib/customer-analysis";
 
 const PAGINA = 1000;
@@ -47,20 +48,22 @@ export const getClienteLista = createServerFn({ method: "POST" })
  */
 export const getAnaliseCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: { cliente: string }) => {
-    if (!input || typeof input.cliente !== "string" || input.cliente.trim() === "") {
+  .inputValidator((input: unknown) => {
+    const raw = (input ?? {}) as Record<string, unknown>;
+    const cliente = raw["cliente"];
+    if (typeof cliente !== "string" || cliente.trim() === "") {
       throw new Error("Cliente inválido");
     }
-    return { cliente: input.cliente };
+    return { cliente: cliente.trim(), ...parsePeriodo(raw) };
   })
   .handler(async ({ context, data }): Promise<AnaliseCliente> => {
     const { supabase } = context;
-    const cliente = data.cliente;
+    const { cliente, dataInicial, dataFinal } = data;
 
     // Busca paginada das linhas do cliente (uma revisão por linha).
     const rows: HistRow[] = [];
     for (let inicio = 0; ; inicio += PAGINA) {
-      const { data: pagina, error } = await supabase
+      let query = supabase
         .from("v_ofertas_analitico")
         .select(
           "oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise",
@@ -68,6 +71,9 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
         .eq("cliente_analitico", cliente)
         .order("id", { ascending: true })
         .range(inicio, inicio + PAGINA - 1);
+      if (dataInicial) query = query.gte("data_abertura", dataInicial);
+      if (dataFinal) query = query.lte("data_abertura", dataFinal);
+      const { data: pagina, error } = await query;
       if (error) throw new Error(error.message);
       const lote = (pagina ?? []) as unknown as HistRow[];
       rows.push(...lote);

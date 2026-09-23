@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import {
@@ -121,6 +122,8 @@ function saveMotivo(motivo: string | null) {
 
 function MotivosPage() {
   const [motivo, setMotivo] = useState<string | null>(() => readSavedMotivo());
+  const [dataInicial, setDataInicial] = useState<string | null>(null);
+  const [dataFinal, setDataFinal] = useState<string | null>(null);
 
   const opcoes = useQuery({
     queryKey: ["motivos-perda-opcoes-filtro"],
@@ -129,8 +132,15 @@ function MotivosPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-motivos-perda", motivo],
-    queryFn: () => getAnaliseMotivosPerda({ data: { motivo: motivo as string } }),
+    queryKey: ["analise-motivos-perda", motivo, dataInicial, dataFinal],
+    queryFn: () =>
+      getAnaliseMotivosPerda({
+        data: {
+          motivo: motivo as string,
+          dataInicial,
+          dataFinal,
+        },
+      }),
     enabled: Boolean(motivo),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
@@ -146,6 +156,8 @@ function MotivosPage() {
     if (!existe) setMotivo(null);
   }, [opcoes.data, motivo]);
 
+  const resetKey = `${motivo ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+
   return (
     <div className="w-full min-w-0 space-y-6">
       <ModuleIntro
@@ -160,7 +172,15 @@ function MotivosPage() {
             Pesquisa
           </p>
 
-          <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4 sm:max-w-md">
+          <FiltroPeriodo
+            dataInicial={dataInicial}
+            dataFinal={dataFinal}
+            onDataInicialChange={setDataInicial}
+            onDataFinalChange={setDataFinal}
+            className="max-w-xl"
+          />
+
+          <div className="max-w-xl space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Motivos de reprovação
             </p>
@@ -197,7 +217,7 @@ function MotivosPage() {
         </p>
       ) : analise.data ? (
         <div className={cn(analise.isFetching && "opacity-70 transition-opacity")}>
-          <Ficha analise={analise.data} resetKey={motivo} />
+          <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
       ) : null}
     </div>

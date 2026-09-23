@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -110,6 +111,8 @@ function saveColoader(coloader: string | null) {
 function ColoadersPage() {
   const termos = useTerminologia();
   const [coloader, setColoader] = useState<string | null>(() => readSavedColoader());
+  const [dataInicial, setDataInicial] = useState<string | null>(null);
+  const [dataFinal, setDataFinal] = useState<string | null>(null);
 
   const opcoes = useQuery({
     queryKey: ["coloaders-opcoes-filtro"],
@@ -118,8 +121,15 @@ function ColoadersPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-coloaders", coloader],
-    queryFn: () => getAnaliseColoaders({ data: { coloader: coloader as string } }),
+    queryKey: ["analise-coloaders", coloader, dataInicial, dataFinal],
+    queryFn: () =>
+      getAnaliseColoaders({
+        data: {
+          coloader: coloader as string,
+          dataInicial,
+          dataFinal,
+        },
+      }),
     enabled: Boolean(coloader),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
@@ -136,6 +146,8 @@ function ColoadersPage() {
     if (!existe) setColoader(null);
   }, [opcoes.data, coloader]);
 
+  const resetKey = `${coloader ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+
   return (
     <div className="w-full min-w-0 space-y-6">
       <ModuleIntro
@@ -150,7 +162,15 @@ function ColoadersPage() {
             Pesquisa
           </p>
 
-          <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4 sm:max-w-md">
+          <FiltroPeriodo
+            dataInicial={dataInicial}
+            dataFinal={dataFinal}
+            onDataInicialChange={setDataInicial}
+            onDataFinalChange={setDataFinal}
+            className="max-w-xl"
+          />
+
+          <div className="max-w-xl space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Filtro de {termos.coloaderLabel}
             </p>
@@ -187,7 +207,7 @@ function ColoadersPage() {
         </p>
       ) : analise.data ? (
         <div className={cn(analise.isFetching && "opacity-70 transition-opacity")}>
-          <Ficha analise={analise.data} resetKey={coloader} />
+          <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
       ) : null}
     </div>

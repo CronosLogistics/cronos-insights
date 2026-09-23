@@ -55,13 +55,15 @@ function ClientesPage() {
         },
       ]}
       queryKey="clientes"
-      fetchRows={async (busca) => {
+      fetchRows={async (busca, periodo) => {
         let query = supabase
           .from("v_clientes")
           .select("*")
           .order("ofertas", { ascending: false })
           .limit(200);
         if (busca) query = query.ilike("cliente", `%${busca}%`);
+        if (periodo.dataInicial) query = query.gte("ultima_oferta", periodo.dataInicial);
+        if (periodo.dataFinal) query = query.lte("ultima_oferta", periodo.dataFinal);
         const { data, error } = await query;
         if (error) throw error;
         return (data ?? []) as unknown as Linha[];

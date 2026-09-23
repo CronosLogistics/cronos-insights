@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parsePeriodo } from "@/lib/filtro-periodo";
 import {
   montarAnaliseRotas,
   FILTRO_TODOS,
@@ -26,12 +27,15 @@ function normalizarFiltro(valor: unknown): string {
 
 function parseFiltros(input: unknown): FiltrosRotas {
   const raw = (input ?? {}) as Record<string, unknown>;
+  const periodo = parsePeriodo(raw);
   return {
     paisOrigem: normalizarFiltro(raw["paisOrigem"]),
     portoOrigem: normalizarFiltro(raw["portoOrigem"]),
     paisDestino: normalizarFiltro(raw["paisDestino"]),
     portoDestino: normalizarFiltro(raw["portoDestino"]),
     rota: normalizarFiltro(raw["rota"]),
+    dataInicial: periodo.dataInicial,
+    dataFinal: periodo.dataFinal,
   };
 }
 
@@ -79,6 +83,8 @@ export const getAnaliseRotas = createServerFn({ method: "POST" })
       p_pais_destino: filtros.paisDestino,
       p_porto_destino: filtros.portoDestino,
       p_rota: filtros.rota,
+      p_data_inicial: filtros.dataInicial,
+      p_data_final: filtros.dataFinal,
     });
     if (error) throw new Error(error.message);
 

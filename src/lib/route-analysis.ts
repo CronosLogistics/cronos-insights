@@ -50,6 +50,8 @@ export type FiltrosRotas = {
   paisDestino: string;
   portoDestino: string;
   rota: string;
+  dataInicial: string | null;
+  dataFinal: string | null;
 };
 
 export const FILTRO_TODOS = "Todos";

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { parsePeriodo } from "@/lib/filtro-periodo";
 import {
   FILTRO_TODOS,
   montarAnaliseMotivosPerda,
@@ -12,13 +13,20 @@ export type MotivosPerdaOpcoesFiltro = {
   motivos: string[];
 };
 
-function parseMotivo(input: unknown): { motivo: string } {
+function parseFiltros(input: unknown): {
+  motivo: string;
+  dataInicial: string | null;
+  dataFinal: string | null;
+} {
   const raw = (input ?? {}) as Record<string, unknown>;
+  const periodo = parsePeriodo(raw);
   const valor = raw["motivo"];
-  if (typeof valor !== "string") return { motivo: FILTRO_TODOS };
-  const t = valor.trim();
-  if (t === "" || t === FILTRO_TODOS) return { motivo: FILTRO_TODOS };
-  return { motivo: t };
+  let motivo = FILTRO_TODOS;
+  if (typeof valor === "string") {
+    const t = valor.trim();
+    if (t !== "" && t !== FILTRO_TODOS) motivo = t;
+  }
+  return { motivo, ...periodo };
 }
 
 /**
@@ -49,9 +57,9 @@ export const getMotivosPerdaOpcoesFiltro = createServerFn({ method: "POST" })
  */
 export const getAnaliseMotivosPerda = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => parseMotivo(input))
+  .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseMotivosPerda> => {
-    const { motivo } = data;
+    const { motivo, dataInicial, dataFinal } = data;
     const client = context.supabase as unknown as {
       rpc: (
         fn: string,
@@ -61,6 +69,8 @@ export const getAnaliseMotivosPerda = createServerFn({ method: "POST" })
 
     const { data: agregado, error } = await client.rpc("motivos_perda_analise", {
       p_motivo: motivo,
+      p_data_inicial: dataInicial,
+      p_data_final: dataFinal,
     });
     if (error) throw new Error(error.message);
 

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { BotaoExportarTabela } from "@/components/data/table-export";
@@ -107,6 +108,8 @@ function CotacoesPage() {
   const [busca, setBusca] = useState("");
   const [modalidade, setModalidade] = useState("todas");
   const [analise, setAnalise] = useState("todas");
+  const [dataInicial, setDataInicial] = useState<string | null>(null);
+  const [dataFinal, setDataFinal] = useState<string | null>(null);
 
   const resumo = useQuery({
     queryKey: ["ofertas-resumo"],
@@ -133,7 +136,7 @@ function CotacoesPage() {
   });
 
   const lista = useQuery({
-    queryKey: ["ofertas-lista", busca, modalidade, analise],
+    queryKey: ["ofertas-lista", busca, modalidade, analise, dataInicial, dataFinal],
     queryFn: async () => {
       let query = supabase
         .from("ofertas")
@@ -149,6 +152,8 @@ function CotacoesPage() {
       }
       if (modalidade !== "todas") query = query.eq("modalidade", modalidade);
       if (analise !== "todas") query = query.eq("analise", analise);
+      if (dataInicial) query = query.gte("data_abertura", dataInicial);
+      if (dataFinal) query = query.lte("data_abertura", dataFinal);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -183,7 +188,7 @@ function CotacoesPage() {
     return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
   }, [resumo.data]);
 
-  const filtrosKey = `${busca}|${modalidade}|${analise}`;
+  const filtrosKey = `${busca}|${modalidade}|${analise}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
     lista.data,
     COLUNAS_OFERTAS,
@@ -228,38 +233,46 @@ function CotacoesPage() {
         }
       >
         <div className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            <Input
-              value={busca}
-              onChange={(event) => setBusca(event.target.value)}
-              placeholder="Buscar por oferta ou cliente"
+          <div className="max-w-xl space-y-3">
+            <FiltroPeriodo
+              dataInicial={dataInicial}
+              dataFinal={dataFinal}
+              onDataInicialChange={setDataInicial}
+              onDataFinalChange={setDataFinal}
             />
-            <Select value={modalidade} onValueChange={setModalidade}>
-              <SelectTrigger>
-                <SelectValue placeholder="Modalidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas as modalidades</SelectItem>
-                {(opcoes.data?.modalidades ?? []).map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={analise} onValueChange={setAnalise}>
-              <SelectTrigger>
-                <SelectValue placeholder="Situação da análise" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas as situações</SelectItem>
-                {(opcoes.data?.analises ?? []).map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Input
+                value={busca}
+                onChange={(event) => setBusca(event.target.value)}
+                placeholder="Buscar por oferta ou cliente"
+              />
+              <Select value={modalidade} onValueChange={setModalidade}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Modalidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as modalidades</SelectItem>
+                  {(opcoes.data?.modalidades ?? []).map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={analise} onValueChange={setAnalise}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Situação da análise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as situações</SelectItem>
+                  {(opcoes.data?.analises ?? []).map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {lista.isPending ? (

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, TableSkeleton } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import {
@@ -64,10 +66,14 @@ const COLUNAS_CAMPOS: ColunasOrdenacao<CampoPreenchimento> = {
 };
 
 function QualidadePage() {
+  const [dataInicial, setDataInicial] = useState<string | null>(null);
+  const [dataFinal, setDataFinal] = useState<string | null>(null);
+
   const analise = useQuery({
-    queryKey: ["qualidade-dados"],
-    queryFn: () => getQualidadeDados(),
+    queryKey: ["qualidade-dados", dataInicial, dataFinal],
+    queryFn: () => getQualidadeDados({ data: { dataInicial, dataFinal } }),
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   return (
@@ -78,7 +84,22 @@ function QualidadePage() {
         description="Preenchimento e consistencia da tabela historica tbHistorico"
       />
 
-      {analise.isPending ? (
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Filtros
+          </p>
+          <FiltroPeriodo
+            dataInicial={dataInicial}
+            dataFinal={dataFinal}
+            onDataInicialChange={setDataInicial}
+            onDataFinalChange={setDataFinal}
+            className="max-w-xl"
+          />
+        </CardContent>
+      </Card>
+
+      {analise.isPending && !analise.data ? (
         <div className="space-y-6">
           <Card>
             <CardContent className="pt-6">
@@ -91,17 +112,19 @@ function QualidadePage() {
             </CardContent>
           </Card>
         </div>
-      ) : analise.isError ? (
+      ) : analise.isError && !analise.data ? (
         <p className="flex items-center gap-2 text-sm text-destructive">
           <RefreshCw className="size-4" />
           Não foi possível calcular a qualidade dos dados agora.
         </p>
       ) : analise.data ? (
-        <ConteudoQualidade
-          indicadores={analise.data.indicadores}
-          campos={analise.data.campos}
-          linhasBase={analise.data.linhasBase}
-        />
+        <div className={analise.isFetching ? "opacity-70 transition-opacity" : undefined}>
+          <ConteudoQualidade
+            indicadores={analise.data.indicadores}
+            campos={analise.data.campos}
+            linhasBase={analise.data.linhasBase}
+          />
+        </div>
       ) : null}
     </div>
   );

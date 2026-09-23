@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Database, RefreshCw } from "lucide-react";
 
+import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -36,6 +37,11 @@ export type Coluna = {
 
 export type KpiItem = { label: string; value: string; hint?: string };
 
+export type PeriodoFiltro = {
+  dataInicial: string | null;
+  dataFinal: string | null;
+};
+
 /**
  * Módulo analítico padrão: indicadores, gráfico de barras do top 10 e
  * ranking tabular, todos alimentados pela base de ofertas.
@@ -63,7 +69,7 @@ export function RankingModule({
   kpis: KpiItem[];
   kpisCarregando?: boolean;
   queryKey: string;
-  fetchRows: (busca: string) => Promise<Linha[]>;
+  fetchRows: (busca: string, periodo: PeriodoFiltro) => Promise<Linha[]>;
   colunas: Coluna[];
   campoRotulo: string;
   campoValor: string;
@@ -74,9 +80,16 @@ export function RankingModule({
   tableDescription: string;
 }) {
   const [busca, setBusca] = useState("");
+  const [dataInicial, setDataInicial] = useState<string | null>(null);
+  const [dataFinal, setDataFinal] = useState<string | null>(null);
+
   const lista = useQuery({
-    queryKey: [queryKey, busca],
-    queryFn: () => fetchRows(busca.trim()),
+    queryKey: [queryKey, busca, dataInicial, dataFinal],
+    queryFn: () =>
+      fetchRows(busca.trim(), {
+        dataInicial,
+        dataFinal,
+      }),
   });
 
   const linhas = lista.data;
@@ -95,7 +108,10 @@ export function RankingModule({
     linhas,
     colunasOrdenacao,
   );
-  const paginacao = usePaginacao(ordenadas, `${queryKey}:${busca}:${chaveReset}`);
+  const paginacao = usePaginacao(
+    ordenadas,
+    `${queryKey}:${busca}:${dataInicial ?? ""}:${dataFinal ?? ""}:${chaveReset}`,
+  );
 
   return (
     <div className="space-y-6">
@@ -158,11 +174,18 @@ export function RankingModule({
 
       <PanelBlock title={tableTitle} description={tableDescription}>
         <div className="space-y-4">
+          <FiltroPeriodo
+            dataInicial={dataInicial}
+            dataFinal={dataFinal}
+            onDataInicialChange={setDataInicial}
+            onDataFinalChange={setDataFinal}
+            className="max-w-xl"
+          />
           <Input
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
             placeholder={buscaPlaceholder}
-            className="md:max-w-sm"
+            className="max-w-xl"
           />
 
           {lista.isPending ? (

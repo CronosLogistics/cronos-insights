@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
+import { CampoData } from "@/components/data/CampoData";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
 import { BotaoExportarTabela } from "@/components/data/table-export";
@@ -183,7 +184,6 @@ type FiltrosUi = {
   coloader: string;
   resultado: string;
   motivo: string;
-  datasProntas: boolean;
 };
 
 const FILTROS_INICIAIS: FiltrosUi = {
@@ -198,13 +198,12 @@ const FILTROS_INICIAIS: FiltrosUi = {
   coloader: FILTRO_TODOS,
   resultado: FILTRO_TODOS,
   motivo: FILTRO_TODOS,
-  datasProntas: false,
 };
 
 const DASHBOARD_STORAGE_KEY = "cronos-insights:dashboard:selecao";
 
 type DashboardPersistido = {
-  filtros: Omit<FiltrosUi, "datasProntas">;
+  filtros: FiltrosUi;
   consulta: FiltrosDashboard | null;
 };
 
@@ -241,7 +240,6 @@ function readSavedDashboard(): { filtros: FiltrosUi; consulta: FiltrosDashboard 
       coloader: textoOuTodos(f["coloader"]),
       resultado: textoOuTodos(f["resultado"]),
       motivo: textoOuTodos(f["motivo"]),
-      datasProntas: Boolean(dataOuNull(f["dataInicial"]) || dataOuNull(f["dataFinal"])),
     };
     const c = parsed.consulta;
     const consulta: FiltrosDashboard | null =
@@ -358,7 +356,6 @@ function DashboardPage() {
         coloader: normalizarOpcao(atual.coloader, opcoes.data.coloaders),
         resultado: normalizarOpcao(atual.resultado, opcoes.data.resultados),
         motivo: normalizarOpcao(atual.motivo, opcoes.data.motivos),
-        datasProntas: true,
       };
       const igual =
         proximo.dataInicial === atual.dataInicial &&
@@ -371,8 +368,7 @@ function DashboardPage() {
         proximo.rota === atual.rota &&
         proximo.coloader === atual.coloader &&
         proximo.resultado === atual.resultado &&
-        proximo.motivo === atual.motivo &&
-        proximo.datasProntas === atual.datasProntas;
+        proximo.motivo === atual.motivo;
       return igual ? atual : proximo;
     });
   }, [opcoes.data]);
@@ -380,8 +376,6 @@ function DashboardPage() {
   useEffect(() => {
     saveDashboard(filtros, consulta);
   }, [filtros, consulta]);
-
-  const podePesquisar = filtros.datasProntas;
 
   const analise = useQuery({
     queryKey: ["analise-dashboard", consulta],
@@ -396,7 +390,6 @@ function DashboardPage() {
   }
 
   function pesquisar() {
-    if (!podePesquisar) return;
     setConsulta(paraConsulta(filtros));
   }
 
@@ -507,21 +500,15 @@ function DashboardPage() {
             <Button
               type="button"
               onClick={pesquisar}
-              disabled={!podePesquisar || analise.isFetching}
+              disabled={analise.isFetching}
               className="gap-2"
             >
               <Search className="size-4" />
               Pesquisar
             </Button>
-            {!podePesquisar ? (
-              <p className="text-xs text-muted-foreground">
-                Aguarde o carregamento das datas para pesquisar.
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Os filtros só são aplicados ao clicar em Pesquisar.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              Datas são opcionais. Os filtros só são aplicados ao clicar em Pesquisar.
+            </p>
           </div>
 
           {opcoes.isError ? (
@@ -1172,57 +1159,6 @@ function EstadoVazio() {
         </p>
       </CardContent>
     </Card>
-  );
-}
-
-function CampoData({
-  label,
-  value,
-  onValueChange,
-  carregando,
-}: {
-  label: string;
-  value: string | null;
-  onValueChange: (valor: string | null) => void;
-  carregando: boolean;
-}) {
-  if (carregando) {
-    return (
-      <div className="space-y-1.5">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <Skeleton className="h-9 w-full rounded-md" />
-      </div>
-    );
-  }
-
-  const temConteudo = Boolean(value);
-
-  return (
-    <div className="space-y-1.5">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="relative w-full">
-        <Input
-          type="date"
-          value={value ?? ""}
-          onChange={(event) => {
-            const v = event.target.value;
-            onValueChange(v || null);
-          }}
-          className={cn(temConteudo && "pr-9")}
-        />
-        {temConteudo ? (
-          <button
-            type="button"
-            aria-label={`Limpar ${label}`}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => onValueChange(null)}
-          >
-            <X className="size-3.5" />
-          </button>
-        ) : null}
-      </div>
-    </div>
   );
 }
 
