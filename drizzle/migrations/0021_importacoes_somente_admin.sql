@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Autenticados podem consultar importacoes" ON public.importacoes;
+CREATE POLICY "Somente administradores consultam importacoes" ON public.importacoes FOR SELECT TO authenticated USING (public.tem_papel(auth.uid(), 'admin'));
