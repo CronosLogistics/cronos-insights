@@ -78,6 +78,13 @@
       "when": 1790189247900,
       "tag": "0010_filtro_ano_mes_analises",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790189444890,
+      "tag": "0011_analistas_periodo_resumo",
+      "breakpoints": true
     }
   ]
 }
