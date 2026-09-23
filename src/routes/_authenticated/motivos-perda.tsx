@@ -58,6 +58,7 @@ import {
   getAnaliseMotivosPerda,
   getMotivosPerdaOpcoesFiltro,
 } from "@/lib/motivos-perda-analysis-fn";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 import { cn } from "@/lib/utils";
 
 const COLUNAS_DIMENSAO = {
@@ -122,8 +123,9 @@ function saveMotivo(motivo: string | null) {
 
 function MotivosPage() {
   const [motivo, setMotivo] = useState<string | null>(() => readSavedMotivo());
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const opcoes = useQuery({
     queryKey: ["motivos-perda-opcoes-filtro"],
@@ -132,13 +134,13 @@ function MotivosPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-motivos-perda", motivo, dataInicial, dataFinal],
+    queryKey: ["analise-motivos-perda", motivo, anos, meses],
     queryFn: () =>
       getAnaliseMotivosPerda({
         data: {
           motivo: motivo as string,
-          dataInicial,
-          dataFinal,
+          anos,
+          meses,
         },
       }),
     enabled: Boolean(motivo),
@@ -156,7 +158,7 @@ function MotivosPage() {
     if (!existe) setMotivo(null);
   }, [opcoes.data, motivo]);
 
-  const resetKey = `${motivo ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+  const resetKey = `${motivo ?? ""}|${anos.join(",")}|${meses.join(",")}`;
 
   return (
     <div className="w-full min-w-0 space-y-6">
@@ -173,10 +175,11 @@ function MotivosPage() {
           </p>
 
           <FiltroPeriodo
-            dataInicial={dataInicial}
-            dataFinal={dataFinal}
-            onDataInicialChange={setDataInicial}
-            onDataFinalChange={setDataFinal}
+            anos={anos}
+            meses={meses}
+            onAnosChange={setAnos}
+            onMesesChange={setMeses}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
 

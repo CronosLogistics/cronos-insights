@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { parsePeriodo } from "@/lib/filtro-periodo";
+import { parsePeriodo, periodoParaRpc } from "@/lib/filtro-periodo";
 import {
   montarAnaliseRotas,
   FILTRO_TODOS,
@@ -34,8 +34,8 @@ function parseFiltros(input: unknown): FiltrosRotas {
     paisDestino: normalizarFiltro(raw["paisDestino"]),
     portoDestino: normalizarFiltro(raw["portoDestino"]),
     rota: normalizarFiltro(raw["rota"]),
-    dataInicial: periodo.dataInicial,
-    dataFinal: periodo.dataFinal,
+    anos: periodo.anos,
+    meses: periodo.meses,
   };
 }
 
@@ -72,19 +72,21 @@ export const getAnaliseRotas = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseRotas> => {
+    const { anos, meses, ...resto } = data;
+    const { p_anos, p_meses } = periodoParaRpc({ anos, meses });
     const filtros = data;
     const client = context.supabase as unknown as {
       rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
     };
 
     const { data: agregado, error } = await client.rpc("rotas_analise", {
-      p_pais_origem: filtros.paisOrigem,
-      p_porto_origem: filtros.portoOrigem,
-      p_pais_destino: filtros.paisDestino,
-      p_porto_destino: filtros.portoDestino,
-      p_rota: filtros.rota,
-      p_data_inicial: filtros.dataInicial,
-      p_data_final: filtros.dataFinal,
+      p_pais_origem: resto.paisOrigem,
+      p_porto_origem: resto.portoOrigem,
+      p_pais_destino: resto.paisDestino,
+      p_porto_destino: resto.portoDestino,
+      p_rota: resto.rota,
+      p_anos,
+      p_meses,
     });
     if (error) throw new Error(error.message);
 

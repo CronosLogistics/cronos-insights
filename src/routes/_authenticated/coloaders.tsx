@@ -63,6 +63,7 @@ import {
   type LinhaRotaCliente,
 } from "@/lib/coloader-analysis";
 import { getColoadersOpcoesFiltro, getAnaliseColoaders } from "@/lib/coloader-analysis-fn";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
@@ -111,8 +112,9 @@ function saveColoader(coloader: string | null) {
 function ColoadersPage() {
   const termos = useTerminologia();
   const [coloader, setColoader] = useState<string | null>(() => readSavedColoader());
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const opcoes = useQuery({
     queryKey: ["coloaders-opcoes-filtro"],
@@ -121,13 +123,13 @@ function ColoadersPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-coloaders", coloader, dataInicial, dataFinal],
+    queryKey: ["analise-coloaders", coloader, anos, meses],
     queryFn: () =>
       getAnaliseColoaders({
         data: {
           coloader: coloader as string,
-          dataInicial,
-          dataFinal,
+          anos,
+          meses,
         },
       }),
     enabled: Boolean(coloader),
@@ -146,7 +148,7 @@ function ColoadersPage() {
     if (!existe) setColoader(null);
   }, [opcoes.data, coloader]);
 
-  const resetKey = `${coloader ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+  const resetKey = `${coloader ?? ""}|${anos.join(",")}|${meses.join(",")}`;
 
   return (
     <div className="w-full min-w-0 space-y-6">
@@ -163,10 +165,11 @@ function ColoadersPage() {
           </p>
 
           <FiltroPeriodo
-            dataInicial={dataInicial}
-            dataFinal={dataFinal}
-            onDataInicialChange={setDataInicial}
-            onDataFinalChange={setDataFinal}
+            anos={anos}
+            meses={meses}
+            onAnosChange={setAnos}
+            onMesesChange={setMeses}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
 

@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatarValor, type Linha } from "@/lib/analytics";
+import { gerarAnosOpcoes, type FiltroPeriodo as PeriodoFiltro } from "@/lib/filtro-periodo";
 
 function tipoOrdenacaoColuna(tipo: Coluna["tipo"]): TipoOrdenacao {
   return tipo === "numero" || tipo === "pct" || tipo === "decimal" ? "numero" : "texto";
@@ -37,10 +38,7 @@ export type Coluna = {
 
 export type KpiItem = { label: string; value: string; hint?: string };
 
-export type PeriodoFiltro = {
-  dataInicial: string | null;
-  dataFinal: string | null;
-};
+export type { PeriodoFiltro };
 
 /**
  * Módulo analítico padrão: indicadores, gráfico de barras do top 10 e
@@ -80,15 +78,16 @@ export function RankingModule({
   tableDescription: string;
 }) {
   const [busca, setBusca] = useState("");
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const lista = useQuery({
-    queryKey: [queryKey, busca, dataInicial, dataFinal],
+    queryKey: [queryKey, busca, anos, meses],
     queryFn: () =>
       fetchRows(busca.trim(), {
-        dataInicial,
-        dataFinal,
+        anos,
+        meses,
       }),
   });
 
@@ -110,7 +109,7 @@ export function RankingModule({
   );
   const paginacao = usePaginacao(
     ordenadas,
-    `${queryKey}:${busca}:${dataInicial ?? ""}:${dataFinal ?? ""}:${chaveReset}`,
+    `${queryKey}:${busca}:${anos.join(",")}:${meses.join(",")}:${chaveReset}`,
   );
 
   return (
@@ -175,10 +174,11 @@ export function RankingModule({
       <PanelBlock title={tableTitle} description={tableDescription}>
         <div className="space-y-4">
           <FiltroPeriodo
-            dataInicial={dataInicial}
-            dataFinal={dataFinal}
-            onDataInicialChange={setDataInicial}
-            onDataFinalChange={setDataFinal}
+            anos={anos}
+            meses={meses}
+            onAnosChange={setAnos}
+            onMesesChange={setMeses}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
           <Input
@@ -207,7 +207,11 @@ export function RankingModule({
                   rotulo: coluna.label,
                   valor: (linha: Linha) => {
                     const bruto = linha[coluna.key];
-                    if (coluna.tipo === "pct" || coluna.tipo === "numero" || coluna.tipo === "decimal") {
+                    if (
+                      coluna.tipo === "pct" ||
+                      coluna.tipo === "numero" ||
+                      coluna.tipo === "decimal"
+                    ) {
                       return bruto == null || bruto === "" ? null : Number(bruto);
                     }
                     return bruto == null ? null : String(bruto);
@@ -215,7 +219,11 @@ export function RankingModule({
                 }))}
                 linhas={ordenadas}
               />
-              <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
+              <PaginatedContent
+                pageKey={paginacao.pageKey}
+                direction={paginacao.transicao}
+                className="overflow-x-auto"
+              >
                 <Table>
                   <TableHeader>
                     <TableRow>

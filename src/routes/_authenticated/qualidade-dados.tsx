@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
@@ -26,6 +26,7 @@ import {
   type IndicadorQualidade,
 } from "@/lib/data-quality";
 import { getQualidadeDados } from "@/lib/data-quality-fn";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 
 export const Route = createFileRoute("/_authenticated/qualidade-dados")({
   head: () => ({
@@ -66,12 +67,13 @@ const COLUNAS_CAMPOS: ColunasOrdenacao<CampoPreenchimento> = {
 };
 
 function QualidadePage() {
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const analise = useQuery({
-    queryKey: ["qualidade-dados", dataInicial, dataFinal],
-    queryFn: () => getQualidadeDados({ data: { dataInicial, dataFinal } }),
+    queryKey: ["qualidade-dados", anos, meses],
+    queryFn: () => getQualidadeDados({ data: { anos, meses } }),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -90,10 +92,11 @@ function QualidadePage() {
             Filtros
           </p>
           <FiltroPeriodo
-            dataInicial={dataInicial}
-            dataFinal={dataFinal}
-            onDataInicialChange={setDataInicial}
-            onDataFinalChange={setDataFinal}
+            anos={anos}
+            meses={meses}
+            onAnosChange={setAnos}
+            onMesesChange={setMeses}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
         </CardContent>

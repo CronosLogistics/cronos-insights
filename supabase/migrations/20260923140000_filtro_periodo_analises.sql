@@ -1,5 +1,5 @@
--- Filtro opcional de período (data_abertura) em todas as fichas analíticas.
--- NULL em p_data_inicial / p_data_final = sem restrição (como no dashboard).
+-- Filtro opcional por ano(s) e mes(es) em todas as fichas analiticas.
+-- NULL ou array vazio em p_anos / p_meses = sem restricao.
 
 -- Inclui data_abertura na view analítica para filtrar sem join extra.
 create or replace view public.v_ofertas_analitico
@@ -31,7 +31,9 @@ select
   coalesce(nullif(btrim(o.origem), ''), '(Não informado)') as porto_origem,
   coalesce(nullif(btrim(o.pais_destino), ''), '(Não informado)') as pais_destino,
   coalesce(nullif(btrim(o.destino), ''), '(Não informado)') as porto_destino,
-  o.data_abertura
+  o.data_abertura,
+  o.ano,
+  o.mes
 from public.ofertas o
 where o.produto is not null;
 
@@ -41,6 +43,7 @@ grant select on public.v_ofertas_analitico to authenticated;
 -- Rotas
 -- ---------------------------------------------------------------------------
 drop function if exists public.rotas_analise(text, text, text, text, text);
+drop function if exists public.rotas_analise(text, text, text, text, text, date, date);
 
 create or replace function public.rotas_analise(
   p_pais_origem text default 'Todos',
@@ -48,8 +51,8 @@ create or replace function public.rotas_analise(
   p_pais_destino text default 'Todos',
   p_porto_destino text default 'Todos',
   p_rota text default 'Todos',
-  p_data_inicial date default null,
-  p_data_final date default null
+  p_anos integer[] default null,
+  p_meses integer[] default null
 )
 returns jsonb
 language sql
@@ -64,8 +67,10 @@ as $$
       and (p_pais_destino = 'Todos' or pais_destino = p_pais_destino)
       and (p_porto_destino = 'Todos' or porto_destino = p_porto_destino)
       and (p_rota = 'Todos' or rota_analitica = p_rota)
-      and (p_data_inicial is null or data_abertura >= p_data_inicial)
-      and (p_data_final is null or data_abertura <= p_data_final)
+      and (p_anos is null or coalesce(cardinality(p_anos), 0) = 0
+        or coalesce(ano, extract(year from data_abertura)::int) = any(p_anos))
+      and (p_meses is null or coalesce(cardinality(p_meses), 0) = 0
+        or coalesce(mes, extract(month from data_abertura)::int) = any(p_meses))
   ),
   ind as (
     select
@@ -129,18 +134,19 @@ as $$
   );
 $$;
 
-revoke all on function public.rotas_analise(text, text, text, text, text, date, date) from public, anon;
-grant execute on function public.rotas_analise(text, text, text, text, text, date, date) to authenticated;
+revoke all on function public.rotas_analise(text, text, text, text, text, integer[], integer[]) from public, anon;
+grant execute on function public.rotas_analise(text, text, text, text, text, integer[], integer[]) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Agentes
 -- ---------------------------------------------------------------------------
 drop function if exists public.agentes_analise(text);
+drop function if exists public.agentes_analise(text, date, date);
 
 create or replace function public.agentes_analise(
   p_agente text default 'Todos',
-  p_data_inicial date default null,
-  p_data_final date default null
+  p_anos integer[] default null,
+  p_meses integer[] default null
 )
 returns jsonb
 language sql
@@ -157,8 +163,10 @@ as $$
         '(Não informado)'
       )
     )
-      and (p_data_inicial is null or data_abertura >= p_data_inicial)
-      and (p_data_final is null or data_abertura <= p_data_final)
+      and (p_anos is null or coalesce(cardinality(p_anos), 0) = 0
+        or coalesce(ano, extract(year from data_abertura)::int) = any(p_anos))
+      and (p_meses is null or coalesce(cardinality(p_meses), 0) = 0
+        or coalesce(mes, extract(month from data_abertura)::int) = any(p_meses))
   ),
   ind as (
     select
@@ -222,18 +230,19 @@ as $$
   );
 $$;
 
-revoke all on function public.agentes_analise(text, date, date) from public, anon;
-grant execute on function public.agentes_analise(text, date, date) to authenticated;
+revoke all on function public.agentes_analise(text, integer[], integer[]) from public, anon;
+grant execute on function public.agentes_analise(text, integer[], integer[]) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Analistas
 -- ---------------------------------------------------------------------------
 drop function if exists public.analistas_analise(text);
+drop function if exists public.analistas_analise(text, date, date);
 
 create or replace function public.analistas_analise(
   p_analista text default 'Todos',
-  p_data_inicial date default null,
-  p_data_final date default null
+  p_anos integer[] default null,
+  p_meses integer[] default null
 )
 returns jsonb
 language sql
@@ -250,8 +259,10 @@ as $$
         '(Não informado)'
       )
     )
-      and (p_data_inicial is null or data_abertura >= p_data_inicial)
-      and (p_data_final is null or data_abertura <= p_data_final)
+      and (p_anos is null or coalesce(cardinality(p_anos), 0) = 0
+        or coalesce(ano, extract(year from data_abertura)::int) = any(p_anos))
+      and (p_meses is null or coalesce(cardinality(p_meses), 0) = 0
+        or coalesce(mes, extract(month from data_abertura)::int) = any(p_meses))
   ),
   ind as (
     select
@@ -324,18 +335,19 @@ as $$
   );
 $$;
 
-revoke all on function public.analistas_analise(text, date, date) from public, anon;
-grant execute on function public.analistas_analise(text, date, date) to authenticated;
+revoke all on function public.analistas_analise(text, integer[], integer[]) from public, anon;
+grant execute on function public.analistas_analise(text, integer[], integer[]) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Coloaders
 -- ---------------------------------------------------------------------------
 drop function if exists public.coloaders_analise(text);
+drop function if exists public.coloaders_analise(text, date, date);
 
 create or replace function public.coloaders_analise(
   p_coloader text default 'Todos',
-  p_data_inicial date default null,
-  p_data_final date default null
+  p_anos integer[] default null,
+  p_meses integer[] default null
 )
 returns jsonb
 language sql
@@ -352,8 +364,10 @@ as $$
         '(Não informado)'
       )
     )
-      and (p_data_inicial is null or data_abertura >= p_data_inicial)
-      and (p_data_final is null or data_abertura <= p_data_final)
+      and (p_anos is null or coalesce(cardinality(p_anos), 0) = 0
+        or coalesce(ano, extract(year from data_abertura)::int) = any(p_anos))
+      and (p_meses is null or coalesce(cardinality(p_meses), 0) = 0
+        or coalesce(mes, extract(month from data_abertura)::int) = any(p_meses))
   ),
   ind as (
     select
@@ -417,18 +431,19 @@ as $$
   );
 $$;
 
-revoke all on function public.coloaders_analise(text, date, date) from public, anon;
-grant execute on function public.coloaders_analise(text, date, date) to authenticated;
+revoke all on function public.coloaders_analise(text, integer[], integer[]) from public, anon;
+grant execute on function public.coloaders_analise(text, integer[], integer[]) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Motivos de perda
 -- ---------------------------------------------------------------------------
 drop function if exists public.motivos_perda_analise(text);
+drop function if exists public.motivos_perda_analise(text, date, date);
 
 create or replace function public.motivos_perda_analise(
   p_motivo text default 'Todos',
-  p_data_inicial date default null,
-  p_data_final date default null
+  p_anos integer[] default null,
+  p_meses integer[] default null
 )
 returns jsonb
 language sql
@@ -447,8 +462,10 @@ as $$
       end as mes_ref
     from public.v_ofertas_analitico v
     join public.ofertas o on o.id = v.id
-    where (p_data_inicial is null or v.data_abertura >= p_data_inicial)
-      and (p_data_final is null or v.data_abertura <= p_data_final)
+    where (p_anos is null or coalesce(cardinality(p_anos), 0) = 0
+        or coalesce(v.ano, extract(year from v.data_abertura)::int) = any(p_anos))
+      and (p_meses is null or coalesce(cardinality(p_meses), 0) = 0
+        or coalesce(v.mes, extract(month from v.data_abertura)::int) = any(p_meses))
   ),
   todas_reprov as (
     select * from base_hist where flag_reprovada = 1
@@ -687,17 +704,18 @@ as $$
   );
 $$;
 
-revoke all on function public.motivos_perda_analise(text, date, date) from public, anon;
-grant execute on function public.motivos_perda_analise(text, date, date) to authenticated;
+revoke all on function public.motivos_perda_analise(text, integer[], integer[]) from public, anon;
+grant execute on function public.motivos_perda_analise(text, integer[], integer[]) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Qualidade de dados
 -- ---------------------------------------------------------------------------
 drop function if exists public.qualidade_dados_analise();
+drop function if exists public.qualidade_dados_analise(date, date);
 
 create or replace function public.qualidade_dados_analise(
-  p_data_inicial date default null,
-  p_data_final date default null
+  p_anos integer[] default null,
+  p_meses integer[] default null
 )
 returns jsonb
 language sql
@@ -743,8 +761,10 @@ as $$
       (o.analise = 'Reprovado')::integer as flag_reprovada
     from public.ofertas o
     where o.produto is not null
-      and (p_data_inicial is null or o.data_abertura >= p_data_inicial)
-      and (p_data_final is null or o.data_abertura <= p_data_final)
+      and (p_anos is null or coalesce(cardinality(p_anos), 0) = 0
+        or coalesce(o.ano, extract(year from o.data_abertura)::int) = any(p_anos))
+      and (p_meses is null or coalesce(cardinality(p_meses), 0) = 0
+        or coalesce(o.mes, extract(month from o.data_abertura)::int) = any(p_meses))
   ),
   totais as (
     select
@@ -893,5 +913,5 @@ as $$
   from totais;
 $$;
 
-revoke all on function public.qualidade_dados_analise(date, date) from public, anon;
-grant execute on function public.qualidade_dados_analise(date, date) to authenticated;
+revoke all on function public.qualidade_dados_analise(integer[], integer[]) from public, anon;
+grant execute on function public.qualidade_dados_analise(integer[], integer[]) to authenticated;

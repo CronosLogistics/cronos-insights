@@ -63,6 +63,7 @@ import {
   type LinhaRotaColoader,
 } from "@/lib/agent-analysis";
 import { getAgentesOpcoesFiltro, getAnaliseAgentes } from "@/lib/agent-analysis-fn";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
@@ -110,8 +111,9 @@ function saveAgente(agente: string | null) {
 
 function AgentesPage() {
   const [agente, setAgente] = useState<string | null>(() => readSavedAgente());
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const opcoes = useQuery({
     queryKey: ["agentes-opcoes-filtro"],
@@ -120,13 +122,13 @@ function AgentesPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-agentes", agente, dataInicial, dataFinal],
+    queryKey: ["analise-agentes", agente, anos, meses],
     queryFn: () =>
       getAnaliseAgentes({
         data: {
           agente: agente as string,
-          dataInicial,
-          dataFinal,
+          anos,
+          meses,
         },
       }),
     enabled: Boolean(agente),
@@ -145,7 +147,7 @@ function AgentesPage() {
     if (!existe) setAgente(null);
   }, [opcoes.data, agente]);
 
-  const resetKey = `${agente ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+  const resetKey = `${agente ?? ""}|${anos.join(",")}|${meses.join(",")}`;
 
   return (
     <div className="w-full min-w-0 space-y-6">
@@ -162,10 +164,11 @@ function AgentesPage() {
           </p>
 
           <FiltroPeriodo
-            dataInicial={dataInicial}
-            dataFinal={dataFinal}
-            onDataInicialChange={setDataInicial}
-            onDataFinalChange={setDataFinal}
+            anos={anos}
+            meses={meses}
+            onAnosChange={setAnos}
+            onMesesChange={setMeses}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
 

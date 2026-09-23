@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { parsePeriodo } from "@/lib/filtro-periodo";
+import { parsePeriodo, periodoParaRpc } from "@/lib/filtro-periodo";
 import {
   FILTRO_TODOS,
   montarAnaliseColoaders,
@@ -16,8 +16,8 @@ export type ColoadersOpcoesFiltro = {
 
 function parseFiltros(input: unknown): {
   coloader: string;
-  dataInicial: string | null;
-  dataFinal: string | null;
+  anos: number[];
+  meses: number[];
 } {
   const raw = (input ?? {}) as Record<string, unknown>;
   const periodo = parsePeriodo(raw);
@@ -60,7 +60,8 @@ export const getAnaliseColoaders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => parseFiltros(input))
   .handler(async ({ context, data }): Promise<AnaliseColoaders> => {
-    const { coloader, dataInicial, dataFinal } = data;
+    const { coloader, anos, meses } = data;
+    const { p_anos, p_meses } = periodoParaRpc({ anos, meses });
     const client = context.supabase as unknown as {
       rpc: (
         fn: string,
@@ -70,8 +71,8 @@ export const getAnaliseColoaders = createServerFn({ method: "POST" })
 
     const { data: agregado, error } = await client.rpc("coloaders_analise", {
       p_coloader: coloader,
-      p_data_inicial: dataInicial,
-      p_data_final: dataFinal,
+      p_anos,
+      p_meses,
     });
     if (error) throw new Error(error.message);
 

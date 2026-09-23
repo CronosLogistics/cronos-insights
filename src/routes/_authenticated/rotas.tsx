@@ -66,6 +66,7 @@ import {
   type LinhaRanking,
 } from "@/lib/route-analysis";
 import { getAnaliseRotas, getRotasOpcoesFiltro } from "@/lib/route-analysis-fn";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
@@ -97,8 +98,8 @@ type FiltrosSelecao = {
   paisDestino: string | null;
   portoDestino: string | null;
   rota: string | null;
-  dataInicial: string | null;
-  dataFinal: string | null;
+  anos: number[];
+  meses: number[];
 };
 
 const FILTROS_VAZIOS: FiltrosSelecao = {
@@ -107,8 +108,8 @@ const FILTROS_VAZIOS: FiltrosSelecao = {
   paisDestino: null,
   portoDestino: null,
   rota: null,
-  dataInicial: null,
-  dataFinal: null,
+  anos: [],
+  meses: [],
 };
 
 function temAlgumFiltro(f: FiltrosSelecao): boolean {
@@ -118,8 +119,8 @@ function temAlgumFiltro(f: FiltrosSelecao): boolean {
     f.paisDestino !== null ||
     f.portoDestino !== null ||
     f.rota !== null ||
-    f.dataInicial !== null ||
-    f.dataFinal !== null
+    f.anos.length > 0 ||
+    f.meses.length > 0
   );
 }
 
@@ -131,8 +132,8 @@ function paraConsulta(f: FiltrosSelecao): FiltrosRotas {
     paisDestino: f.paisDestino ?? FILTRO_TODOS,
     portoDestino: f.portoDestino ?? FILTRO_TODOS,
     rota: f.rota ?? FILTRO_TODOS,
-    dataInicial: f.dataInicial,
-    dataFinal: f.dataFinal,
+    anos: f.anos,
+    meses: f.meses,
   };
 }
 
@@ -143,8 +144,8 @@ function chaveFiltros(f: FiltrosRotas): string {
     f.paisDestino,
     f.portoDestino,
     f.rota,
-    f.dataInicial,
-    f.dataFinal,
+    f.anos.join(","),
+    f.meses.join(","),
   ].join("|");
 }
 
@@ -153,6 +154,7 @@ function RotasPage() {
   const [filtros, setFiltros] = useState<FiltrosSelecao>(FILTROS_VAZIOS);
   const [consulta, setConsulta] = useState<FiltrosRotas | null>(null);
   const podePesquisar = temAlgumFiltro(filtros);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const opcoes = useQuery({
     queryKey: ["rotas-opcoes-filtro"],
@@ -194,10 +196,11 @@ function RotasPage() {
           </p>
 
           <FiltroPeriodo
-            dataInicial={filtros.dataInicial}
-            dataFinal={filtros.dataFinal}
-            onDataInicialChange={(v) => atualizar("dataInicial", v)}
-            onDataFinalChange={(v) => atualizar("dataFinal", v)}
+            anos={filtros.anos}
+            meses={filtros.meses}
+            onAnosChange={(v) => atualizar("anos", v)}
+            onMesesChange={(v) => atualizar("meses", v)}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
 

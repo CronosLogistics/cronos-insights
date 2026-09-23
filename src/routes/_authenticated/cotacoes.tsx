@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 
 export const Route = createFileRoute("/_authenticated/cotacoes")({
   head: () => ({
@@ -108,8 +109,9 @@ function CotacoesPage() {
   const [busca, setBusca] = useState("");
   const [modalidade, setModalidade] = useState("todas");
   const [analise, setAnalise] = useState("todas");
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const resumo = useQuery({
     queryKey: ["ofertas-resumo"],
@@ -136,7 +138,7 @@ function CotacoesPage() {
   });
 
   const lista = useQuery({
-    queryKey: ["ofertas-lista", busca, modalidade, analise, dataInicial, dataFinal],
+    queryKey: ["ofertas-lista", busca, modalidade, analise, anos, meses],
     queryFn: async () => {
       let query = supabase
         .from("ofertas")
@@ -152,8 +154,8 @@ function CotacoesPage() {
       }
       if (modalidade !== "todas") query = query.eq("modalidade", modalidade);
       if (analise !== "todas") query = query.eq("analise", analise);
-      if (dataInicial) query = query.gte("data_abertura", dataInicial);
-      if (dataFinal) query = query.lte("data_abertura", dataFinal);
+      if (anos.length > 0) query = query.in("ano", anos);
+      if (meses.length > 0) query = query.in("mes", meses);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -188,7 +190,7 @@ function CotacoesPage() {
     return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
   }, [resumo.data]);
 
-  const filtrosKey = `${busca}|${modalidade}|${analise}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+  const filtrosKey = `${busca}|${modalidade}|${analise}|${anos.join(",")}|${meses.join(",")}`;
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
     lista.data,
     COLUNAS_OFERTAS,
@@ -235,10 +237,11 @@ function CotacoesPage() {
         <div className="space-y-4">
           <div className="max-w-xl space-y-3">
             <FiltroPeriodo
-              dataInicial={dataInicial}
-              dataFinal={dataFinal}
-              onDataInicialChange={setDataInicial}
-              onDataFinalChange={setDataFinal}
+              anos={anos}
+              meses={meses}
+              onAnosChange={setAnos}
+              onMesesChange={setMeses}
+              anosOpcoes={anosOpcoes}
             />
             <div className="grid gap-3 sm:grid-cols-3">
               <Input

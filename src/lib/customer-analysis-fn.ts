@@ -1,13 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { parsePeriodo } from "@/lib/filtro-periodo";
+import { dataNoPeriodo, parsePeriodo } from "@/lib/filtro-periodo";
 import { analisarCliente, type AnaliseCliente, type HistRow } from "@/lib/customer-analysis";
 
 const PAGINA = 1000;
 
 /** Opção do seletor de cliente. */
 export type ClienteOpcao = { cliente: string; ofertas: number };
+
+type HistRowComData = HistRow & { data_abertura?: string | null };
 
 /**
  * Lista de clientes disponíveis para o produto do usuário.
@@ -58,27 +60,29 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<AnaliseCliente> => {
     const { supabase } = context;
-    const { cliente, dataInicial, dataFinal } = data;
+    const { cliente, anos, meses } = data;
+    const periodo = { anos, meses };
 
     // Busca paginada das linhas do cliente (uma revisão por linha).
-    const rows: HistRow[] = [];
+    const rowsBrutos: HistRowComData[] = [];
     for (let inicio = 0; ; inicio += PAGINA) {
-      let query = supabase
+      const { data: pagina, error } = await supabase
         .from("v_ofertas_analitico")
         .select(
-          "oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise",
+          "oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise,data_abertura",
         )
         .eq("cliente_analitico", cliente)
         .order("id", { ascending: true })
         .range(inicio, inicio + PAGINA - 1);
-      if (dataInicial) query = query.gte("data_abertura", dataInicial);
-      if (dataFinal) query = query.lte("data_abertura", dataFinal);
-      const { data: pagina, error } = await query;
       if (error) throw new Error(error.message);
-      const lote = (pagina ?? []) as unknown as HistRow[];
-      rows.push(...lote);
+      const lote = (pagina ?? []) as unknown as HistRowComData[];
+      rowsBrutos.push(...lote);
       if (lote.length < PAGINA) break;
     }
+
+    const rows: HistRow[] = rowsBrutos
+      .filter((r) => dataNoPeriodo(r.data_abertura, periodo))
+      .map(({ data_abertura: _d, ...resto }) => resto);
 
     // Média geral do produto (base inteira, Inclui_Filtro = 1).
     const { data: media, error: erroMedia } = await supabase

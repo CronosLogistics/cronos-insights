@@ -62,6 +62,7 @@ import {
   type LinhaRotaColoader,
 } from "@/lib/customer-analysis";
 import { getAnaliseCliente, getClienteLista } from "@/lib/customer-analysis-fn";
+import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
 import { useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
@@ -106,8 +107,9 @@ function saveClient(cliente: string | null) {
 
 function PorClientePage() {
   const [cliente, setCliente] = useState<string | null>(() => readSavedClient());
-  const [dataInicial, setDataInicial] = useState<string | null>(null);
-  const [dataFinal, setDataFinal] = useState<string | null>(null);
+  const [anos, setAnos] = useState<number[]>([]);
+  const [meses, setMeses] = useState<number[]>([]);
+  const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const lista = useQuery({
     queryKey: ["cliente-lista"],
@@ -116,13 +118,13 @@ function PorClientePage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-cliente", cliente, dataInicial, dataFinal],
+    queryKey: ["analise-cliente", cliente, anos, meses],
     queryFn: () =>
       getAnaliseCliente({
         data: {
           cliente: cliente as string,
-          dataInicial,
-          dataFinal,
+          anos,
+          meses,
         },
       }),
     enabled: Boolean(cliente),
@@ -140,7 +142,7 @@ function PorClientePage() {
     if (!existe) setCliente(null);
   }, [lista.data, cliente]);
 
-  const resetKey = `${cliente ?? ""}|${dataInicial ?? ""}|${dataFinal ?? ""}`;
+  const resetKey = `${cliente ?? ""}|${anos.join(",")}|${meses.join(",")}`;
 
   return (
     <div className="w-full min-w-0 space-y-6">
@@ -157,10 +159,11 @@ function PorClientePage() {
           </p>
 
           <FiltroPeriodo
-            dataInicial={dataInicial}
-            dataFinal={dataFinal}
-            onDataInicialChange={setDataInicial}
-            onDataFinalChange={setDataFinal}
+            anos={anos}
+            meses={meses}
+            onAnosChange={setAnos}
+            onMesesChange={setMeses}
+            anosOpcoes={anosOpcoes}
             className="max-w-xl"
           />
 

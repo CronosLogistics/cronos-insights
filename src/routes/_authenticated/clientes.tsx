@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RankingModule } from "@/components/data/RankingModule";
 import { supabase } from "@/integrations/supabase/client";
 import { useKpisGerais, type Linha } from "@/lib/analytics";
+import { dataNoPeriodo } from "@/lib/filtro-periodo";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
@@ -62,11 +63,15 @@ function ClientesPage() {
           .order("ofertas", { ascending: false })
           .limit(200);
         if (busca) query = query.ilike("cliente", `%${busca}%`);
-        if (periodo.dataInicial) query = query.gte("ultima_oferta", periodo.dataInicial);
-        if (periodo.dataFinal) query = query.lte("ultima_oferta", periodo.dataFinal);
         const { data, error } = await query;
         if (error) throw error;
-        return (data ?? []) as unknown as Linha[];
+        const rows = (data ?? []) as unknown as Linha[];
+        return rows.filter((row) =>
+          dataNoPeriodo(
+            typeof row.ultima_oferta === "string" ? row.ultima_oferta : null,
+            periodo,
+          ),
+        );
       }}
       campoRotulo="cliente"
       campoValor="ofertas"
