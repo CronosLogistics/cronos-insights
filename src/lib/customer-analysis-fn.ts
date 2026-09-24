@@ -103,8 +103,8 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
     for (let inicio = 0; ; inicio += PAGINA) {
       const { data: pagina, error } = await supabase.rpc("cliente_ofertas_analise", {
         p_cliente: cliente,
-        p_anos: anos.length > 0 ? anos : null,
-        p_meses: meses.length > 0 ? meses : null,
+        p_anos: anos.length > 0 ? anos : undefined,
+        p_meses: meses.length > 0 ? meses : undefined,
         p_modalidade: modalidade,
         p_limite: PAGINA,
         p_offset: inicio,
