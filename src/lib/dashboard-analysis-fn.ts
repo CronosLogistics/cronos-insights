@@ -123,14 +123,19 @@ export const getAnaliseDashboard = createServerFn({ method: "POST" })
 
     // Fila COTAÇÕES_EM_ANALISE: 1ª linha = maior Dias_Em_Aberto (SORTBY da planilha).
     const filaPromise = (async (): Promise<CotacaoEmAnalise | null> => {
-      const { data: lote, error: errFila } = await context.supabase
+      let q = context.supabase
         .from("ofertas")
         .select(
           "id,oferta,cliente,origem,destino,armador,pricing,vendedor,data_abertura,status",
         )
         .not("produto", "is", null)
-        .eq("analise", "Em Aberto")
-        .eq("modalidade", comFrete ? data.modalidade : "__todos__")
+        .eq("analise", "Em Aberto");
+      if (comFrete) {
+        q = data.modalidade === "Não informado"
+          ? q.or("modalidade.is.null,modalidade.eq.")
+          : q.eq("modalidade", data.modalidade);
+      }
+      const { data: lote, error: errFila } = await q
         .order("data_abertura", { ascending: true, nullsFirst: false })
         .limit(500);
 
