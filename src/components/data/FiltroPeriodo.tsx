@@ -11,7 +11,21 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MESES_OPCOES } from "@/lib/filtro-periodo";
+import {
+  FRETE_TODOS,
+  definirModalidadeFrete,
+  useModalidadeFrete,
+} from "@/lib/modalidade-frete";
+import { getModalidadesFrete } from "@/lib/modalidade-frete-fn";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 type Opcao = { valor: number; rotulo: string };
@@ -165,7 +179,7 @@ export function FiltroPeriodo({
   );
 
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2", className)}>
+    <div className={cn("grid gap-3 sm:grid-cols-3", className)}>
       <FiltroMultiNumero
         label="Ano"
         placeholder="Todos os anos"
@@ -182,6 +196,47 @@ export function FiltroPeriodo({
         onValueChange={onMesesChange}
         carregando={carregando}
       />
+      <FiltroTipoFrete />
+    </div>
+  );
+}
+
+/** Tipo de frete: opções vêm apenas das modalidades do usuário. */
+export function FiltroTipoFrete() {
+  const valor = useModalidadeFrete();
+  const opcoes = useQuery({
+    queryKey: ["modalidades-frete"],
+    queryFn: () => getModalidadesFrete(),
+    staleTime: 10 * 60 * 1000,
+  });
+  const lista = opcoes.data ?? [];
+  const valorValido = valor === FRETE_TODOS || lista.includes(valor) ? valor : FRETE_TODOS;
+
+  if (opcoes.isPending) {
+    return (
+      <div className="space-y-1.5">
+        <p className="text-xs text-muted-foreground">Tipo de frete</p>
+        <Skeleton className="h-9 w-full rounded-md" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs text-muted-foreground">Tipo de frete</p>
+      <Select value={valorValido} onValueChange={definirModalidadeFrete}>
+        <SelectTrigger className="h-9 w-full" aria-label="Tipo de frete">
+          <SelectValue placeholder="Todos os tipos" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={FRETE_TODOS}>Todos os tipos</SelectItem>
+          {lista.map((m) => (
+            <SelectItem key={m} value={m}>
+              {m}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
