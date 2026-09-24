@@ -101,23 +101,14 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
     // de transferir as linhas. A RLS de ofertas mantém o recorte por produto.
     const rows: HistRow[] = [];
     for (let inicio = 0; ; inicio += PAGINA) {
-      let consulta = supabase
-        .from("ofertas")
-        .select("id,oferta,cliente,origem,destino,armador,agente,motivo,analise")
-        .order("id", { ascending: true });
-
-      consulta = cliente === "(Não informado)"
-        ? consulta.or("cliente.is.null,cliente.eq.")
-        : consulta.eq("cliente", cliente);
-      if (anos.length > 0) consulta = consulta.in("ano", anos);
-      if (meses.length > 0) consulta = consulta.in("mes", meses);
-      if (modalidade !== FRETE_TODOS) {
-        consulta = modalidade === "Não informado"
-          ? consulta.or("modalidade.is.null,modalidade.eq.")
-          : consulta.eq("modalidade", modalidade);
-      }
-
-      const { data: pagina, error } = await consulta.range(inicio, inicio + PAGINA - 1);
+      const { data: pagina, error } = await supabase.rpc("cliente_ofertas_analise", {
+        p_cliente: cliente,
+        p_anos: anos.length > 0 ? anos : null,
+        p_meses: meses.length > 0 ? meses : null,
+        p_modalidade: modalidade,
+        p_limite: PAGINA,
+        p_offset: inicio,
+      });
       if (error) throw new Error(error.message);
       const lote = (pagina ?? []) as OfertaClienteRow[];
       rows.push(...lote.map(normalizarOfertaCliente));
