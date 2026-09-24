@@ -8,7 +8,7 @@ import { dataNoPeriodo } from "@/lib/filtro-periodo";
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
     meta: [
-      { title: "Clientes — Cronos Pricing Insights" },
+      { title: "Visão Geral — Cronos Pricing Insights" },
       {
         name: "description",
         content:

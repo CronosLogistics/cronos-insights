@@ -71,7 +71,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/coloaders")({
   head: () => ({
     meta: [
-      { title: "Coloaders / Armadores — Cronos Pricing Insights" },
+      { title: "Coloaders / Transportadores — Cronos Pricing Insights" },
       {
         name: "description",
         content:
