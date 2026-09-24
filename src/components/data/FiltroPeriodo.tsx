@@ -182,7 +182,7 @@ export function FiltroPeriodo({
   );
 
   return (
-    <div className={cn("grid gap-3 semTipoFrete ? "sm:grid-cols-2" : "sm:grid-cols-3", className)}>
+    <div className={cn("grid gap-3", semTipoFrete ? "sm:grid-cols-2" : "sm:grid-cols-3", className)}>
       <FiltroMultiNumero
         label="Ano"
         placeholder="Todos os anos"
