@@ -83,7 +83,7 @@ export function exportarXlsx<T>(
   );
 }
 
-/** Botão no topo da tabela: exporta o conjunto completo (não só a página atual). */
+/** Botão de exportação (Excel/CSV); use no `action` do PanelBlock ao lado do título. */
 export function BotaoExportarTabela<T>({
   nomeArquivo,
   colunas,

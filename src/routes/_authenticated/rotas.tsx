@@ -858,8 +858,11 @@ function TabelaRanking({
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, COLUNAS_RANKING);
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
-    <PanelBlock className="h-full" title={titulo} description={descricao}>
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+    <PanelBlock
+      className="h-full"
+      title={titulo}
+      description={descricao}
+      action={
         <BotaoExportarTabela
           nomeArquivo={`ranking-${rotuloItem.toLocaleLowerCase("pt-BR")}`}
           colunas={[
@@ -872,6 +875,9 @@ function TabelaRanking({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -966,8 +972,7 @@ function TabelaMotivos({
       className="h-full"
       title="Motivos de reprovação"
       description="Distribuição das reprovações do recorte por motivo."
-    >
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="motivos-reprovacao"
           colunas={[
@@ -977,6 +982,9 @@ function TabelaMotivos({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -1054,9 +1062,7 @@ function TabelaClienteColoader({
     <PanelBlock
       title="Combinações importantes — Cliente × Coloader"
       description="Combinações com mais reprovações (desempate por volume)."
-      action={<Search className="size-4 text-muted-foreground" />}
-    >
-      <div className="flex flex-col gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="cruzamento-cliente-coloader"
           colunas={[
@@ -1070,6 +1076,9 @@ function TabelaClienteColoader({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex flex-col gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}

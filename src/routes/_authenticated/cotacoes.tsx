@@ -228,16 +228,36 @@ function CotacoesPage() {
         title="Base de ofertas"
         description="Ofertas mais recentes conforme os filtros aplicados, com paginação."
         action={
-          <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
-            <Database className="size-3" />
-            Dados reais
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="gap-1 border-accent/40 text-accent">
+              <Database className="size-3" />
+              Dados reais
+            </Badge>
+            <BotaoExportarTabela
+              nomeArquivo="cotacoes"
+              colunas={[
+                { rotulo: "Oferta", valor: (l) => l.oferta },
+                { rotulo: "Rev.", valor: (l) => l.revisao },
+                { rotulo: "Cliente", valor: (l) => l.cliente },
+                {
+                  rotulo: "Origem→Destino",
+                  valor: (l) => `${l.origem ?? "—"} → ${l.destino ?? "—"}`,
+                },
+                { rotulo: "Modalidade", valor: (l) => l.modalidade },
+                { rotulo: "Situação", valor: (l) => l.analise },
+                { rotulo: "Vendedor", valor: (l) => l.vendedor },
+                { rotulo: "Pricing", valor: (l) => l.pricing },
+                { rotulo: "Abertura", valor: (l) => l.data_abertura },
+              ]}
+              linhas={ordenadas}
+            />
+          </div>
         }
       >
         <div className="space-y-4">
-          <div className="max-w-xl space-y-3">
+          <div className="w-full space-y-3 md:w-3/4">
             <FiltroPeriodo
-            semTipoFrete
+              semTipoFrete
               anos={anos}
               meses={meses}
               onAnosChange={setAnos}
@@ -292,24 +312,6 @@ function CotacoesPage() {
             </p>
           ) : (
             <>
-              <BotaoExportarTabela
-                nomeArquivo="cotacoes"
-                colunas={[
-                  { rotulo: "Oferta", valor: (l) => l.oferta },
-                  { rotulo: "Rev.", valor: (l) => l.revisao },
-                  { rotulo: "Cliente", valor: (l) => l.cliente },
-                  {
-                    rotulo: "Origem→Destino",
-                    valor: (l) => `${l.origem ?? "—"} → ${l.destino ?? "—"}`,
-                  },
-                  { rotulo: "Modalidade", valor: (l) => l.modalidade },
-                  { rotulo: "Situação", valor: (l) => l.analise },
-                  { rotulo: "Vendedor", valor: (l) => l.vendedor },
-                  { rotulo: "Pricing", valor: (l) => l.pricing },
-                  { rotulo: "Abertura", valor: (l) => l.data_abertura },
-                ]}
-                linhas={ordenadas}
-              />
               <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
                 <Table>
                   <TableHeader>

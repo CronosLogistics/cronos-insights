@@ -686,15 +686,10 @@ function ConteudoDashboard({
 
       <OportunidadesPricing itens={analise.oportunidades} />
 
-      <PanelBlock
-        title="Evolução mensal dos resultados"
-        description="Mesma série utilizada no gráfico de conversão."
-      >
-        <TabelaEvolucaoMensal
-          linhas={analise.evolucaoMensal}
-          resetKey={`${resetKey}-evolucao`}
-        />
-      </PanelBlock>
+      <TabelaEvolucaoMensal
+        linhas={analise.evolucaoMensal}
+        resetKey={`${resetKey}-evolucao`}
+      />
 
       <PanelBlock
         title="Evolução mensal da conversão"
@@ -1044,108 +1039,113 @@ function TabelaEvolucaoMensal({
   const maxCv = conversoes.length ? Math.max(...conversoes) : 0;
   const medCv = medianaNumeros(conversoes);
 
-  if (linhas.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        Sem meses no recorte atual.
-      </p>
-    );
-  }
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
-      <BotaoExportarTabela
-        nomeArquivo="evolucao-mensal"
-        colunas={[
-          { rotulo: "Mês", valor: (l) => l.mes },
-          { rotulo: "Rotas", valor: (l) => l.rotas },
-          { rotulo: "Aprovadas", valor: (l) => l.aprovadas },
-          { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
-          { rotulo: "Conversão", valor: (l) => l.conversao },
-        ]}
-        linhas={ordenadas}
-      />
-      <PaginatedContent
-        pageKey={paginacao.pageKey}
-        direction={paginacao.transicao}
-        className="overflow-x-auto"
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <CabecalhoOrdenavel
-                label="Mês"
-                coluna="mes"
-                ordenacao={ordenacao}
-                onOrdenar={alternar}
-              />
-              <CabecalhoOrdenavel
-                label="Rotas"
-                coluna="rotas"
-                ordenacao={ordenacao}
-                onOrdenar={alternar}
-                align="right"
-              />
-              <CabecalhoOrdenavel
-                label="Aprovadas"
-                coluna="aprovadas"
-                ordenacao={ordenacao}
-                onOrdenar={alternar}
-                align="right"
-              />
-              <CabecalhoOrdenavel
-                label="Reprovadas"
-                coluna="reprovadas"
-                ordenacao={ordenacao}
-                onOrdenar={alternar}
-                align="right"
-              />
-              <CabecalhoOrdenavel
-                label="Conversão"
-                coluna="conversao"
-                ordenacao={ordenacao}
-                onOrdenar={alternar}
-                align="right"
-              />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginacao.visiveis.map((linha) => (
-              <TableRow key={linha.mes}>
-                <TableCell className="font-medium">
-                  {formatarMesTabela(linha.mes)}
-                </TableCell>
-                <TableCell className="text-right">{inteiro(linha.rotas)}</TableCell>
-                <TableCell className="text-right text-emerald-700">
-                  {inteiro(linha.aprovadas)}
-                </TableCell>
-                <TableCell className="text-right text-red-600">
-                  {inteiro(linha.reprovadas)}
-                </TableCell>
-                <TableCell
-                  className="text-right font-medium"
-                  style={{
-                    backgroundColor: corFundoConversao(linha.conversao, minCv, medCv, maxCv),
-                    color: ESCALA_CONVERSAO.texto,
-                  }}
-                >
-                  {formatarPct(linha.conversao)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </PaginatedContent>
-      <TablePagination
-        pagina={paginacao.pagina}
-        totalPaginas={paginacao.totalPaginas}
-        porPagina={paginacao.porPagina}
-        total={paginacao.total}
-        inicio={paginacao.inicio}
-        onPagina={paginacao.setPagina}
-        onPorPagina={paginacao.setPorPagina}
-      />
-    </div>
+    <PanelBlock
+      title="Evolução mensal dos resultados"
+      description="Mesma série utilizada no gráfico de conversão."
+      action={
+        <BotaoExportarTabela
+          nomeArquivo="evolucao-mensal"
+          colunas={[
+            { rotulo: "Mês", valor: (l) => l.mes },
+            { rotulo: "Rotas", valor: (l) => l.rotas },
+            { rotulo: "Aprovadas", valor: (l) => l.aprovadas },
+            { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
+            { rotulo: "Conversão", valor: (l) => l.conversao },
+          ]}
+          linhas={ordenadas}
+        />
+      }
+    >
+      {linhas.length === 0 ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Sem meses no recorte atual.
+        </p>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+          <PaginatedContent
+            pageKey={paginacao.pageKey}
+            direction={paginacao.transicao}
+            className="overflow-x-auto"
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <CabecalhoOrdenavel
+                    label="Mês"
+                    coluna="mes"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                  />
+                  <CabecalhoOrdenavel
+                    label="Rotas"
+                    coluna="rotas"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="Aprovadas"
+                    coluna="aprovadas"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="Reprovadas"
+                    coluna="reprovadas"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                    align="right"
+                  />
+                  <CabecalhoOrdenavel
+                    label="Conversão"
+                    coluna="conversao"
+                    ordenacao={ordenacao}
+                    onOrdenar={alternar}
+                    align="right"
+                  />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginacao.visiveis.map((linha) => (
+                  <TableRow key={linha.mes}>
+                    <TableCell className="font-medium">
+                      {formatarMesTabela(linha.mes)}
+                    </TableCell>
+                    <TableCell className="text-right">{inteiro(linha.rotas)}</TableCell>
+                    <TableCell className="text-right text-emerald-700">
+                      {inteiro(linha.aprovadas)}
+                    </TableCell>
+                    <TableCell className="text-right text-red-600">
+                      {inteiro(linha.reprovadas)}
+                    </TableCell>
+                    <TableCell
+                      className="text-right font-medium"
+                      style={{
+                        backgroundColor: corFundoConversao(linha.conversao, minCv, medCv, maxCv),
+                        color: ESCALA_CONVERSAO.texto,
+                      }}
+                    >
+                      {formatarPct(linha.conversao)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </PaginatedContent>
+          <TablePagination
+            pagina={paginacao.pagina}
+            totalPaginas={paginacao.totalPaginas}
+            porPagina={paginacao.porPagina}
+            total={paginacao.total}
+            inicio={paginacao.inicio}
+            onPagina={paginacao.setPagina}
+            onPorPagina={paginacao.setPorPagina}
+          />
+        </div>
+      )}
+    </PanelBlock>
   );
 }
 

@@ -171,7 +171,30 @@ export function RankingModule({
         )}
       </PanelBlock>
 
-      <PanelBlock title={tableTitle} description={tableDescription}>
+      <PanelBlock
+        title={tableTitle}
+        description={tableDescription}
+        action={
+          <BotaoExportarTabela
+            nomeArquivo={tableTitle}
+            colunas={colunas.map((coluna) => ({
+              rotulo: coluna.label,
+              valor: (linha: Linha) => {
+                const bruto = linha[coluna.key];
+                if (
+                  coluna.tipo === "pct" ||
+                  coluna.tipo === "numero" ||
+                  coluna.tipo === "decimal"
+                ) {
+                  return bruto == null || bruto === "" ? null : Number(bruto);
+                }
+                return bruto == null ? null : String(bruto);
+              },
+            }))}
+            linhas={ordenadas}
+          />
+        }
+      >
         <div className="space-y-4">
           <FiltroPeriodo
             semTipoFrete
@@ -202,24 +225,6 @@ export function RankingModule({
             </p>
           ) : (
             <>
-              <BotaoExportarTabela
-                nomeArquivo={tableTitle}
-                colunas={colunas.map((coluna) => ({
-                  rotulo: coluna.label,
-                  valor: (linha: Linha) => {
-                    const bruto = linha[coluna.key];
-                    if (
-                      coluna.tipo === "pct" ||
-                      coluna.tipo === "numero" ||
-                      coluna.tipo === "decimal"
-                    ) {
-                      return bruto == null || bruto === "" ? null : Number(bruto);
-                    }
-                    return bruto == null ? null : String(bruto);
-                  },
-                }))}
-                linhas={ordenadas}
-              />
               <PaginatedContent
                 pageKey={paginacao.pageKey}
                 direction={paginacao.transicao}

@@ -8,7 +8,6 @@ import {
   Check,
   ChevronsUpDown,
   Info,
-  Network,
   Route as RouteIcon,
   Ship,
   Target,
@@ -178,40 +177,41 @@ function MotivosPage() {
             Pesquisa
           </p>
 
-          <FiltroPeriodo
-            anos={anos}
-            meses={meses}
-            onAnosChange={setAnos}
-            onMesesChange={setMeses}
-            anosOpcoes={anosOpcoes}
-            modalidade={modalidade}
-            onModalidadeChange={setModalidade}
-            className="max-w-xl"
-          />
-
-          <div className="max-w-xl space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Motivos de reprovação
-            </p>
-            <FiltroMotivoCombobox
-              value={motivo}
-              onValueChange={setMotivo}
-              opcoes={opcoes.data?.motivos ?? []}
-              carregando={opcoes.isPending}
+          <div className="w-full space-y-4 md:w-1/2">
+            <FiltroPeriodo
+              anos={anos}
+              meses={meses}
+              onAnosChange={setAnos}
+              onMesesChange={setMeses}
+              anosOpcoes={anosOpcoes}
+              modalidade={modalidade}
+              onModalidadeChange={setModalidade}
             />
+
+            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Motivos de reprovação
+              </p>
+              <FiltroMotivoCombobox
+                value={motivo}
+                onValueChange={setMotivo}
+                opcoes={opcoes.data?.motivos ?? []}
+                carregando={opcoes.isPending}
+              />
+            </div>
+
+            {opcoes.data ? (
+              <Badge variant="secondary" className="w-fit">
+                {inteiro(opcoes.data.motivos.length)} motivos no produto
+              </Badge>
+            ) : null}
+
+            {opcoes.isError ? (
+              <p className="text-sm text-destructive">
+                Não foi possível carregar as opções de filtro.
+              </p>
+            ) : null}
           </div>
-
-          {opcoes.data ? (
-            <Badge variant="secondary" className="w-fit">
-              {inteiro(opcoes.data.motivos.length)} motivos no produto
-            </Badge>
-          ) : null}
-
-          {opcoes.isError ? (
-            <p className="text-sm text-destructive">
-              Não foi possível carregar as opções de filtro.
-            </p>
-          ) : null}
         </CardContent>
       </Card>
 
@@ -744,8 +744,11 @@ function TabelaDimensao({
   );
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
-    <PanelBlock className="h-full" title={titulo} description={descricao}>
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+    <PanelBlock
+      className="h-full"
+      title={titulo}
+      description={descricao}
+      action={
         <BotaoExportarTabela
           nomeArquivo={`motivo-${rotuloItem.toLocaleLowerCase("pt-BR")}`}
           colunas={[
@@ -755,6 +758,9 @@ function TabelaDimensao({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -828,9 +834,7 @@ function TabelaRotaCliente({
       className="h-full"
       title="Rota × cliente"
       description="Combinações com mais reprovações no motivo (até 10)."
-      action={<Network className="size-4 text-muted-foreground" />}
-    >
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="cruzamento-rota-cliente"
           colunas={[
@@ -840,6 +844,9 @@ function TabelaRotaCliente({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -912,9 +919,7 @@ function TabelaEvolucao({
       className="h-full"
       title="Evolução mensal"
       description="% das reprovações do mês atribuídas ao motivo selecionado."
-      action={<CalendarDays className="size-4 text-muted-foreground" />}
-    >
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="evolucao-mensal"
           colunas={[
@@ -924,6 +929,9 @@ function TabelaEvolucao({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}

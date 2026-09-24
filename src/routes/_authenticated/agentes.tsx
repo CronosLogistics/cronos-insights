@@ -14,7 +14,6 @@ import {
   Info,
   ListChecks,
   Network,
-  Search,
   Target,
   TrendingDown,
   Users,
@@ -167,40 +166,41 @@ function AgentesPage() {
             Pesquisa
           </p>
 
-          <FiltroPeriodo
-            anos={anos}
-            meses={meses}
-            onAnosChange={setAnos}
-            onMesesChange={setMeses}
-            anosOpcoes={anosOpcoes}
-            modalidade={modalidade}
-            onModalidadeChange={setModalidade}
-            className="max-w-xl"
-          />
-
-          <div className="max-w-xl space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Filtro de agente
-            </p>
-            <FiltroAgenteCombobox
-              value={agente}
-              onValueChange={setAgente}
-              opcoes={opcoes.data?.agentes ?? []}
-              carregando={opcoes.isPending}
+          <div className="w-full space-y-4 md:w-1/2">
+            <FiltroPeriodo
+              anos={anos}
+              meses={meses}
+              onAnosChange={setAnos}
+              onMesesChange={setMeses}
+              anosOpcoes={anosOpcoes}
+              modalidade={modalidade}
+              onModalidadeChange={setModalidade}
             />
+
+            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Filtro de agente
+              </p>
+              <FiltroAgenteCombobox
+                value={agente}
+                onValueChange={setAgente}
+                opcoes={opcoes.data?.agentes ?? []}
+                carregando={opcoes.isPending}
+              />
+            </div>
+
+            {opcoes.data ? (
+              <Badge variant="secondary" className="w-fit">
+                {inteiro(opcoes.data.agentes.length)} agentes no produto
+              </Badge>
+            ) : null}
+
+            {opcoes.isError ? (
+              <p className="text-sm text-destructive">
+                Não foi possível carregar as opções de filtro.
+              </p>
+            ) : null}
           </div>
-
-          {opcoes.data ? (
-            <Badge variant="secondary" className="w-fit">
-              {inteiro(opcoes.data.agentes.length)} agentes no produto
-            </Badge>
-          ) : null}
-
-          {opcoes.isError ? (
-            <p className="text-sm text-destructive">
-              Não foi possível carregar as opções de filtro.
-            </p>
-          ) : null}
         </CardContent>
       </Card>
 
@@ -760,8 +760,11 @@ function TabelaRanking({
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, COLUNAS_RANKING);
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
-    <PanelBlock className="h-full" title={titulo} description={descricao}>
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+    <PanelBlock
+      className="h-full"
+      title={titulo}
+      description={descricao}
+      action={
         <BotaoExportarTabela
           nomeArquivo={`ranking-${rotuloItem.toLocaleLowerCase("pt-BR")}`}
           colunas={[
@@ -774,6 +777,9 @@ function TabelaRanking({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -868,8 +874,7 @@ function TabelaMotivos({
       className="h-full"
       title="Motivos de reprovação"
       description="Distribuição das reprovações do recorte por motivo."
-    >
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="motivos-reprovacao"
           colunas={[
@@ -879,6 +884,9 @@ function TabelaMotivos({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}
@@ -956,9 +964,7 @@ function TabelaRotaColoader({
     <PanelBlock
       title="Matriz Agente × Rota / Coloader"
       description="Combinações Rota × Coloader com mais reprovações (desempate por volume)."
-      action={<Search className="size-4 text-muted-foreground" />}
-    >
-      <div className="flex flex-col gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="cruzamento-rota-coloader"
           colunas={[
@@ -972,6 +978,9 @@ function TabelaRotaColoader({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex flex-col gap-3">
         <PaginatedContent
           pageKey={paginacao.pageKey}
           direction={paginacao.transicao}

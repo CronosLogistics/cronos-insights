@@ -14,7 +14,6 @@ import {
   Info,
   ListChecks,
   Network,
-  Search,
   Target,
   TrendingDown,
   Users,
@@ -162,43 +161,44 @@ function PorClientePage() {
             Pesquisa
           </p>
 
-          <FiltroPeriodo
-            anos={anos}
-            meses={meses}
-            onAnosChange={setAnos}
-            onMesesChange={setMeses}
-            anosOpcoes={anosOpcoes}
-            modalidade={modalidade}
-            onModalidadeChange={setModalidade}
-            className="max-w-xl"
-          />
+          <div className="w-full space-y-4 md:w-1/2">
+            <FiltroPeriodo
+              anos={anos}
+              meses={meses}
+              onAnosChange={setAnos}
+              onMesesChange={setMeses}
+              anosOpcoes={anosOpcoes}
+              modalidade={modalidade}
+              onModalidadeChange={setModalidade}
+            />
 
-          <div className="max-w-xl space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Filtro de cliente
-            </p>
-            {lista.isPending ? (
-              <Skeleton className="h-9 w-full rounded-md" />
-            ) : (
-              <ClienteCombobox
-                clientes={(lista.data ?? []).map((opcao) => opcao.cliente)}
-                value={cliente}
-                onValueChange={setCliente}
-              />
-            )}
+            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3 sm:p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Filtro de cliente
+              </p>
+              {lista.isPending ? (
+                <Skeleton className="h-9 w-full rounded-md" />
+              ) : (
+                <ClienteCombobox
+                  clientes={(lista.data ?? []).map((opcao) => opcao.cliente)}
+                  value={cliente}
+                  onValueChange={setCliente}
+                />
+              )}
+            </div>
+
+            {lista.data ? (
+              <Badge variant="secondary" className="w-fit">
+                {inteiro(lista.data.length)} clientes no produto
+              </Badge>
+            ) : null}
+
+            {lista.isError ? (
+              <p className="text-sm text-destructive">
+                Não foi possível carregar a lista de clientes.
+              </p>
+            ) : null}
           </div>
-
-          {lista.data ? (
-            <Badge variant="secondary" className="w-fit">
-              {inteiro(lista.data.length)} clientes no produto
-            </Badge>
-          ) : null}
-
-          {lista.isError ? (
-            <p className="text-sm text-destructive">
-              Não foi possível carregar a lista de clientes.
-            </p>
-          ) : null}
         </CardContent>
       </Card>
 
@@ -730,8 +730,10 @@ function TabelaRanking({
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, COLUNAS_RANKING);
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
-    <PanelBlock title={titulo} description={descricao}>
-      <div className="flex flex-col gap-3">
+    <PanelBlock
+      title={titulo}
+      description={descricao}
+      action={
         <BotaoExportarTabela
           nomeArquivo={`ranking-${rotuloItem.toLocaleLowerCase("pt-BR")}`}
           colunas={[
@@ -744,6 +746,9 @@ function TabelaRanking({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex flex-col gap-3">
         <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -834,8 +839,7 @@ function TabelaMotivos({
       className="h-full"
       title="Motivos de reprovação"
       description="Distribuição das reprovações do cliente por motivo."
-    >
-      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="motivos-reprovacao"
           colunas={[
@@ -845,6 +849,9 @@ function TabelaMotivos({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
         <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -918,9 +925,7 @@ function TabelaRotaColoader({
     <PanelBlock
       title="Onde estamos perdendo? — Rota × Coloader"
       description="Combinações com mais reprovações (desempate por volume)."
-      action={<Search className="size-4 text-muted-foreground" />}
-    >
-      <div className="flex flex-col gap-3">
+      action={
         <BotaoExportarTabela
           nomeArquivo="cruzamento-rota-coloader"
           colunas={[
@@ -934,6 +939,9 @@ function TabelaRotaColoader({
           ]}
           linhas={ordenadas}
         />
+      }
+    >
+      <div className="flex flex-col gap-3">
         <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
           <Table>
             <TableHeader>

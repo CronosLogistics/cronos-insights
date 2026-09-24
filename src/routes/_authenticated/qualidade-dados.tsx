@@ -102,7 +102,7 @@ function QualidadePage() {
             anosOpcoes={anosOpcoes}
             modalidade={modalidade}
             onModalidadeChange={setModalidade}
-            className="max-w-xl"
+            className="w-full md:w-1/2"
           />
         </CardContent>
       </Card>

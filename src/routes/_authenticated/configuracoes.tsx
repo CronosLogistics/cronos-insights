@@ -4,7 +4,6 @@ import { Database } from "lucide-react";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
-import { BotaoExportarTabela } from "@/components/data/table-export";
 import {
   CabecalhoOrdenavel,
   useOrdenacaoTabela,
@@ -115,17 +114,6 @@ function HistoricoImportacoes() {
         </div>
       ) : (
         <div className="space-y-3">
-          <BotaoExportarTabela
-            nomeArquivo="historico-cargas"
-            colunas={[
-              { rotulo: "Fonte", valor: (l) => l.fonte },
-              { rotulo: "Início", valor: (l) => l.iniciado_em },
-              { rotulo: "Conclusão", valor: (l) => l.concluido_em },
-              { rotulo: "Linhas", valor: (l) => l.linhas },
-              { rotulo: "Situação", valor: (l) => l.situacao },
-            ]}
-            linhas={ordenadas}
-          />
           <PaginatedContent pageKey={paginacao.pageKey} direction={paginacao.transicao} className="overflow-x-auto">
             <Table>
               <TableHeader>
