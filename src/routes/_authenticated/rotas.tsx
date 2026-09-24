@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
-import { useModalidadeFrete } from "@/lib/modalidade-frete";
+import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
@@ -152,7 +152,7 @@ function chaveFiltros(f: FiltrosRotas): string {
 }
 
 function RotasPage() {
-  const modalidade = useModalidadeFrete();
+  const [modalidade, setModalidade] = useState(FRETE_TODOS);
   const termos = useTerminologia();
   const [filtros, setFiltros] = useState<FiltrosSelecao>(FILTROS_VAZIOS);
   const [consulta, setConsulta] = useState<FiltrosRotas | null>(null);
@@ -204,6 +204,8 @@ function RotasPage() {
             onAnosChange={(v) => atualizar("anos", v)}
             onMesesChange={(v) => atualizar("meses", v)}
             anosOpcoes={anosOpcoes}
+            modalidade={modalidade}
+            onModalidadeChange={setModalidade}
             className="max-w-xl"
           />
 

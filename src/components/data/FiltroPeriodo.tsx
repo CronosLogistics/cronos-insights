@@ -19,11 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MESES_OPCOES } from "@/lib/filtro-periodo";
-import {
-  FRETE_TODOS,
-  definirModalidadeFrete,
-  useModalidadeFrete,
-} from "@/lib/modalidade-frete";
+import { FRETE_TODOS } from "@/lib/modalidade-frete";
 import { getModalidadesFrete } from "@/lib/modalidade-frete-fn";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -164,6 +160,8 @@ export function FiltroPeriodo({
   carregando = false,
   className,
   semTipoFrete = false,
+  modalidade = FRETE_TODOS,
+  onModalidadeChange,
 }: {
   anos: number[];
   meses: number[];
@@ -175,6 +173,8 @@ export function FiltroPeriodo({
   className?: string;
   /** Oculta o tipo de frete em telas que ainda não o aplicam. */
   semTipoFrete?: boolean;
+  modalidade?: string;
+  onModalidadeChange?: (valor: string) => void;
 }) {
   const opcoesAno = useMemo(
     () => anosOpcoes.map((y) => ({ valor: y, rotulo: String(y) })),
@@ -199,21 +199,28 @@ export function FiltroPeriodo({
         onValueChange={onMesesChange}
         carregando={carregando}
       />
-      {semTipoFrete ? null : <FiltroTipoFrete />}
+      {semTipoFrete || !onModalidadeChange ? null : (
+        <FiltroTipoFrete value={modalidade} onValueChange={onModalidadeChange} />
+      )}
     </div>
   );
 }
 
-/** Tipo de frete: opções vêm apenas das modalidades do usuário. */
-export function FiltroTipoFrete() {
-  const valor = useModalidadeFrete();
+/** Tipo de frete: opções vêm apenas das modalidades do usuário. Estado controlado pela tela. */
+export function FiltroTipoFrete({
+  value,
+  onValueChange,
+}: {
+  value: string;
+  onValueChange: (valor: string) => void;
+}) {
   const opcoes = useQuery({
     queryKey: ["modalidades-frete"],
     queryFn: () => getModalidadesFrete(),
     staleTime: 10 * 60 * 1000,
   });
   const lista = opcoes.data ?? [];
-  const valorValido = valor === FRETE_TODOS || lista.includes(valor) ? valor : FRETE_TODOS;
+  const valorValido = value === FRETE_TODOS || lista.includes(value) ? value : FRETE_TODOS;
 
   if (opcoes.isPending) {
     return (
@@ -227,7 +234,7 @@ export function FiltroTipoFrete() {
   return (
     <div className="space-y-1.5">
       <p className="text-xs text-muted-foreground">Tipo de frete</p>
-      <Select value={valorValido} onValueChange={definirModalidadeFrete}>
+      <Select value={valorValido} onValueChange={onValueChange}>
         <SelectTrigger className="h-9 w-full" aria-label="Tipo de frete">
           <SelectValue placeholder="Todos os tipos" />
         </SelectTrigger>

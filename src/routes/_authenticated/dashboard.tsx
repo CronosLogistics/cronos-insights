@@ -97,7 +97,7 @@ import {
   getDashboardOpcoesFiltro,
 } from "@/lib/dashboard-analysis-fn";
 import { useTerminologia } from "@/lib/terminologia";
-import { useModalidadeFrete } from "@/lib/modalidade-frete";
+import { FRETE_TODOS } from "@/lib/modalidade-frete";
 import { FiltroTipoFrete } from "@/components/data/FiltroPeriodo";
 import { cn } from "@/lib/utils";
 
@@ -330,7 +330,7 @@ function chaveFiltros(f: FiltrosDashboard): string {
 
 function DashboardPage() {
   const termos = useTerminologia();
-  const modalidade = useModalidadeFrete();
+  const [modalidade, setModalidade] = useState(FRETE_TODOS);
   const [salvo] = useState(() => readSavedDashboard());
   const [filtros, setFiltros] = useState<FiltrosUi>(salvo.filtros);
   const [consulta, setConsulta] = useState<FiltrosDashboard | null>(salvo.consulta);
@@ -497,7 +497,7 @@ function DashboardPage() {
               opcoes={opcoes.data?.motivos ?? []}
               carregando={opcoes.isPending}
             />
-            <FiltroTipoFrete />
+            <FiltroTipoFrete value={modalidade} onValueChange={setModalidade} />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
