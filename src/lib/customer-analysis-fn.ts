@@ -74,7 +74,7 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
       const { data: pagina, error } = await supabase
         .from("v_ofertas_analitico")
         .select(
-          "id,oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise,data_abertura",
+          "id,oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise",
         )
         .eq("cliente_analitico", cliente)
         .order("id", { ascending: true })
@@ -85,26 +85,31 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
       if (lote.length < PAGINA) break;
     }
 
-    // Tipo de frete: mantém só as linhas cuja Modalidade corresponde (RLS aplicada).
-    let idsFrete: Set<number> | null = null;
-    if (modalidade !== FRETE_TODOS) {
-      idsFrete = new Set<number>();
+    // Período e tipo de frete: busca data/modalidade na base (RLS aplicada).
+    const comPeriodo = anos.length > 0 || meses.length > 0;
+    const comFrete = modalidade !== FRETE_TODOS;
+    let idsOk: Set<number> | null = null;
+    if (comPeriodo || comFrete) {
+      idsOk = new Set<number>();
       const ids = rowsBrutos.map((r) => r.id).filter((v): v is number => typeof v === "number");
       for (let i = 0; i < ids.length; i += 300) {
         const bloco = ids.slice(i, i + 300);
-        const consulta = context.supabase.from("ofertas").select("id,modalidade").in("id", bloco);
-        const { data: lote, error } = await consulta;
+        const { data: lote, error } = await supabase
+          .from("ofertas")
+          .select("id,modalidade,data_abertura")
+          .in("id", bloco);
         if (error) throw new Error(error.message);
         for (const l of lote ?? []) {
           const m = (l.modalidade ?? "").trim() || "Não informado";
-          if (m === modalidade) idsFrete.add(Number(l.id));
+          if (comFrete && m !== modalidade) continue;
+          if (comPeriodo && !dataNoPeriodo(l.data_abertura, periodo)) continue;
+          idsOk.add(Number(l.id));
         }
       }
     }
 
     const rows: HistRow[] = rowsBrutos
-      .filter((r) => dataNoPeriodo(r.data_abertura, periodo))
-      .filter((r) => !idsFrete || (typeof r.id === "number" && idsFrete.has(r.id)))
+      .filter((r) => !idsOk || (typeof r.id === "number" && idsOk.has(r.id)))
       .map(({ data_abertura: _d, id: _id, ...resto }) => resto);
 
     // Média geral do produto (base inteira, Inclui_Filtro = 1).
