@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { dataNoPeriodo, parsePeriodo } from "@/lib/filtro-periodo";
+import { parsePeriodo } from "@/lib/filtro-periodo";
 import { FRETE_TODOS, parseModalidadeFrete } from "@/lib/modalidade-frete";
 import { analisarCliente, type AnaliseCliente, type HistRow } from "@/lib/customer-analysis";
 
@@ -10,7 +10,38 @@ const PAGINA = 1000;
 /** Opção do seletor de cliente. */
 export type ClienteOpcao = { cliente: string; ofertas: number };
 
-type HistRowComData = HistRow & { data_abertura?: string | null; id?: number };
+type OfertaClienteRow = {
+  id: number;
+  oferta: string | null;
+  cliente: string | null;
+  origem: string | null;
+  destino: string | null;
+  armador: string | null;
+  agente: string | null;
+  motivo: string | null;
+  analise: string | null;
+};
+
+function textoNormalizado(valor: string | null, fallback = "(Não informado)"): string {
+  const texto = (valor ?? "").trim();
+  return texto || fallback;
+}
+
+function normalizarOfertaCliente(row: OfertaClienteRow): HistRow {
+  const origem = (row.origem ?? "").trim();
+  const destino = (row.destino ?? "").trim();
+  return {
+    oferta: row.oferta,
+    cliente_analitico: textoNormalizado(row.cliente),
+    rota_analitica: origem && destino ? `${origem} → ${destino}` : "(Rota incompleta)",
+    coloader_analitico: textoNormalizado(row.armador),
+    agente_analitico: textoNormalizado(row.agente).replace(/\s+/g, " "),
+    motivo_perda_analitico: textoNormalizado(row.motivo),
+    flag_aprovada: row.analise === "Aprovado" ? 1 : 0,
+    flag_reprovada: row.analise === "Reprovado" ? 1 : 0,
+    flag_em_analise: row.analise === "Em Aberto" ? 1 : 0,
+  };
+}
 
 /**
  * Lista de clientes disponíveis para o produto do usuário.
@@ -66,51 +97,32 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<AnaliseCliente> => {
     const { supabase } = context;
     const { cliente, anos, meses, modalidade } = data;
-    const periodo = { anos, meses };
-
-    // Busca paginada das linhas do cliente (uma revisão por linha).
-    const rowsBrutos: HistRowComData[] = [];
+    // Consulta a tabela indexada diretamente e aplica todos os filtros antes
+    // de transferir as linhas. A RLS de ofertas mantém o recorte por produto.
+    const rows: HistRow[] = [];
     for (let inicio = 0; ; inicio += PAGINA) {
-      const { data: pagina, error } = await supabase
-        .from("v_ofertas_analitico")
-        .select(
-          "id,oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise",
-        )
-        .eq("cliente_analitico", cliente)
-        .order("id", { ascending: true })
-        .range(inicio, inicio + PAGINA - 1);
+      let consulta = supabase
+        .from("ofertas")
+        .select("id,oferta,cliente,origem,destino,armador,agente,motivo,analise")
+        .order("id", { ascending: true });
+
+      consulta = cliente === "(Não informado)"
+        ? consulta.or("cliente.is.null,cliente.eq.")
+        : consulta.eq("cliente", cliente);
+      if (anos.length > 0) consulta = consulta.in("ano", anos);
+      if (meses.length > 0) consulta = consulta.in("mes", meses);
+      if (modalidade !== FRETE_TODOS) {
+        consulta = modalidade === "Não informado"
+          ? consulta.or("modalidade.is.null,modalidade.eq.")
+          : consulta.eq("modalidade", modalidade);
+      }
+
+      const { data: pagina, error } = await consulta.range(inicio, inicio + PAGINA - 1);
       if (error) throw new Error(error.message);
-      const lote = (pagina ?? []) as unknown as HistRowComData[];
-      rowsBrutos.push(...lote);
+      const lote = (pagina ?? []) as OfertaClienteRow[];
+      rows.push(...lote.map(normalizarOfertaCliente));
       if (lote.length < PAGINA) break;
     }
-
-    // Período e tipo de frete: busca data/modalidade na base (RLS aplicada).
-    const comPeriodo = anos.length > 0 || meses.length > 0;
-    const comFrete = modalidade !== FRETE_TODOS;
-    let idsOk: Set<number> | null = null;
-    if (comPeriodo || comFrete) {
-      idsOk = new Set<number>();
-      const ids = rowsBrutos.map((r) => r.id).filter((v): v is number => typeof v === "number");
-      for (let i = 0; i < ids.length; i += 300) {
-        const bloco = ids.slice(i, i + 300);
-        const { data: lote, error } = await supabase
-          .from("ofertas")
-          .select("id,modalidade,data_abertura")
-          .in("id", bloco);
-        if (error) throw new Error(error.message);
-        for (const l of lote ?? []) {
-          const m = (l.modalidade ?? "").trim() || "Não informado";
-          if (comFrete && m !== modalidade) continue;
-          if (comPeriodo && !dataNoPeriodo(l.data_abertura, periodo)) continue;
-          idsOk.add(Number(l.id));
-        }
-      }
-    }
-
-    const rows: HistRow[] = rowsBrutos
-      .filter((r) => !idsOk || (typeof r.id === "number" && idsOk.has(r.id)))
-      .map(({ data_abertura: _d, id: _id, ...resto }) => resto);
 
     // Média geral do produto (base inteira, Inclui_Filtro = 1).
     const { data: media, error: erroMedia } = await supabase
