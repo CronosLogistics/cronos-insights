@@ -237,6 +237,7 @@ function CotacoesPage() {
         <div className="space-y-4">
           <div className="max-w-xl space-y-3">
             <FiltroPeriodo
+            semTipoFrete
               anos={anos}
               meses={meses}
               onAnosChange={setAnos}

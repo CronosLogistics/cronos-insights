@@ -163,6 +163,7 @@ export function FiltroPeriodo({
   anosOpcoes,
   carregando = false,
   className,
+  semTipoFrete = false,
 }: {
   anos: number[];
   meses: number[];
@@ -172,6 +173,8 @@ export function FiltroPeriodo({
   anosOpcoes: number[];
   carregando?: boolean;
   className?: string;
+  /** Oculta o tipo de frete em telas que ainda não o aplicam. */
+  semTipoFrete?: boolean;
 }) {
   const opcoesAno = useMemo(
     () => anosOpcoes.map((y) => ({ valor: y, rotulo: String(y) })),
@@ -179,7 +182,7 @@ export function FiltroPeriodo({
   );
 
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-3", className)}>
+    <div className={cn("grid gap-3 semTipoFrete ? "sm:grid-cols-2" : "sm:grid-cols-3", className)}>
       <FiltroMultiNumero
         label="Ano"
         placeholder="Todos os anos"
@@ -196,7 +199,7 @@ export function FiltroPeriodo({
         onValueChange={onMesesChange}
         carregando={carregando}
       />
-      <FiltroTipoFrete />
+      {semTipoFrete ? null : <FiltroTipoFrete />}
     </div>
   );
 }

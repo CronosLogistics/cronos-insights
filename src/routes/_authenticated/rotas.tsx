@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
+import { useModalidadeFrete } from "@/lib/modalidade-frete";
+
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -150,6 +152,7 @@ function chaveFiltros(f: FiltrosRotas): string {
 }
 
 function RotasPage() {
+  const modalidade = useModalidadeFrete();
   const termos = useTerminologia();
   const [filtros, setFiltros] = useState<FiltrosSelecao>(FILTROS_VAZIOS);
   const [consulta, setConsulta] = useState<FiltrosRotas | null>(null);
@@ -163,8 +166,8 @@ function RotasPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-rotas", consulta],
-    queryFn: () => getAnaliseRotas({ data: consulta as FiltrosRotas }),
+    queryKey: ["analise-rotas", consulta, modalidade],
+    queryFn: () => getAnaliseRotas({ data: { ...(consulta as FiltrosRotas), modalidade } }),
     enabled: Boolean(consulta),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
