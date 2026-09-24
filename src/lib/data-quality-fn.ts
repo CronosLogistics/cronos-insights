@@ -15,9 +15,9 @@ import {
  */
 export const getQualidadeDados = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown): FiltroPeriodo => {
+  .inputValidator((input: unknown): FiltroPeriodo & { modalidade: string } => {
     const raw = (input ?? {}) as Record<string, unknown>;
-    return parsePeriodo(raw);
+    return { ...parsePeriodo(raw), modalidade: parseModalidadeFrete(raw["modalidade"]) };
   })
   .handler(async ({ context, data }): Promise<AnaliseQualidadeDados> => {
     const { p_anos, p_meses } = periodoParaRpc(data);
