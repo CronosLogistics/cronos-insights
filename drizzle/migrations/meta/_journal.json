@@ -176,6 +176,13 @@
       "when": 1790251201315,
       "tag": "0024_frete_liberar_espaco",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790251389904,
+      "tag": "0025_frete_resumos_dashboard_qualidade",
+      "breakpoints": true
     }
   ]
 }

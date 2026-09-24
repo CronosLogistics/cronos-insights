@@ -676,6 +676,24 @@ export type Database = {
         }
         Returns: Json
       }
+      dashboard_analise_frete_rapido: {
+        Args: {
+          p_analista?: string
+          p_cliente?: string
+          p_coloader?: string
+          p_data_final?: string
+          p_data_inicial?: string
+          p_destino?: string
+          p_min_decisoes?: number
+          p_modalidade?: string
+          p_motivo?: string
+          p_origem?: string
+          p_resultado?: string
+          p_rota?: string
+          p_vendedor?: string
+        }
+        Returns: Json
+      }
       dashboard_opcoes_filtro: { Args: never; Returns: Json }
       modalidades_frete_opcoes: { Args: never; Returns: Json }
       motivos_perda_analise: {
