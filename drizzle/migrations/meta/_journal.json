@@ -169,6 +169,13 @@
       "when": 1790250999883,
       "tag": "0023_frete_base_enxuta",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790251201315,
+      "tag": "0024_frete_liberar_espaco",
+      "breakpoints": true
     }
   ]
 }
