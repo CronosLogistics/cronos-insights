@@ -605,6 +605,27 @@ export type Database = {
       atualizar_analises: { Args: never; Returns: undefined }
       atualizar_analises_frete: { Args: never; Returns: undefined }
       atualizar_analises_periodo: { Args: never; Returns: undefined }
+      cliente_ofertas_analise: {
+        Args: {
+          p_anos?: number[]
+          p_cliente: string
+          p_limite?: number
+          p_meses?: number[]
+          p_modalidade?: string
+          p_offset?: number
+        }
+        Returns: {
+          agente: string
+          analise: string
+          armador: string
+          cliente: string
+          destino: string
+          id: number
+          motivo: string
+          oferta: string
+          origem: string
+        }[]
+      }
       coloaders_analise: {
         Args: { p_anos?: number[]; p_coloader?: string; p_meses?: number[] }
         Returns: Json

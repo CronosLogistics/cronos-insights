@@ -190,6 +190,13 @@
       "when": 1790253914256,
       "tag": "0026_idx_ofertas_cliente_analitico",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1790254231829,
+      "tag": "0027_otimizar_analise_por_cliente",
+      "breakpoints": true
     }
   ]
 }
