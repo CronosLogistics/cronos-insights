@@ -155,6 +155,13 @@
       "when": 1790193112033,
       "tag": "0021_importacoes_somente_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790250665540,
+      "tag": "0022_filtro_tipo_frete",
+      "breakpoints": true
     }
   ]
 }
