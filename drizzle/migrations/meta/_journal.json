@@ -197,6 +197,13 @@
       "when": 1790254231829,
       "tag": "0027_otimizar_analise_por_cliente",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790254743933,
+      "tag": "0028_estabilizar_consulta_cliente",
+      "breakpoints": true
     }
   ]
 }
