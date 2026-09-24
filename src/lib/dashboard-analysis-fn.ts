@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { FRETE_TODOS, parseModalidadeFrete } from "@/lib/modalidade-frete";
 import {
   FILTRO_TODOS,
   MIN_DECISOES,
@@ -91,7 +92,10 @@ export const getDashboardOpcoesFiltro = createServerFn({ method: "POST" })
  */
 export const getAnaliseDashboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => parseFiltros(input))
+  .inputValidator((input: unknown) => ({
+    ...parseFiltros(input),
+    modalidade: parseModalidadeFrete((input as Record<string, unknown> | null)?.["modalidade"]),
+  }))
   .handler(async ({ context, data }): Promise<AnaliseDashboard> => {
     const client = context.supabase as unknown as {
       rpc: (
@@ -100,7 +104,9 @@ export const getAnaliseDashboard = createServerFn({ method: "POST" })
       ) => Promise<{ data: unknown; error: { message: string } | null }>;
     };
 
-    const rpcPromise = client.rpc("dashboard_analise", {
+    const comFrete = data.modalidade !== FRETE_TODOS;
+    const rpcPromise = client.rpc(comFrete ? "dashboard_analise_frete" : "dashboard_analise", {
+      ...(comFrete ? { p_modalidade: data.modalidade } : {}),
       p_data_inicial: data.dataInicial,
       p_data_final: data.dataFinal,
       p_analista: data.analista,
@@ -124,6 +130,7 @@ export const getAnaliseDashboard = createServerFn({ method: "POST" })
         )
         .not("produto", "is", null)
         .eq("analise", "Em Aberto")
+        .eq("modalidade", comFrete ? data.modalidade : "__todos__")
         .order("data_abertura", { ascending: true, nullsFirst: false })
         .limit(500);
 
