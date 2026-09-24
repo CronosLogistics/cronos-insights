@@ -162,6 +162,13 @@
       "when": 1790250665540,
       "tag": "0022_filtro_tipo_frete",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790250999883,
+      "tag": "0023_frete_base_enxuta",
+      "breakpoints": true
     }
   ]
 }
