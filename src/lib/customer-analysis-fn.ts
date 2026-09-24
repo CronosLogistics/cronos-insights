@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { dataNoPeriodo, parsePeriodo } from "@/lib/filtro-periodo";
+import { FRETE_TODOS, parseModalidadeFrete } from "@/lib/modalidade-frete";
 import { analisarCliente, type AnaliseCliente, type HistRow } from "@/lib/customer-analysis";
 
 const PAGINA = 1000;
@@ -9,7 +10,7 @@ const PAGINA = 1000;
 /** Opção do seletor de cliente. */
 export type ClienteOpcao = { cliente: string; ofertas: number };
 
-type HistRowComData = HistRow & { data_abertura?: string | null };
+type HistRowComData = HistRow & { data_abertura?: string | null; id?: number };
 
 /**
  * Lista de clientes disponíveis para o produto do usuário.
@@ -56,11 +57,15 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
     if (typeof cliente !== "string" || cliente.trim() === "") {
       throw new Error("Cliente inválido");
     }
-    return { cliente: cliente.trim(), ...parsePeriodo(raw) };
+    return {
+      cliente: cliente.trim(),
+      ...parsePeriodo(raw),
+      modalidade: parseModalidadeFrete(raw["modalidade"]),
+    };
   })
   .handler(async ({ context, data }): Promise<AnaliseCliente> => {
     const { supabase } = context;
-    const { cliente, anos, meses } = data;
+    const { cliente, anos, meses, modalidade } = data;
     const periodo = { anos, meses };
 
     // Busca paginada das linhas do cliente (uma revisão por linha).
@@ -69,7 +74,7 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
       const { data: pagina, error } = await supabase
         .from("v_ofertas_analitico")
         .select(
-          "oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise,data_abertura",
+          "id,oferta,cliente_analitico,rota_analitica,coloader_analitico,agente_analitico,motivo_perda_analitico,flag_aprovada,flag_reprovada,flag_em_analise,data_abertura",
         )
         .eq("cliente_analitico", cliente)
         .order("id", { ascending: true })
@@ -80,9 +85,27 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
       if (lote.length < PAGINA) break;
     }
 
+    // Tipo de frete: mantém só as linhas cuja Modalidade corresponde (RLS aplicada).
+    let idsFrete: Set<number> | null = null;
+    if (modalidade !== FRETE_TODOS) {
+      idsFrete = new Set<number>();
+      const ids = rowsBrutos.map((r) => r.id).filter((v): v is number => typeof v === "number");
+      for (let i = 0; i < ids.length; i += 300) {
+        const bloco = ids.slice(i, i + 300);
+        const consulta = context.supabase.from("ofertas").select("id,modalidade").in("id", bloco);
+        const { data: lote, error } = await consulta;
+        if (error) throw new Error(error.message);
+        for (const l of lote ?? []) {
+          const m = (l.modalidade ?? "").trim() || "Não informado";
+          if (m === modalidade) idsFrete.add(Number(l.id));
+        }
+      }
+    }
+
     const rows: HistRow[] = rowsBrutos
       .filter((r) => dataNoPeriodo(r.data_abertura, periodo))
-      .map(({ data_abertura: _d, ...resto }) => resto);
+      .filter((r) => !idsFrete || (typeof r.id === "number" && idsFrete.has(r.id)))
+      .map(({ data_abertura: _d, id: _id, ...resto }) => resto);
 
     // Média geral do produto (base inteira, Inclui_Filtro = 1).
     const { data: media, error: erroMedia } = await supabase
