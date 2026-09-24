@@ -155,6 +155,34 @@
       "when": 1790193112033,
       "tag": "0021_importacoes_somente_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790250665540,
+      "tag": "0022_filtro_tipo_frete",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790250999883,
+      "tag": "0023_frete_base_enxuta",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790251201315,
+      "tag": "0024_frete_liberar_espaco",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790251389904,
+      "tag": "0025_frete_resumos_dashboard_qualidade",
+      "breakpoints": true
     }
   ]
 }

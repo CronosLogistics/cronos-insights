@@ -174,6 +174,7 @@ export function RankingModule({
       <PanelBlock title={tableTitle} description={tableDescription}>
         <div className="space-y-4">
           <FiltroPeriodo
+            semTipoFrete
             anos={anos}
             meses={meses}
             onAnosChange={setAnos}

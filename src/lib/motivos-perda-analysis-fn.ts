@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { FRETE_TODOS, parseModalidadeFrete } from "@/lib/modalidade-frete";
 import { parsePeriodo, periodoParaRpc } from "@/lib/filtro-periodo";
 import {
   FILTRO_TODOS,
@@ -57,7 +58,7 @@ export const getMotivosPerdaOpcoesFiltro = createServerFn({ method: "POST" })
  */
 export const getAnaliseMotivosPerda = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => parseFiltros(input))
+  .inputValidator((input: unknown) => ({ ...parseFiltros(input), modalidade: parseModalidadeFrete((input as Record<string, unknown> | null)?.["modalidade"]) }))
   .handler(async ({ context, data }): Promise<AnaliseMotivosPerda> => {
     const { motivo, anos, meses } = data;
     const { p_anos, p_meses } = periodoParaRpc({ anos, meses });
@@ -68,7 +69,8 @@ export const getAnaliseMotivosPerda = createServerFn({ method: "POST" })
       ) => Promise<{ data: unknown; error: { message: string } | null }>;
     };
 
-    const { data: agregado, error } = await client.rpc("motivos_perda_analise", {
+    const { data: agregado, error } = await client.rpc(data.modalidade === FRETE_TODOS ? "motivos_perda_analise" : "motivos_perda_analise_frete", {
+      ...(data.modalidade === FRETE_TODOS ? {} : { p_modalidade: data.modalidade }),
       p_motivo: motivo,
       p_anos,
       p_meses,

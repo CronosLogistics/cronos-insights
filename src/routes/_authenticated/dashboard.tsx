@@ -97,6 +97,8 @@ import {
   getDashboardOpcoesFiltro,
 } from "@/lib/dashboard-analysis-fn";
 import { useTerminologia } from "@/lib/terminologia";
+import { useModalidadeFrete } from "@/lib/modalidade-frete";
+import { FiltroTipoFrete } from "@/components/data/FiltroPeriodo";
 import { cn } from "@/lib/utils";
 
 /** Escala de cores da planilha (E30:E41): vermelho → amarelo → verde. */
@@ -328,6 +330,7 @@ function chaveFiltros(f: FiltrosDashboard): string {
 
 function DashboardPage() {
   const termos = useTerminologia();
+  const modalidade = useModalidadeFrete();
   const [salvo] = useState(() => readSavedDashboard());
   const [filtros, setFiltros] = useState<FiltrosUi>(salvo.filtros);
   const [consulta, setConsulta] = useState<FiltrosDashboard | null>(salvo.consulta);
@@ -378,8 +381,8 @@ function DashboardPage() {
   }, [filtros, consulta]);
 
   const analise = useQuery({
-    queryKey: ["analise-dashboard", consulta],
-    queryFn: () => getAnaliseDashboard({ data: consulta as FiltrosDashboard }),
+    queryKey: ["analise-dashboard", consulta, modalidade],
+    queryFn: () => getAnaliseDashboard({ data: { ...(consulta as FiltrosDashboard), modalidade } }),
     enabled: Boolean(consulta),
     staleTime: 60 * 1000,
     placeholderData: keepPreviousData,
@@ -494,6 +497,7 @@ function DashboardPage() {
               opcoes={opcoes.data?.motivos ?? []}
               carregando={opcoes.isPending}
             />
+            <FiltroTipoFrete />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">

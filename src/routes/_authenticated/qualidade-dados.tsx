@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
+import { useModalidadeFrete } from "@/lib/modalidade-frete";
+
 import { ModuleIntro, TableSkeleton } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import {
@@ -69,11 +71,12 @@ const COLUNAS_CAMPOS: ColunasOrdenacao<CampoPreenchimento> = {
 function QualidadePage() {
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
+  const modalidade = useModalidadeFrete();
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const analise = useQuery({
-    queryKey: ["qualidade-dados", anos, meses],
-    queryFn: () => getQualidadeDados({ data: { anos, meses } }),
+    queryKey: ["qualidade-dados", anos, meses, modalidade],
+    queryFn: () => getQualidadeDados({ data: { anos, meses, modalidade } }),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });

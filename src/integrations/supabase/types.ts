@@ -568,6 +568,15 @@ export type Database = {
         Args: { p_agente?: string; p_anos?: number[]; p_meses?: number[] }
         Returns: Json
       }
+      agentes_analise_frete: {
+        Args: {
+          p_agente?: string
+          p_anos?: number[]
+          p_meses?: number[]
+          p_modalidade?: string
+        }
+        Returns: Json
+      }
       agentes_analise_padrao: { Args: { p_agente?: string }; Returns: Json }
       agentes_analise_periodo_calc: {
         Args: { p_agente?: string; p_anos?: number[]; p_meses?: number[] }
@@ -578,6 +587,15 @@ export type Database = {
         Args: { p_analista?: string; p_anos?: number[]; p_meses?: number[] }
         Returns: Json
       }
+      analistas_analise_frete: {
+        Args: {
+          p_analista?: string
+          p_anos?: number[]
+          p_meses?: number[]
+          p_modalidade?: string
+        }
+        Returns: Json
+      }
       analistas_analise_padrao: { Args: { p_analista?: string }; Returns: Json }
       analistas_analise_periodo_calc: {
         Args: { p_analista?: string; p_anos?: number[]; p_meses?: number[] }
@@ -585,9 +603,19 @@ export type Database = {
       }
       analistas_opcoes_filtro: { Args: never; Returns: Json }
       atualizar_analises: { Args: never; Returns: undefined }
+      atualizar_analises_frete: { Args: never; Returns: undefined }
       atualizar_analises_periodo: { Args: never; Returns: undefined }
       coloaders_analise: {
         Args: { p_anos?: number[]; p_coloader?: string; p_meses?: number[] }
+        Returns: Json
+      }
+      coloaders_analise_frete: {
+        Args: {
+          p_anos?: number[]
+          p_coloader?: string
+          p_meses?: number[]
+          p_modalidade?: string
+        }
         Returns: Json
       }
       coloaders_analise_padrao: { Args: { p_coloader?: string }; Returns: Json }
@@ -630,9 +658,55 @@ export type Database = {
         }
         Returns: Json
       }
+      dashboard_analise_frete: {
+        Args: {
+          p_analista?: string
+          p_cliente?: string
+          p_coloader?: string
+          p_data_final?: string
+          p_data_inicial?: string
+          p_destino?: string
+          p_min_decisoes?: number
+          p_modalidade?: string
+          p_motivo?: string
+          p_origem?: string
+          p_resultado?: string
+          p_rota?: string
+          p_vendedor?: string
+        }
+        Returns: Json
+      }
+      dashboard_analise_frete_rapido: {
+        Args: {
+          p_analista?: string
+          p_cliente?: string
+          p_coloader?: string
+          p_data_final?: string
+          p_data_inicial?: string
+          p_destino?: string
+          p_min_decisoes?: number
+          p_modalidade?: string
+          p_motivo?: string
+          p_origem?: string
+          p_resultado?: string
+          p_rota?: string
+          p_vendedor?: string
+        }
+        Returns: Json
+      }
       dashboard_opcoes_filtro: { Args: never; Returns: Json }
+      modalidades_frete_opcoes: { Args: never; Returns: Json }
       motivos_perda_analise: {
         Args: { p_anos?: number[]; p_meses?: number[]; p_motivo?: string }
+        Returns: Json
+      }
+      motivos_perda_analise_frete: {
+        Args: {
+          p_anos?: number[]
+          p_meses?: number[]
+          p_modalidade?: string
+          p_motivo?: string
+        }
         Returns: Json
       }
       motivos_perda_analise_padrao: {
@@ -650,6 +724,10 @@ export type Database = {
         Args: { p_anos?: number[]; p_meses?: number[] }
         Returns: Json
       }
+      qualidade_dados_analise_frete: {
+        Args: { p_anos?: number[]; p_meses?: number[]; p_modalidade?: string }
+        Returns: Json
+      }
       qualidade_dados_analise_padrao: { Args: never; Returns: Json }
       qualidade_dados_analise_periodo_calc: {
         Args: { p_anos?: number[]; p_meses?: number[] }
@@ -659,6 +737,19 @@ export type Database = {
         Args: {
           p_anos?: number[]
           p_meses?: number[]
+          p_pais_destino?: string
+          p_pais_origem?: string
+          p_porto_destino?: string
+          p_porto_origem?: string
+          p_rota?: string
+        }
+        Returns: Json
+      }
+      rotas_analise_frete: {
+        Args: {
+          p_anos?: number[]
+          p_meses?: number[]
+          p_modalidade?: string
           p_pais_destino?: string
           p_pais_origem?: string
           p_porto_destino?: string

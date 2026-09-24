@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
+import { useModalidadeFrete } from "@/lib/modalidade-frete";
+
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -114,6 +116,7 @@ function ColoadersPage() {
   const [coloader, setColoader] = useState<string | null>(() => readSavedColoader());
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
+  const modalidade = useModalidadeFrete();
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const opcoes = useQuery({
@@ -123,13 +126,14 @@ function ColoadersPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-coloaders", coloader, anos, meses],
+    queryKey: ["analise-coloaders", coloader, anos, meses, modalidade],
     queryFn: () =>
       getAnaliseColoaders({
         data: {
           coloader: coloader as string,
           anos,
           meses,
+          modalidade,
         },
       }),
     enabled: Boolean(coloader),

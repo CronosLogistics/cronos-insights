@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
+import { useModalidadeFrete } from "@/lib/modalidade-frete";
+
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -113,6 +115,7 @@ function AnalistasPage() {
   const [analista, setAnalista] = useState<string | null>(() => readSavedAnalista());
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
+  const modalidade = useModalidadeFrete();
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const opcoes = useQuery({
@@ -122,13 +125,14 @@ function AnalistasPage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-analistas", analista, anos, meses],
+    queryKey: ["analise-analistas", analista, anos, meses, modalidade],
     queryFn: () =>
       getAnaliseAnalistas({
         data: {
           analista: analista as string,
           anos,
           meses,
+          modalidade,
         },
       }),
     enabled: Boolean(analista),

@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
+import { useModalidadeFrete } from "@/lib/modalidade-frete";
+
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { BotaoExportarTabela } from "@/components/data/table-export";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -109,6 +111,7 @@ function PorClientePage() {
   const [cliente, setCliente] = useState<string | null>(() => readSavedClient());
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
+  const modalidade = useModalidadeFrete();
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
   const lista = useQuery({
@@ -118,13 +121,14 @@ function PorClientePage() {
   });
 
   const analise = useQuery({
-    queryKey: ["analise-cliente", cliente, anos, meses],
+    queryKey: ["analise-cliente", cliente, anos, meses, modalidade],
     queryFn: () =>
       getAnaliseCliente({
         data: {
           cliente: cliente as string,
           anos,
           meses,
+          modalidade,
         },
       }),
     enabled: Boolean(cliente),
