@@ -105,7 +105,7 @@ export const getAnaliseDashboard = createServerFn({ method: "POST" })
     };
 
     const comFrete = data.modalidade !== FRETE_TODOS;
-    const rpcPromise = client.rpc(comFrete ? "dashboard_analise_frete" : "dashboard_analise", {
+    const rpcPromise = client.rpc(comFrete ? "dashboard_analise_frete_rapido" : "dashboard_analise", {
       ...(comFrete ? { p_modalidade: data.modalidade } : {}),
       p_data_inicial: data.dataInicial,
       p_data_final: data.dataFinal,
