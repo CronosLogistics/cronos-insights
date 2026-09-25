@@ -98,6 +98,7 @@ import {
 } from "@/lib/dashboard-analysis-fn";
 import { useTerminologia } from "@/lib/terminologia";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
+import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
 import { FiltroTipoFrete } from "@/components/data/FiltroPeriodo";
 import { cn } from "@/lib/utils";
 
@@ -203,6 +204,8 @@ const FILTROS_INICIAIS: FiltrosUi = {
 };
 
 const DASHBOARD_STORAGE_KEY = "cronos-insights:dashboard:selecao";
+
+const OPCOES_FIXAS = [FILTRO_TODOS];
 
 type DashboardPersistido = {
   filtros: FiltrosUi;
@@ -1204,11 +1207,7 @@ function FiltroCombobox({
     setTexto(value);
   }, [value]);
 
-  const filtrados = useMemo(() => {
-    const termo = texto.trim().toLocaleLowerCase("pt-BR");
-    if (!termo) return itens;
-    return itens.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
-  }, [texto, itens]);
+  const busca = useBuscaOpcoes(itens, texto, OPCOES_FIXAS);
 
   function abrir() {
     setLargura(ancoraRef.current?.offsetWidth);
@@ -1302,7 +1301,7 @@ function FiltroCombobox({
             <CommandList>
               <CommandEmpty>Nenhuma opção encontrada.</CommandEmpty>
               <CommandGroup>
-                {filtrados.map((nome) => (
+                {busca.visiveis.map((nome) => (
                   <CommandItem
                     key={nome}
                     value={nome}
@@ -1319,6 +1318,7 @@ function FiltroCombobox({
                   </CommandItem>
                 ))}
               </CommandGroup>
+              <AvisoBuscaOpcoes busca={busca} />
             </CommandList>
           </Command>
         </PopoverContent>

@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -90,6 +91,8 @@ export const Route = createFileRoute("/_authenticated/coloaders")({
 const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 
 const COLOADER_STORAGE_KEY = "cronos-insights:coloaders:selecao";
+
+const OPCOES_FIXAS = [FILTRO_TODOS];
 
 function readSavedColoader(): string | null {
   if (typeof window === "undefined") return null;
@@ -257,11 +260,7 @@ function FiltroColoaderCombobox({
     setTexto(value ?? "");
   }, [value]);
 
-  const filtrados = useMemo(() => {
-    const termo = texto.trim().toLocaleLowerCase("pt-BR");
-    if (!termo) return itens;
-    return itens.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
-  }, [texto, itens]);
+  const busca = useBuscaOpcoes(itens, texto, OPCOES_FIXAS);
 
   function abrir() {
     setLargura(ancoraRef.current?.offsetWidth);
@@ -366,7 +365,7 @@ function FiltroColoaderCombobox({
             <CommandList>
               <CommandEmpty>Nenhuma opção encontrada.</CommandEmpty>
               <CommandGroup>
-                {filtrados.map((nome) => (
+                {busca.visiveis.map((nome) => (
                   <CommandItem key={nome} value={nome} onSelect={() => selecionar(nome)}>
                     <Check
                       className={cn(
@@ -378,6 +377,7 @@ function FiltroColoaderCombobox({
                   </CommandItem>
                 ))}
               </CommandGroup>
+              <AvisoBuscaOpcoes busca={busca} />
             </CommandList>
           </Command>
         </PopoverContent>

@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -340,26 +341,29 @@ function FiltroCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
   const temConteudo = Boolean(texto.trim() || value);
 
+  const chaveFixas = opcoesFixas.join("\u0000");
+  const fixos = useMemo(
+    () => [FILTRO_TODOS, ...opcoesFixas],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chaveFixas],
+  );
+
   const itens = useMemo(() => {
-    const vistos = new Set<string>([FILTRO_TODOS]);
-    const lista = [FILTRO_TODOS];
-    for (const opcao of [...opcoesFixas, ...opcoes]) {
+    const vistos = new Set<string>();
+    const lista: string[] = [];
+    for (const opcao of [...fixos, ...opcoes]) {
       if (!opcao || vistos.has(opcao)) continue;
       vistos.add(opcao);
       lista.push(opcao);
     }
     return lista;
-  }, [opcoes, opcoesFixas]);
+  }, [opcoes, fixos]);
 
   useEffect(() => {
     setTexto(value ?? "");
   }, [value]);
 
-  const filtrados = useMemo(() => {
-    const termo = texto.trim().toLocaleLowerCase("pt-BR");
-    if (!termo) return itens;
-    return itens.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
-  }, [texto, itens]);
+  const busca = useBuscaOpcoes(itens, texto, fixos);
 
   function abrir() {
     setLargura(ancoraRef.current?.offsetWidth);
@@ -464,7 +468,7 @@ function FiltroCombobox({
             <CommandList>
               <CommandEmpty>Nenhuma opção encontrada.</CommandEmpty>
               <CommandGroup>
-                {filtrados.map((nome) => (
+                {busca.visiveis.map((nome) => (
                   <CommandItem key={nome} value={nome} onSelect={() => selecionar(nome)}>
                     <Check
                       className={cn(
@@ -476,6 +480,7 @@ function FiltroCombobox({
                   </CommandItem>
                 ))}
               </CommandGroup>
+              <AvisoBuscaOpcoes busca={busca} />
             </CommandList>
           </Command>
         </PopoverContent>

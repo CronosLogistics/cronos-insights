@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -86,6 +87,8 @@ const inteiro = (valor: number) => valor.toLocaleString("pt-BR");
 const FILTRO_TODOS = "Todos";
 
 const CLIENT_STORAGE_KEY = "cronos-insights:por-cliente:cliente";
+
+const OPCOES_FIXAS = [FILTRO_TODOS];
 
 function readSavedClient(): string | null {
   if (typeof window === "undefined") return null;
@@ -249,11 +252,7 @@ function ClienteCombobox({
     setTexto(value ?? "");
   }, [value]);
 
-  const filtrados = useMemo(() => {
-    const termo = texto.trim().toLocaleLowerCase("pt-BR");
-    if (!termo) return itens;
-    return itens.filter((nome) => nome.toLocaleLowerCase("pt-BR").includes(termo));
-  }, [texto, itens]);
+  const busca = useBuscaOpcoes(itens, texto, OPCOES_FIXAS);
 
   function abrir() {
     setLargura(ancoraRef.current?.offsetWidth);
@@ -347,7 +346,7 @@ function ClienteCombobox({
           <CommandList>
             <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
             <CommandGroup>
-              {filtrados.map((nome) => (
+              {busca.visiveis.map((nome) => (
                 <CommandItem
                   key={nome}
                   value={nome}
@@ -363,6 +362,7 @@ function ClienteCombobox({
                 </CommandItem>
               ))}
             </CommandGroup>
+            <AvisoBuscaOpcoes busca={busca} />
           </CommandList>
         </Command>
       </PopoverContent>
