@@ -662,6 +662,24 @@ export type Database = {
         }
         Returns: Json
       }
+      dashboard_analise_agente: {
+        Args: {
+          p_agente?: string
+          p_analista?: string
+          p_cliente?: string
+          p_coloader?: string
+          p_data_final?: string
+          p_data_inicial?: string
+          p_destino?: string
+          p_min_decisoes?: number
+          p_motivo?: string
+          p_origem?: string
+          p_resultado?: string
+          p_rota?: string
+          p_vendedor?: string
+        }
+        Returns: Json
+      }
       dashboard_analise_filtrada: {
         Args: {
           p_analista?: string
@@ -681,6 +699,25 @@ export type Database = {
       }
       dashboard_analise_frete: {
         Args: {
+          p_analista?: string
+          p_cliente?: string
+          p_coloader?: string
+          p_data_final?: string
+          p_data_inicial?: string
+          p_destino?: string
+          p_min_decisoes?: number
+          p_modalidade?: string
+          p_motivo?: string
+          p_origem?: string
+          p_resultado?: string
+          p_rota?: string
+          p_vendedor?: string
+        }
+        Returns: Json
+      }
+      dashboard_analise_frete_agente: {
+        Args: {
+          p_agente?: string
           p_analista?: string
           p_cliente?: string
           p_coloader?: string
