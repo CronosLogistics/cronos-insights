@@ -141,6 +141,75 @@ function paraConsulta(f: FiltrosSelecao): FiltrosRotas {
   };
 }
 
+const ROTAS_STORAGE_KEY = "cronos-insights:rotas:selecao";
+
+type RotasPersistido = {
+  filtros: FiltrosSelecao;
+  consulta: FiltrosRotas | null;
+  modalidade: string;
+};
+
+function textoOuNull(valor: unknown): string | null {
+  if (typeof valor !== "string") return null;
+  const t = valor.trim();
+  return t === "" ? null : t;
+}
+
+function textoOuTodos(valor: unknown): string {
+  return textoOuNull(valor) ?? FILTRO_TODOS;
+}
+
+function listaNumeros(valor: unknown): number[] {
+  if (!Array.isArray(valor)) return [];
+  return valor.filter((n): n is number => typeof n === "number" && Number.isInteger(n));
+}
+
+function readSavedRotas(): RotasPersistido {
+  const vazio: RotasPersistido = { filtros: FILTROS_VAZIOS, consulta: null, modalidade: FRETE_TODOS };
+  if (typeof window === "undefined") return vazio;
+  try {
+    const raw = localStorage.getItem(ROTAS_STORAGE_KEY);
+    if (!raw) return vazio;
+    const parsed = JSON.parse(raw) as Partial<Record<keyof RotasPersistido, unknown>>;
+    const f = (parsed.filtros ?? {}) as Record<string, unknown>;
+    const filtros: FiltrosSelecao = {
+      paisOrigem: textoOuNull(f["paisOrigem"]),
+      portoOrigem: textoOuNull(f["portoOrigem"]),
+      paisDestino: textoOuNull(f["paisDestino"]),
+      portoDestino: textoOuNull(f["portoDestino"]),
+      rota: textoOuNull(f["rota"]),
+      anos: listaNumeros(f["anos"]),
+      meses: listaNumeros(f["meses"]),
+    };
+    const c = parsed.consulta as Record<string, unknown> | null | undefined;
+    const consulta: FiltrosRotas | null =
+      c && typeof c === "object"
+        ? {
+            paisOrigem: textoOuTodos(c["paisOrigem"]),
+            portoOrigem: textoOuTodos(c["portoOrigem"]),
+            paisDestino: textoOuTodos(c["paisDestino"]),
+            portoDestino: textoOuTodos(c["portoDestino"]),
+            rota: textoOuTodos(c["rota"]),
+            anos: listaNumeros(c["anos"]),
+            meses: listaNumeros(c["meses"]),
+          }
+        : null;
+    const modalidade = textoOuNull(parsed.modalidade) ?? FRETE_TODOS;
+    return { filtros, consulta, modalidade };
+  } catch {
+    return vazio;
+  }
+}
+
+function saveRotas(dados: RotasPersistido) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ROTAS_STORAGE_KEY, JSON.stringify(dados));
+  } catch {
+    // storage indisponível
+  }
+}
+
 function chaveFiltros(f: FiltrosRotas): string {
   return [
     f.paisOrigem,
@@ -154,10 +223,15 @@ function chaveFiltros(f: FiltrosRotas): string {
 }
 
 function RotasPage() {
-  const [modalidade, setModalidade] = useState(FRETE_TODOS);
+  const [salvo] = useState(() => readSavedRotas());
+  const [modalidade, setModalidade] = useState(salvo.modalidade);
   const termos = useTerminologia();
-  const [filtros, setFiltros] = useState<FiltrosSelecao>(FILTROS_VAZIOS);
-  const [consulta, setConsulta] = useState<FiltrosRotas | null>(null);
+  const [filtros, setFiltros] = useState<FiltrosSelecao>(salvo.filtros);
+  const [consulta, setConsulta] = useState<FiltrosRotas | null>(salvo.consulta);
+
+  useEffect(() => {
+    saveRotas({ filtros, consulta, modalidade });
+  }, [filtros, consulta, modalidade]);
   const podePesquisar = temAlgumFiltro(filtros);
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
 
