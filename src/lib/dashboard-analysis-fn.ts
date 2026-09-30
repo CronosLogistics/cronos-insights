@@ -43,6 +43,7 @@ function parseFiltros(input: unknown): FiltrosDashboard {
     destino: textoFiltro(raw["destino"]),
     rota: textoFiltro(raw["rota"]),
     coloader: textoFiltro(raw["coloader"]),
+    agente: textoFiltro(raw["agente"]),
     resultado: textoFiltro(raw["resultado"]),
     motivo: textoFiltro(raw["motivo"]),
   };
@@ -66,8 +67,15 @@ export const getDashboardOpcoesFiltro = createServerFn({ method: "POST" })
         args?: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: { message: string } | null }>;
     };
-    const { data, error } = await client.rpc("dashboard_opcoes_filtro");
+    const [{ data, error }, agentesRes] = await Promise.all([
+      client.rpc("dashboard_opcoes_filtro"),
+      client.rpc("agentes_opcoes_filtro"),
+    ]);
     if (error) throw new Error(error.message);
+    if (agentesRes.error) throw new Error(agentesRes.error.message);
+    const agentes = lista(((agentesRes.data ?? {}) as Record<string, unknown>)["agentes"]).sort(
+      (a, b) => a.localeCompare(b, "pt-BR"),
+    );
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       dataInicial: typeof raw["data_inicial"] === "string" ? raw["data_inicial"] : null,
@@ -79,6 +87,7 @@ export const getDashboardOpcoesFiltro = createServerFn({ method: "POST" })
       destinos: lista(raw["destinos"]),
       rotas: lista(raw["rotas"]),
       coloaders: lista(raw["coloaders"]),
+      agentes,
       resultados: lista(raw["resultados"]),
       motivos: lista(raw["motivos"]),
     };
@@ -105,7 +114,12 @@ export const getAnaliseDashboard = createServerFn({ method: "POST" })
     };
 
     const comFrete = data.modalidade !== FRETE_TODOS;
-    const rpcPromise = client.rpc(comFrete ? "dashboard_analise_frete_rapido" : "dashboard_analise", {
+    const comAgente = data.agente !== FILTRO_TODOS;
+    const fn = comAgente
+      ? comFrete ? "dashboard_analise_frete_agente" : "dashboard_analise_agente"
+      : comFrete ? "dashboard_analise_frete_rapido" : "dashboard_analise";
+    const rpcPromise = client.rpc(fn, {
+      ...(comAgente ? { p_agente: data.agente } : {}),
       ...(comFrete ? { p_modalidade: data.modalidade } : {}),
       p_data_inicial: data.dataInicial,
       p_data_final: data.dataFinal,
@@ -130,6 +144,7 @@ export const getAnaliseDashboard = createServerFn({ method: "POST" })
         )
         .not("produto", "is", null)
         .eq("analise", "Em Aberto");
+      if (comAgente) q = q.eq("agente", data.agente);
       if (comFrete) {
         q = data.modalidade === "Não informado"
           ? q.or("modalidade.is.null,modalidade.eq.")

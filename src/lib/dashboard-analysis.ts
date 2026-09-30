@@ -21,6 +21,7 @@ export type FiltrosDashboard = {
   destino: string;
   rota: string;
   coloader: string;
+  agente: string;
   resultado: string;
   motivo: string;
 };
@@ -35,6 +36,7 @@ export type DashboardOpcoesFiltro = {
   destinos: string[];
   rotas: string[];
   coloaders: string[];
+  agentes: string[];
   resultados: string[];
   motivos: string[];
 };

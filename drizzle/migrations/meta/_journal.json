@@ -204,6 +204,13 @@
       "when": 1790254743933,
       "tag": "0028_estabilizar_consulta_cliente",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1790791993661,
+      "tag": "0029_dashboard_filtro_agente",
+      "breakpoints": true
     }
   ]
 }
