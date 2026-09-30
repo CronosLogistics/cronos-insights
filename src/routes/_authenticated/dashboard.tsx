@@ -186,6 +186,7 @@ type FiltrosUi = {
   destino: string;
   rota: string;
   coloader: string;
+  agente: string;
   resultado: string;
   motivo: string;
 };
@@ -200,6 +201,7 @@ const FILTROS_INICIAIS: FiltrosUi = {
   destino: FILTRO_TODOS,
   rota: FILTRO_TODOS,
   coloader: FILTRO_TODOS,
+  agente: FILTRO_TODOS,
   resultado: FILTRO_TODOS,
   motivo: FILTRO_TODOS,
 };
@@ -212,6 +214,7 @@ const CAMPOS_TEXTO_DASHBOARD = [
   "destino",
   "rota",
   "coloader",
+  "agente",
   "resultado",
   "motivo",
 ] as const satisfies readonly (keyof FiltrosUi)[];
@@ -260,6 +263,7 @@ function readSavedDashboard(): { filtros: FiltrosUi; consulta: FiltrosDashboard 
       destino: textoOuTodos(f["destino"]),
       rota: textoOuTodos(f["rota"]),
       coloader: textoOuTodos(f["coloader"]),
+      agente: textoOuTodos(f["agente"]),
       resultado: textoOuTodos(f["resultado"]),
       motivo: textoOuTodos(f["motivo"]),
     };
@@ -276,6 +280,7 @@ function readSavedDashboard(): { filtros: FiltrosUi; consulta: FiltrosDashboard 
             destino: textoOuTodos(c.destino),
             rota: textoOuTodos(c.rota),
             coloader: textoOuTodos(c.coloader),
+            agente: textoOuTodos(c.agente),
             resultado: textoOuTodos(c.resultado),
             motivo: textoOuTodos(c.motivo),
           }
@@ -300,6 +305,7 @@ function saveDashboard(filtros: FiltrosUi, consulta: FiltrosDashboard | null) {
         destino: filtros.destino,
         rota: filtros.rota,
         coloader: filtros.coloader,
+        agente: filtros.agente,
         resultado: filtros.resultado,
         motivo: filtros.motivo,
       },
@@ -327,6 +333,7 @@ function paraConsulta(f: FiltrosUi): FiltrosDashboard {
     destino: f.destino || FILTRO_TODOS,
     rota: f.rota || FILTRO_TODOS,
     coloader: f.coloader || FILTRO_TODOS,
+    agente: f.agente || FILTRO_TODOS,
     resultado: f.resultado || FILTRO_TODOS,
     motivo: f.motivo || FILTRO_TODOS,
   };
@@ -343,6 +350,7 @@ function chaveFiltros(f: FiltrosDashboard): string {
     f.destino,
     f.rota,
     f.coloader,
+    f.agente,
     f.resultado,
     f.motivo,
   ].join("|");
@@ -377,6 +385,7 @@ function DashboardPage() {
         destino: normalizarOpcao(atual.destino, opcoes.data.destinos),
         rota: normalizarOpcao(atual.rota, opcoes.data.rotas),
         coloader: normalizarOpcao(atual.coloader, opcoes.data.coloaders),
+        agente: normalizarOpcao(atual.agente, opcoes.data.agentes),
         resultado: normalizarOpcao(atual.resultado, opcoes.data.resultados),
         motivo: normalizarOpcao(atual.motivo, opcoes.data.motivos),
       };
@@ -390,6 +399,7 @@ function DashboardPage() {
         proximo.destino === atual.destino &&
         proximo.rota === atual.rota &&
         proximo.coloader === atual.coloader &&
+        proximo.agente === atual.agente &&
         proximo.resultado === atual.resultado &&
         proximo.motivo === atual.motivo;
       return igual ? atual : proximo;
@@ -516,6 +526,14 @@ function DashboardPage() {
               value={filtros.coloader}
               onValueChange={(v) => atualizar("coloader", v ?? "")}
               opcoes={opcoes.data?.coloaders ?? []}
+              carregando={opcoes.isPending}
+            />
+            <FiltroCombobox
+              label="Agente"
+              placeholder="Todos"
+              value={filtros.agente}
+              onValueChange={(v) => atualizar("agente", v ?? "")}
+              opcoes={opcoes.data?.agentes ?? []}
               carregando={opcoes.isPending}
             />
             <FiltroCombobox
