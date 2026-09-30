@@ -142,14 +142,32 @@ function CotacoesPage() {
 
   // Analista padrão: o próprio usuário logado, quando ele aparece na lista.
   const analistaDoUsuario = useMemo(() => {
-    const nome = perfil.data?.nome;
     const lista = analistasOpcoes.data?.analistas ?? [];
-    if (!nome) return ANALISTA_TODOS;
-    const alvo = normalizarNome(nome);
-    return lista.find((item) => normalizarNome(item) === alvo) ?? ANALISTA_TODOS;
-  }, [perfil.data?.nome, analistasOpcoes.data]);
+    const candidatos = [perfil.data?.nome, perfil.data?.email?.split("@")[0]]
+      .filter((v): v is string => Boolean(v))
+      .map((v) => normalizarNome(v.replace(/[._-]+/g, " ")))
+      .filter(Boolean);
+    if (!candidatos.length) return ANALISTA_TODOS;
+    // 1) nome exato  2) primeiro + último nome  3) nome do cadastro contido no analista
+    for (const alvo of candidatos) {
+      const exato = lista.find((item) => normalizarNome(item) === alvo);
+      if (exato) return exato;
+    }
+    for (const alvo of candidatos) {
+      const partes = alvo.split(" ");
+      if (partes.length < 2) continue;
+      const chave = `${partes[0]} ${partes[partes.length - 1]}`;
+      const achado = lista.find((item) => {
+        const p = normalizarNome(item).split(" ");
+        return p.length >= 2 && `${p[0]} ${p[p.length - 1]}` === chave;
+      });
+      if (achado) return achado;
+    }
+    return ANALISTA_TODOS;
+  }, [perfil.data?.nome, perfil.data?.email, analistasOpcoes.data]);
 
-  const padraoPronto = !perfil.isPending && !analistasOpcoes.isPending;
+  const padraoPronto =
+    Boolean(perfil.data) && (analistasOpcoes.isSuccess || analistasOpcoes.isError);
   useEffect(() => {
     if (analista === null && padraoPronto) setAnalista(analistaDoUsuario);
   }, [analista, padraoPronto, analistaDoUsuario]);
@@ -200,7 +218,7 @@ function CotacoesPage() {
       if (anos.length > 0) query = query.in("ano", anos);
       if (meses.length > 0) query = query.in("mes", meses);
       if (analistaAtual === NAO_INFORMADO) query = query.is("pricing", null);
-      else if (analistaAtual !== ANALISTA_TODOS) query = query.eq("pricing", analistaAtual);
+      else if (analistaAtual !== ANALISTA_TODOS) query = query.ilike("pricing", analistaAtual);
 
       const { data, error } = await query;
       if (error) throw error;
