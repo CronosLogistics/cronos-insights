@@ -562,6 +562,44 @@ function Ficha({ analise, resetKey }: { analise: AnaliseCliente; resetKey: strin
         <TabelaMotivos linhas={analise.motivos} resetKey={`${resetKey}-motivos`} />
       </div>
 
+      <PanelBlock
+        title="Histórico de aprovação"
+        description="Última aprovação do cliente e reprovações registradas depois dela."
+      >
+        <ul className="divide-y divide-border/60">
+          {[
+            {
+              titulo: "Última rota aprovada",
+              valor: analise.historico?.ultimaAprovacao
+                ? `${analise.historico.ultimaAprovacao.rota} — ${
+                    analise.historico.ultimaAprovacao.data
+                      ? new Date(`${analise.historico.ultimaAprovacao.data}T00:00:00`).toLocaleDateString("pt-BR")
+                      : "data não informada"
+                  } — Oferta ${analise.historico.ultimaAprovacao.oferta}`
+                : "Nenhuma aprovação registrada",
+            },
+            {
+              titulo: "Reprovações seguidas",
+              valor: analise.historico
+                ? `Últimas ${analise.historico.reprovadasDesde.toLocaleString("pt-BR")} foram reprovadas${
+                    analise.historico.ultimaAprovacao ? " (desde a última aprovação)" : ""
+                  }`
+                : "—",
+            },
+          ].map((item) => (
+            <li
+              key={item.titulo}
+              className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:gap-4"
+            >
+              <span className="w-40 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {item.titulo}
+              </span>
+              <span className="text-sm font-medium leading-snug">{item.valor}</span>
+            </li>
+          ))}
+        </ul>
+      </PanelBlock>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <PanelBlock title="Insights de Pricing" description="Leitura automática dos indicadores.">
           <ListaInsights itens={analise.insightsPricing} />

@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parsePeriodo } from "@/lib/filtro-periodo";
 import { FRETE_TODOS, parseModalidadeFrete } from "@/lib/modalidade-frete";
-import { analisarCliente, type AnaliseCliente, type HistRow } from "@/lib/customer-analysis";
+import { analisarCliente, type AnaliseCliente, type HistRow, type HistoricoAprovacao } from "@/lib/customer-analysis";
 
 const PAGINA = 1000;
 
@@ -40,6 +40,66 @@ function normalizarOfertaCliente(row: OfertaClienteRow): HistRow {
     flag_aprovada: row.analise === "Aprovado" ? 1 : 0,
     flag_reprovada: row.analise === "Reprovado" ? 1 : 0,
     flag_em_analise: row.analise === "Em Aberto" ? 1 : 0,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseCtx = any;
+
+/**
+ * Última aprovação do cliente (data de conclusão, com fallback na abertura) e
+ * quantas reprovações vieram depois dela. Respeita o tipo de frete; RLS
+ * garante o recorte por modalidade do usuário.
+ */
+async function buscarHistoricoAprovacao(
+  supabase: SupabaseCtx,
+  cliente: string,
+  modalidade: string,
+): Promise<HistoricoAprovacao> {
+  const comFrete = (q: SupabaseCtx) =>
+    modalidade === FRETE_TODOS
+      ? q
+      : modalidade === "Não informado"
+        ? q.or("modalidade.is.null,modalidade.eq.")
+        : q.eq("modalidade", modalidade);
+
+  const { data: aprov, error } = await comFrete(
+    supabase
+      .from("ofertas")
+      .select("oferta,revisao,origem,destino,data_conclusao,data_abertura")
+      .eq("cliente", cliente)
+      .eq("analise", "Aprovado"),
+  )
+    .order("data_conclusao", { ascending: false, nullsFirst: false })
+    .order("data_abertura", { ascending: false, nullsFirst: false })
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const ultima = (aprov ?? [])[0] as
+    | { oferta: string; revisao: number | null; origem: string | null; destino: string | null; data_conclusao: string | null; data_abertura: string | null }
+    | undefined;
+
+  let q = comFrete(
+    supabase
+      .from("ofertas")
+      .select("id", { count: "exact", head: true })
+      .eq("cliente", cliente)
+      .eq("analise", "Reprovado"),
+  );
+  const data = ultima ? (ultima.data_conclusao ?? ultima.data_abertura) : null;
+  if (data) q = q.gt(ultima!.data_conclusao ? "data_conclusao" : "data_abertura", data);
+  const { count, error: errRep } = await q;
+  if (errRep) throw new Error(errRep.message);
+
+  if (!ultima) return { ultimaAprovacao: null, reprovadasDesde: count ?? 0 };
+  const origem = (ultima.origem ?? "").trim();
+  const destino = (ultima.destino ?? "").trim();
+  return {
+    ultimaAprovacao: {
+      rota: origem && destino ? `${origem} → ${destino}` : "(Rota incompleta)",
+      data,
+      oferta: ultima.revisao != null ? `${ultima.oferta} (rev. ${ultima.revisao})` : ultima.oferta,
+    },
+    reprovadasDesde: count ?? 0,
   };
 }
 
@@ -122,10 +182,12 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
       .maybeSingle();
     if (erroMedia) throw new Error(erroMedia.message);
 
-    return analisarCliente({
+    const resultado = analisarCliente({
       cliente,
       rows,
       mediaAprovadas: Number(media?.aprovadas ?? 0),
       mediaReprovadas: Number(media?.reprovadas ?? 0),
     });
+    resultado.historico = await buscarHistoricoAprovacao(supabase, cliente, modalidade);
+    return resultado;
   });
