@@ -105,6 +105,13 @@ export type AnaliseCliente = {
   agentes: LinhaRanking[];
   motivos: LinhaMotivo[];
   rotaColoader: LinhaRotaColoader[];
+  /** Histórico recente de aprovação (preenchido pela server function). */
+  historico?: HistoricoAprovacao;
+};
+
+export type HistoricoAprovacao = {
+  ultimaAprovacao: { rota: string; data: string | null; oferta: string } | null;
+  reprovadasDesde: number;
 };
 
 // ---------------------------------------------------------------------------
