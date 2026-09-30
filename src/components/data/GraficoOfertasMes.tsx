@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { PanelBlock } from "@/components/data/Placeholders";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,7 +70,7 @@ export function GraficoOfertasMes({
           config={chartConfig}
           className={`aspect-auto h-72 w-full ${consulta.isFetching ? "opacity-70" : ""}`}
         >
-          <BarChart data={chartData} margin={{ left: 8, right: 12, top: 8, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ left: 8, right: 12, top: 8, bottom: 0 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis dataKey="mes" tickLine={false} axisLine={false} tickMargin={8} minTickGap={16} />
             <YAxis
@@ -88,12 +88,19 @@ export function GraficoOfertasMes({
                     const row = payload?.[0]?.payload as { mesCurto?: string } | undefined;
                     return row?.mesCurto ?? "";
                   }}
-                  formatter={(value) => [Number(value).toLocaleString("pt-BR"), " ofertas"]}
+                  formatter={(value) => [Number(value).toLocaleString("pt-BR"), "Ofertas"]}
                 />
               }
             />
-            <Bar dataKey="ofertas" fill="var(--color-ofertas)" radius={[4, 4, 0, 0]} />
-          </BarChart>
+            <Line
+              type="monotone"
+              dataKey="ofertas"
+              stroke="var(--color-ofertas)"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
+            />
+          </LineChart>
         </ChartContainer>
       )}
     </PanelBlock>
