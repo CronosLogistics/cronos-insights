@@ -776,6 +776,24 @@ export type Database = {
         Returns: Json
       }
       motivos_perda_opcoes_filtro: { Args: never; Returns: Json }
+      ofertas_por_mes: {
+        Args: {
+          p_agente?: string
+          p_analista?: string
+          p_anos?: number[]
+          p_coloader?: string
+          p_meses?: number[]
+          p_modalidade?: string
+          p_motivo?: string
+          p_pais_destino?: string
+          p_pais_origem?: string
+          p_porto_destino?: string
+          p_porto_origem?: string
+          p_rota?: string
+          p_somente_reprovadas?: boolean
+        }
+        Returns: Json
+      }
       produto_do_usuario: { Args: never; Returns: string }
       produtos_do_usuario: { Args: never; Returns: string[] }
       qualidade_dados_analise: {

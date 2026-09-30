@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
@@ -227,6 +228,8 @@ function ColoadersPage() {
           </div>
         </CardContent>
       </Card>
+
+      <GraficoOfertasMes descricao={`Quantidade de ofertas por mês do ${termos.coloaderMinusculo} selecionado, independente do resultado.`} filtros={{ coloader, anos, meses, modalidade }} />
 
       {!coloader ? (
         <EstadoVazio />

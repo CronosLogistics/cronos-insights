@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
@@ -235,6 +236,8 @@ function MotivosPage() {
           </div>
         </CardContent>
       </Card>
+
+      <GraficoOfertasMes titulo="Ofertas reprovadas por mês" descricao="Quantidade de ofertas reprovadas por mês no motivo selecionado." filtros={{ motivo, anos, meses, modalidade, somenteReprovadas: true }} />
 
       {!motivo ? (
         <EstadoVazio />
