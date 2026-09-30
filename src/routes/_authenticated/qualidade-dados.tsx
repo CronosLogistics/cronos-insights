@@ -3,6 +3,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -103,6 +104,14 @@ function QualidadePage() {
             modalidade={modalidade}
             onModalidadeChange={setModalidade}
             className="w-full md:w-1/2"
+          />
+          <BotaoLimparFiltros
+            onLimpar={() => {
+              setAnos([]);
+              setMeses([]);
+              setModalidade(FRETE_TODOS);
+            }}
+            disabled={anos.length === 0 && meses.length === 0 && modalidade === FRETE_TODOS}
           />
         </CardContent>
       </Card>

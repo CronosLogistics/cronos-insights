@@ -114,7 +114,7 @@ export const navigation: NavGroup[] = [
         to: "/motivos-perda",
         icon: TrendingDown,
         description:
-          "Concentração de reprovações por motivo, rota, cliente, coloader e agente.",
+          "Concentração de reprovações por motivo, rota, cliente, {coloaderMinusculo} e agente.",
       },
       {
         label: "Qualidade de Dados",

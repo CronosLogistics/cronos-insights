@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -66,7 +67,7 @@ import {
 } from "@/lib/agent-analysis";
 import { getAgentesOpcoesFiltro, getAnaliseAgentes } from "@/lib/agent-analysis-fn";
 import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
-import { useTerminologia } from "@/lib/terminologia";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/agentes")({
@@ -191,6 +192,21 @@ function AgentesPage() {
                 carregando={opcoes.isPending}
               />
             </div>
+
+            <BotaoLimparFiltros
+              onLimpar={() => {
+                setAgente(null);
+                setAnos([]);
+                setMeses([]);
+                setModalidade(FRETE_TODOS);
+              }}
+              disabled={
+                agente === null &&
+                anos.length === 0 &&
+                meses.length === 0 &&
+                modalidade === FRETE_TODOS
+              }
+            />
 
             {opcoes.data ? (
               <Badge variant="secondary" className="w-fit">
@@ -464,7 +480,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAgentes; resetKey: strin
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
               { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
-              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: termos.coloaders, valor: inteiro(ind.coloaders), icone: Users },
             ]}
           />
           <GrupoIndicadores
@@ -591,7 +607,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAgentes; resetKey: strin
           resetKey={`${resetKey}-rotas`}
         />
         <TabelaRanking
-          titulo="Coloaders do agente"
+          titulo={`${termos.coloaders} do agente`}
           descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
           rotuloItem="Item"
           linhas={analise.coloaders}
@@ -722,12 +738,13 @@ function GrupoIndicadores({
 }
 
 function ListaInsights({ itens }: { itens: string[] }) {
+  const termos = useTerminologia();
   return (
     <ul className="space-y-3">
       {itens.map((texto, i) => (
         <li key={i} className="flex gap-3 text-sm">
           <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-          <span>{texto}</span>
+          <span>{trocarTermoColoader(texto, termos)}</span>
         </li>
       ))}
     </ul>
@@ -958,12 +975,13 @@ function TabelaRotaColoader({
       ),
     [],
   );
+  const termos = useTerminologia();
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, colunas);
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
-      title="Matriz Agente × Rota / Coloader"
-      description="Combinações Rota × Coloader com mais reprovações (desempate por volume)."
+      title={`Matriz Agente × Rota / ${termos.coloader}`}
+      description={`Combinações Rota × ${termos.coloader} com mais reprovações (desempate por volume).`}
       action={
         <BotaoExportarTabela
           nomeArquivo="cruzamento-rota-coloader"

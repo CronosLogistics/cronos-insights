@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -70,7 +71,7 @@ import {
 } from "@/lib/route-analysis";
 import { getAnaliseRotas, getRotasOpcoesFiltro } from "@/lib/route-analysis-fn";
 import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
-import { useTerminologia } from "@/lib/terminologia";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/rotas")({
@@ -183,6 +184,11 @@ function RotasPage() {
     setConsulta(paraConsulta(filtros));
   }
 
+  function limparFiltros() {
+    setFiltros(FILTROS_VAZIOS);
+    setModalidade(FRETE_TODOS);
+  }
+
   const resetKey = consulta ? chaveFiltros(consulta) : "vazio";
 
   return (
@@ -272,6 +278,10 @@ function RotasPage() {
               <Search className="size-4" />
               Pesquisar
             </Button>
+            <BotaoLimparFiltros
+              onLimpar={limparFiltros}
+              disabled={!podePesquisar && modalidade === FRETE_TODOS}
+            />
             {!podePesquisar ? (
               <p className="text-xs text-muted-foreground">
                 Preencha ao menos um filtro (ou o período) para pesquisar.
@@ -567,7 +577,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseRotas; resetKey: string 
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
               { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
-              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: termos.coloaders, valor: inteiro(ind.coloaders), icone: Users },
             ]}
           />
           <GrupoIndicadores
@@ -652,7 +662,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseRotas; resetKey: string 
 
       <PanelBlock
         title="Perfil do recorte"
-        description="Coloaders e motivo mais relevantes do recorte."
+        description={`${termos.coloaders} e motivo mais relevantes do recorte.`}
       >
         <ul className="divide-y divide-border/60">
           {[
@@ -687,7 +697,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseRotas; resetKey: string 
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaRanking
-          titulo="Coloaders da rota"
+          titulo={`${termos.coloaders} da rota`}
           descricao={`Volume e conversão por ${termos.coloaderLabelMinusculo}.`}
           rotuloItem="Item"
           linhas={analise.coloaders}
@@ -825,12 +835,13 @@ function GrupoIndicadores({
 }
 
 function ListaInsights({ itens }: { itens: string[] }) {
+  const termos = useTerminologia();
   return (
     <ul className="space-y-3">
       {itens.map((texto, i) => (
         <li key={i} className="flex gap-3 text-sm">
           <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-          <span>{texto}</span>
+          <span>{trocarTermoColoader(texto, termos)}</span>
         </li>
       ))}
     </ul>
@@ -1061,11 +1072,12 @@ function TabelaClienteColoader({
       ),
     [],
   );
+  const termos = useTerminologia();
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, colunas);
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
-      title="Combinações importantes — Cliente × Coloader"
+      title={`Combinações importantes — Cliente × ${termos.coloader}`}
       description="Combinações com mais reprovações (desempate por volume)."
       action={
         <BotaoExportarTabela

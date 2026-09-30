@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { CampoData } from "@/components/data/CampoData";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -96,7 +97,7 @@ import {
   getAnaliseDashboard,
   getDashboardOpcoesFiltro,
 } from "@/lib/dashboard-analysis-fn";
-import { useTerminologia } from "@/lib/terminologia";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
 import { FiltroTipoFrete } from "@/components/data/FiltroPeriodo";
@@ -202,6 +203,22 @@ const FILTROS_INICIAIS: FiltrosUi = {
   resultado: FILTRO_TODOS,
   motivo: FILTRO_TODOS,
 };
+
+const CAMPOS_TEXTO_DASHBOARD = [
+  "analista",
+  "vendedor",
+  "cliente",
+  "origem",
+  "destino",
+  "rota",
+  "coloader",
+  "resultado",
+  "motivo",
+] as const satisfies readonly (keyof FiltrosUi)[];
+
+function ehValorPadrao(valor: string): boolean {
+  return valor === "" || valor === FILTRO_TODOS;
+}
 
 const DASHBOARD_STORAGE_KEY = "cronos-insights:dashboard:selecao";
 
@@ -399,6 +416,23 @@ function DashboardPage() {
     setConsulta(paraConsulta(filtros));
   }
 
+  const dataInicialPadrao = opcoes.data?.dataInicial ?? null;
+  const dataFinalPadrao = opcoes.data?.dataFinal ?? null;
+  const filtrosPadrao =
+    modalidade === FRETE_TODOS &&
+    (filtros.dataInicial === null || filtros.dataInicial === dataInicialPadrao) &&
+    (filtros.dataFinal === null || filtros.dataFinal === dataFinalPadrao) &&
+    CAMPOS_TEXTO_DASHBOARD.every((campo) => ehValorPadrao(filtros[campo]));
+
+  function limparFiltros() {
+    setFiltros({
+      ...FILTROS_INICIAIS,
+      dataInicial: dataInicialPadrao,
+      dataFinal: dataFinalPadrao,
+    });
+    setModalidade(FRETE_TODOS);
+  }
+
   const resetKey = consulta ? chaveFiltros(consulta) : "vazio";
 
   return (
@@ -513,6 +547,7 @@ function DashboardPage() {
               <Search className="size-4" />
               Pesquisar
             </Button>
+            <BotaoLimparFiltros onLimpar={limparFiltros} disabled={filtrosPadrao} />
             <p className="text-xs text-muted-foreground">
               Datas são opcionais. Os filtros só são aplicados ao clicar em Pesquisar.
             </p>
@@ -551,6 +586,7 @@ function ConteudoDashboard({
   analise: AnaliseDashboard;
   resetKey: string;
 }) {
+  const termos = useTerminologia();
   const alt = analise.alternativas;
   const ofe = analise.ofertasUnicas;
   const chartData = analise.evolucaoMensal.map((l) => ({
@@ -579,7 +615,7 @@ function ConteudoDashboard({
               { titulo: "Total", valor: inteiro(alt.total), icone: FileText },
               { titulo: "Clientes", valor: inteiro(alt.clientes), icone: Building2 },
               { titulo: "Rotas", valor: inteiro(alt.rotas), icone: Network },
-              { titulo: "Coloaders", valor: inteiro(alt.coloaders), icone: Ship },
+              { titulo: termos.coloaders, valor: inteiro(alt.coloaders), icone: Ship },
             ]}
           />
           <GrupoIndicadores
@@ -887,6 +923,7 @@ function OportunidadesPricing({ itens }: { itens: OportunidadeItem[] }) {
 }
 
 function OportunidadeCard({ item }: { item: OportunidadeItem }) {
+  const termos = useTerminologia();
   const estilo = estiloOportunidade[item.tom];
   const Icone = estilo.Icone;
 
@@ -912,7 +949,9 @@ function OportunidadeCard({ item }: { item: OportunidadeItem }) {
         </span>
       </div>
 
-      <h3 className="text-sm font-semibold leading-snug text-foreground">{item.titulo}</h3>
+      <h3 className="text-sm font-semibold leading-snug text-foreground">
+        {trocarTermoColoader(item.titulo, termos)}
+      </h3>
       <p className="mt-1.5 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
         {item.detalhe}
       </p>

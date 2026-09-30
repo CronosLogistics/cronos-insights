@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -105,10 +106,12 @@ function KpiCard({ label, value, hint }: { label: string; value: string; hint?: 
   );
 }
 
+const ANALISE_PADRAO = "Em Aberto";
+
 function CotacoesPage() {
   const [busca, setBusca] = useState("");
   const [modalidade, setModalidade] = useState("todas");
-  const [analise, setAnalise] = useState("todas");
+  const [analise, setAnalise] = useState(ANALISE_PADRAO);
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
@@ -289,7 +292,7 @@ function CotacoesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas as situações</SelectItem>
-                  {(opcoes.data?.analises ?? []).map((item) => (
+                  {[...new Set([ANALISE_PADRAO, ...(opcoes.data?.analises ?? [])])].map((item) => (
                     <SelectItem key={item} value={item}>
                       {item}
                     </SelectItem>
@@ -297,6 +300,22 @@ function CotacoesPage() {
                 </SelectContent>
               </Select>
             </div>
+            <BotaoLimparFiltros
+              onLimpar={() => {
+                setBusca("");
+                setModalidade("todas");
+                setAnalise(ANALISE_PADRAO);
+                setAnos([]);
+                setMeses([]);
+              }}
+              disabled={
+                busca.trim() === "" &&
+                modalidade === "todas" &&
+                analise === ANALISE_PADRAO &&
+                anos.length === 0 &&
+                meses.length === 0
+              }
+            />
           </div>
 
           {lista.isPending ? (

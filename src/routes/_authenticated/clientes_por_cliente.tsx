@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -65,7 +66,7 @@ import {
 } from "@/lib/customer-analysis";
 import { getAnaliseCliente, getClienteLista } from "@/lib/customer-analysis-fn";
 import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
-import { useTerminologia } from "@/lib/terminologia";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/clientes_por_cliente")({
@@ -110,6 +111,7 @@ function saveClient(cliente: string | null) {
 }
 
 function PorClientePage() {
+  const termos = useTerminologia();
   const [cliente, setCliente] = useState<string | null>(() => readSavedClient());
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
@@ -155,7 +157,7 @@ function PorClientePage() {
       <ModuleIntro
         eyebrow="Inteligência"
         title="Por cliente"
-        description="Selecione um cliente para reproduzir a ficha da aba CLIENTES da planilha: indicadores do recorte, perfil, insights de pricing, onde atuar e os rankings por rota, coloader, agente e motivo de reprovação. Os dados respeitam o produto do seu acesso e são calculados no servidor."
+        description={`Selecione um cliente para reproduzir a ficha da aba CLIENTES da planilha: indicadores do recorte, perfil, insights de pricing, onde atuar e os rankings por rota, ${termos.coloaderMinusculo}, agente e motivo de reprovação. Os dados respeitam o produto do seu acesso e são calculados no servidor.`}
       />
 
       <Card>
@@ -189,6 +191,21 @@ function PorClientePage() {
                 />
               )}
             </div>
+
+            <BotaoLimparFiltros
+              onLimpar={() => {
+                setCliente(null);
+                setAnos([]);
+                setMeses([]);
+                setModalidade(FRETE_TODOS);
+              }}
+              disabled={
+                cliente === null &&
+                anos.length === 0 &&
+                meses.length === 0 &&
+                modalidade === FRETE_TODOS
+              }
+            />
 
             {lista.data ? (
               <Badge variant="secondary" className="w-fit">
@@ -445,7 +462,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseCliente; resetKey: strin
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
               { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
-              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: termos.coloaders, valor: inteiro(ind.coloaders), icone: Users },
             ]}
           />
           <GrupoIndicadores
@@ -563,9 +580,9 @@ function Ficha({ analise, resetKey }: { analise: AnaliseCliente; resetKey: strin
       />
 
       <TabelaRanking
-        titulo="Coloaders do cliente"
+        titulo={`${termos.coloaders} do cliente`}
         descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
-        rotuloItem="Coloader"
+        rotuloItem={termos.coloader}
         linhas={analise.coloaders}
         resetKey={`${resetKey}-coloaders`}
       />
@@ -692,12 +709,13 @@ function GrupoIndicadores({
 }
 
 function ListaInsights({ itens }: { itens: string[] }) {
+  const termos = useTerminologia();
   return (
     <ul className="space-y-3">
       {itens.map((texto, i) => (
         <li key={i} className="flex gap-3 text-sm">
           <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-          <span>{texto}</span>
+          <span>{trocarTermoColoader(texto, termos)}</span>
         </li>
       ))}
     </ul>
@@ -919,18 +937,19 @@ function TabelaRotaColoader({
       ),
     [],
   );
+  const termos = useTerminologia();
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(linhas, colunas);
   const paginacao = usePaginacao(ordenadas, `${resetKey}:${chaveReset}`);
   return (
     <PanelBlock
-      title="Onde estamos perdendo? — Rota × Coloader"
+      title={`Onde estamos perdendo? — Rota × ${termos.coloader}`}
       description="Combinações com mais reprovações (desempate por volume)."
       action={
         <BotaoExportarTabela
           nomeArquivo="cruzamento-rota-coloader"
           colunas={[
             { rotulo: "Rota", valor: (l) => l.rota },
-            { rotulo: "Coloader", valor: (l) => l.coloader },
+            { rotulo: termos.coloader, valor: (l) => l.coloader },
             { rotulo: "Rotas", valor: (l) => l.rotas },
             { rotulo: "Aprovadas", valor: (l) => l.aprovadas },
             { rotulo: "Reprovadas", valor: (l) => l.reprovadas },
@@ -953,7 +972,7 @@ function TabelaRotaColoader({
                   onOrdenar={alternar}
                 />
                 <CabecalhoOrdenavel
-                  label="Coloader"
+                  label={termos.coloader}
                   coluna="dim2"
                   ordenacao={ordenacao}
                   onOrdenar={alternar}

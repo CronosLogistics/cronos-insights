@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -61,6 +62,7 @@ import {
   getMotivosPerdaOpcoesFiltro,
 } from "@/lib/motivos-perda-analysis-fn";
 import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 const COLUNAS_DIMENSAO = {
@@ -126,6 +128,7 @@ function saveMotivo(motivo: string | null) {
 }
 
 function MotivosPage() {
+  const termos = useTerminologia();
   const [motivo, setMotivo] = useState<string | null>(() => readSavedMotivo());
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
@@ -171,7 +174,7 @@ function MotivosPage() {
       <ModuleIntro
         eyebrow="Diagnóstico"
         title="Motivos de Perda"
-        description="Somente reprovações | concentração por rota, cliente, coloader, agente e evolução mensal."
+        description={`Somente reprovações | concentração por rota, cliente, ${termos.coloaderMinusculo}, agente e evolução mensal.`}
       />
 
       <Card>
@@ -202,6 +205,21 @@ function MotivosPage() {
                 carregando={opcoes.isPending}
               />
             </div>
+
+            <BotaoLimparFiltros
+              onLimpar={() => {
+                setMotivo(null);
+                setAnos([]);
+                setMeses([]);
+                setModalidade(FRETE_TODOS);
+              }}
+              disabled={
+                motivo === null &&
+                anos.length === 0 &&
+                meses.length === 0 &&
+                modalidade === FRETE_TODOS
+              }
+            />
 
             {opcoes.data ? (
               <Badge variant="secondary" className="w-fit">
@@ -439,6 +457,7 @@ function FichaSkeleton() {
 }
 
 function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: string }) {
+  const termos = useTerminologia();
   const { indicadores: ind, perfil } = analise;
   const semDados = ind.reprovacoes === 0;
 
@@ -496,7 +515,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: 
             itens={[
               { titulo: "Rotas", valor: inteiro(ind.rotas), icone: RouteIcon },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
-              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Ship },
+              { titulo: termos.coloaders, valor: inteiro(ind.coloaders), icone: Ship },
               { titulo: "Agentes", valor: inteiro(ind.agentes), icone: Users },
               { titulo: "Meses", valor: inteiro(ind.meses), icone: CalendarDays },
             ]}
@@ -526,7 +545,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: 
           {[
             { titulo: "Principal rota", valor: perfil.principalRota },
             { titulo: "Principal cliente", valor: perfil.principalCliente },
-            { titulo: "Principal coloader", valor: perfil.principalColoader },
+            { titulo: `Principal ${termos.coloaderMinusculo}`, valor: perfil.principalColoader },
             { titulo: "Principal agente", valor: perfil.principalAgente },
           ].map((item) => (
             <li
@@ -570,9 +589,9 @@ function Ficha({ analise, resetKey }: { analise: AnaliseMotivosPerda; resetKey: 
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaDimensao
-          titulo="Coloaders associados"
-          descricao="Coloaders com mais reprovações no motivo (até 10)."
-          rotuloItem="Coloader"
+          titulo={`${termos.coloaders} associados`}
+          descricao={`${termos.coloaders} com mais reprovações no motivo (até 10).`}
+          rotuloItem={termos.coloader}
           linhas={analise.coloaders}
           resetKey={`${resetKey}-coloader`}
         />
@@ -703,12 +722,13 @@ function GrupoIndicadores({
 }
 
 function ListaInsights({ itens }: { itens: string[] }) {
+  const termos = useTerminologia();
   return (
     <ul className="space-y-3">
       {itens.map((texto, i) => (
         <li key={i} className="flex gap-3 text-sm">
           <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-          <span>{texto}</span>
+          <span>{trocarTermoColoader(texto, termos)}</span>
         </li>
       ))}
     </ul>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Database, RefreshCw } from "lucide-react";
 
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { KpiCard } from "@/components/data/KpiCard";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
@@ -210,6 +211,14 @@ export function RankingModule({
             onChange={(event) => setBusca(event.target.value)}
             placeholder={buscaPlaceholder}
             className="max-w-xl"
+          />
+          <BotaoLimparFiltros
+            onLimpar={() => {
+              setBusca("");
+              setAnos([]);
+              setMeses([]);
+            }}
+            disabled={busca.trim() === "" && anos.length === 0 && meses.length === 0}
           />
 
           {lista.isPending ? (

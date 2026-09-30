@@ -20,7 +20,13 @@ export type Terminologia = {
   coloaderLabelMinusculo: string;
   /** Plural usado em títulos, ex.: "Coloaders / Armadores". */
   coloaderPlural: string;
-  /** Rótulo curto usado no menu, ex.: "Coloaders" | "Cias. aéreas". */
+  /** Termo genérico do parceiro, ex.: "Coloader / Armador" (marítimo) | "Coloader". */
+  coloader: string;
+  coloaderMinusculo: string;
+  /** Plural do termo genérico, ex.: "Coloaders / Armadores" (marítimo) | "Coloaders". */
+  coloaders: string;
+  coloadersMinusculo: string;
+  /** Rótulo usado no menu, ex.: "Coloaders / Armadores" | "Cias. aéreas". */
   coloaderMenu: string;
   /** Ícone do item de menu. */
   coloaderIcone: LucideIcon;
@@ -36,7 +42,11 @@ const MARITIMO: Terminologia = {
   coloaderLabel: "Coloader / Armador",
   coloaderLabelMinusculo: "coloader / armador",
   coloaderPlural: "Coloaders / Armadores",
-  coloaderMenu: "Coloaders",
+  coloader: "Coloader / Armador",
+  coloaderMinusculo: "coloader / armador",
+  coloaders: "Coloaders / Armadores",
+  coloadersMinusculo: "coloaders / armadores",
+  coloaderMenu: "Coloaders / Armadores",
   coloaderIcone: Ship,
   coloaderIconeFicha: Anchor,
 };
@@ -49,6 +59,10 @@ const AEREO: Terminologia = {
   coloaderLabel: "Coloader / Cia. aérea",
   coloaderLabelMinusculo: "coloader / cia. aérea",
   coloaderPlural: "Cias. aéreas",
+  coloader: "Coloader",
+  coloaderMinusculo: "coloader",
+  coloaders: "Coloaders",
+  coloadersMinusculo: "coloaders",
   coloaderMenu: "Cias. aéreas",
   coloaderIcone: Plane,
   coloaderIconeFicha: PlaneTakeoff,
@@ -62,6 +76,10 @@ const MISTO: Terminologia = {
   coloaderLabel: "Coloader / Transportador",
   coloaderLabelMinusculo: "coloader / transportador",
   coloaderPlural: "Coloaders / Transportadores",
+  coloader: "Coloader",
+  coloaderMinusculo: "coloader",
+  coloaders: "Coloaders",
+  coloadersMinusculo: "coloaders",
   coloaderMenu: "Coloaders",
   coloaderIcone: Container,
   coloaderIconeFicha: Container,
@@ -94,5 +112,16 @@ export function aplicarTerminologia(texto: string, termos: Terminologia): string
   return texto.replace(/\{(\w+)\}/g, (original, chave: string) => {
     const valor = (termos as unknown as Record<string, string>)[chave];
     return typeof valor === "string" ? valor : original;
+  });
+}
+
+/**
+ * Troca "coloader(s)" isolado pelo termo do modal em textos gerados no servidor
+ * (insights, oportunidades). Ocorrências já qualificadas ("Coloader / ...") são mantidas.
+ */
+export function trocarTermoColoader(texto: string, termos: Terminologia): string {
+  return texto.replace(/\b([Cc])oloader(s?)\b(?!\s*\/)/g, (_original, inicial: string, plural: string) => {
+    if (inicial === "C") return plural ? termos.coloaders : termos.coloader;
+    return plural ? termos.coloadersMinusculo : termos.coloaderMinusculo;
   });
 }

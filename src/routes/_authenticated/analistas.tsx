@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -66,7 +67,7 @@ import {
 } from "@/lib/analyst-analysis";
 import { getAnalistasOpcoesFiltro, getAnaliseAnalistas } from "@/lib/analyst-analysis-fn";
 import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
-import { useTerminologia } from "@/lib/terminologia";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/analistas")({
@@ -190,6 +191,21 @@ function AnalistasPage() {
                 carregando={opcoes.isPending}
               />
             </div>
+
+            <BotaoLimparFiltros
+              onLimpar={() => {
+                setAnalista(null);
+                setAnos([]);
+                setMeses([]);
+                setModalidade(FRETE_TODOS);
+              }}
+              disabled={
+                analista === null &&
+                anos.length === 0 &&
+                meses.length === 0 &&
+                modalidade === FRETE_TODOS
+              }
+            />
 
             {opcoes.data ? (
               <Badge variant="secondary" className="w-fit">
@@ -465,7 +481,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAnalistas; resetKey: str
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
               { titulo: "Rotas", valor: inteiro(ind.rotasDistintas), icone: Network },
-              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: termos.coloaders, valor: inteiro(ind.coloaders), icone: Users },
             ]}
           />
           <GrupoIndicadores
@@ -550,7 +566,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAnalistas; resetKey: str
 
       <PanelBlock
         title="Perfil do analista"
-        description="Cliente, rota, coloader e agente mais relevantes do recorte."
+        description={`Cliente, rota, ${termos.coloaderMinusculo} e agente mais relevantes do recorte.`}
       >
         <ul className="divide-y divide-border/60">
           {[
@@ -558,7 +574,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAnalistas; resetKey: str
             { titulo: "Rota mais cotada", valor: perfil.rotaMaisCotada },
             { titulo: "Melhor rota", valor: perfil.melhorRota },
             { titulo: "Pior rota", valor: perfil.piorRota },
-            { titulo: "Coloader mais usado", valor: perfil.coloaderMaisUsado },
+            { titulo: `${termos.coloader} mais usado`, valor: perfil.coloaderMaisUsado },
             { titulo: "Agente recorrente", valor: perfil.agenteRecorrente },
           ].map((item) => (
             <li
@@ -602,7 +618,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseAnalistas; resetKey: str
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaRanking
-          titulo="Coloaders do analista"
+          titulo={`${termos.coloaders} do analista`}
           descricao={`Desempenho por ${termos.coloaderLabelMinusculo}.`}
           rotuloItem="Item"
           linhas={analise.coloaders}
@@ -720,12 +736,13 @@ function GrupoIndicadores({
 }
 
 function ListaInsights({ itens }: { itens: string[] }) {
+  const termos = useTerminologia();
   return (
     <ul className="space-y-3">
       {itens.map((texto, i) => (
         <li key={i} className="flex gap-3 text-sm">
           <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-          <span>{texto}</span>
+          <span>{trocarTermoColoader(texto, termos)}</span>
         </li>
       ))}
     </ul>

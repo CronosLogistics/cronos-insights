@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -66,7 +67,7 @@ import {
 } from "@/lib/coloader-analysis";
 import { getColoadersOpcoesFiltro, getAnaliseColoaders } from "@/lib/coloader-analysis-fn";
 import { gerarAnosOpcoes } from "@/lib/filtro-periodo";
-import { useTerminologia } from "@/lib/terminologia";
+import { trocarTermoColoader, useTerminologia } from "@/lib/terminologia";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/coloaders")({
@@ -147,6 +148,10 @@ function ColoadersPage() {
     saveColoader(coloader);
   }, [coloader]);
 
+  useEffect(() => {
+    document.title = `${termos.coloaderPlural} — Cronos Pricing Insights`;
+  }, [termos.coloaderPlural]);
+
   // Descarta seleção salva se o coloader não existir mais no produto.
   useEffect(() => {
     if (!opcoes.data || !coloader || coloader === FILTRO_TODOS) return;
@@ -193,9 +198,24 @@ function ColoadersPage() {
               />
             </div>
 
+            <BotaoLimparFiltros
+              onLimpar={() => {
+                setColoader(null);
+                setAnos([]);
+                setMeses([]);
+                setModalidade(FRETE_TODOS);
+              }}
+              disabled={
+                coloader === null &&
+                anos.length === 0 &&
+                meses.length === 0 &&
+                modalidade === FRETE_TODOS
+              }
+            />
+
             {opcoes.data ? (
               <Badge variant="secondary" className="w-fit">
-                {inteiro(opcoes.data.coloaders.length)} coloaders no produto
+                {inteiro(opcoes.data.coloaders.length)} {termos.coloadersMinusculo} no produto
               </Badge>
             ) : null}
 
@@ -332,7 +352,7 @@ function FiltroColoaderCombobox({
               {temConteudo ? (
                 <button
                   type="button"
-                  aria-label="Limpar coloader"
+                  aria-label={`Limpar ${termos.coloaderLabelMinusculo}`}
                   className="rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={limpar}
@@ -398,7 +418,7 @@ function EstadoVazio() {
           Selecione um {termos.coloaderLabelMinusculo} para visualizar a análise.
         </p>
         <p className="max-w-sm text-xs text-muted-foreground">
-          A ficha só é calculada após a escolha do coloader, evitando processar toda a base
+          A ficha só é calculada após a escolha do {termos.coloaderMinusculo}, evitando processar toda a base
           desnecessariamente. Use Todos no filtro para ver o conjunto completo do produto.
         </p>
       </CardContent>
@@ -451,7 +471,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
         title="Indicadores do recorte"
         description={
           analise.coloader === FILTRO_TODOS
-            ? "Volume, resultado e performance de todos os coloaders do produto."
+            ? `Volume, resultado e performance de todos os ${termos.coloadersMinusculo} do produto.`
             : `${termos.coloaderLabel}: ${analise.coloader}`
         }
         action={
@@ -469,7 +489,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
               { titulo: "Ofertas", valor: inteiro(ind.ofertas), icone: FileText },
               { titulo: "Clientes", valor: inteiro(ind.clientes), icone: Building2 },
               { titulo: "Rotas distintas", valor: inteiro(ind.rotasDistintas), icone: Network },
-              { titulo: "Coloaders", valor: inteiro(ind.coloaders), icone: Users },
+              { titulo: termos.coloaders, valor: inteiro(ind.coloaders), icone: Users },
             ]}
           />
           <GrupoIndicadores
@@ -546,7 +566,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
             </span>
             <p className="text-sm font-medium">Nenhum registro no recorte selecionado.</p>
             <p className="max-w-sm text-xs text-muted-foreground">
-              Selecione outro coloader ou use Todos para ampliar o conjunto analisado.
+              Selecione outro {termos.coloaderMinusculo} ou use Todos para ampliar o conjunto analisado.
             </p>
           </CardContent>
         </Card>
@@ -589,14 +609,14 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaRanking
-          titulo="Rotas do Coloader"
+          titulo={`Rotas do ${termos.coloader}`}
           descricao="Volume e conversão por rota (origem → destino)."
           rotuloItem="Item"
           linhas={analise.rotas}
           resetKey={`${resetKey}-rotas`}
         />
         <TabelaRanking
-          titulo="Clientes do Coloader"
+          titulo={`Clientes do ${termos.coloader}`}
           descricao="Volume e conversão por cliente."
           rotuloItem="Item"
           linhas={analise.clientes}
@@ -606,7 +626,7 @@ function Ficha({ analise, resetKey }: { analise: AnaliseColoaders; resetKey: str
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelaRanking
-          titulo="Agentes do Coloader"
+          titulo={`Agentes do ${termos.coloader}`}
           descricao="Volume e conversão por agente."
           rotuloItem="Item"
           linhas={analise.agentes}
@@ -727,12 +747,13 @@ function GrupoIndicadores({
 }
 
 function ListaInsights({ itens }: { itens: string[] }) {
+  const termos = useTerminologia();
   return (
     <ul className="space-y-3">
       {itens.map((texto, i) => (
         <li key={i} className="flex gap-3 text-sm">
           <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-          <span>{texto}</span>
+          <span>{trocarTermoColoader(texto, termos)}</span>
         </li>
       ))}
     </ul>

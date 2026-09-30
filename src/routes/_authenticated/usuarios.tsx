@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { KeyRound, MoreHorizontal, Pencil, Plus, Power, Search, Trash2, Users } from "lucide-react";
 
+import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { PaginatedContent, TablePagination, usePaginacao } from "@/components/data/TablePagination";
 import { BotaoExportarTabela } from "@/components/data/table-export";
@@ -281,7 +282,7 @@ function CadastroUsuarios() {
         description="Gerencie usuários e suas permissões de acesso às modalidades."
       />
 
-      <div className="grid gap-3 rounded-lg border border-border bg-card px-3 py-2.5 lg:grid-cols-[1.4fr_0.6fr_auto] lg:items-center">
+      <div className="grid gap-3 rounded-lg border border-border bg-card px-3 py-2.5 lg:grid-cols-[1.4fr_0.6fr_auto_auto] lg:items-center">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -301,6 +302,13 @@ function CadastroUsuarios() {
             <SelectItem value="inativo">Inativo</SelectItem>
           </SelectContent>
         </Select>
+        <BotaoLimparFiltros
+          onLimpar={() => {
+            setBusca("");
+            setStatus("todos");
+          }}
+          disabled={!temFiltro}
+        />
         <Button className="gap-2" onClick={() => setForm({ ...FORM_VAZIO })}>
           <Plus className="size-4" />
           Novo usuário
