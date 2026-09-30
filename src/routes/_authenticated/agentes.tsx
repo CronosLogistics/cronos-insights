@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
@@ -222,6 +223,8 @@ function AgentesPage() {
           </div>
         </CardContent>
       </Card>
+
+      <GraficoOfertasMes descricao="Quantidade de ofertas por mês do agente selecionado, independente do resultado." filtros={{ agente, anos, meses, modalidade }} />
 
       {!agente ? (
         <EstadoVazio />

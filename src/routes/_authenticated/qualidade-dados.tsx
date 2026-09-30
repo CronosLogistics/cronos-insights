@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Database, RefreshCw } from "lucide-react";
 
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
+import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
 
@@ -115,6 +116,8 @@ function QualidadePage() {
           />
         </CardContent>
       </Card>
+
+      <GraficoOfertasMes descricao="Quantidade de ofertas por mês na base analisada, independente do resultado." filtros={{ anos, meses, modalidade }} />
 
       {analise.isPending && !analise.data ? (
         <div className="space-y-6">

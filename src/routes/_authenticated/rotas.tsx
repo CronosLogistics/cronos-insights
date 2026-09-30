@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { AvisoBuscaOpcoes, useBuscaOpcoes } from "@/components/data/busca-opcoes";
+import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { FRETE_TODOS } from "@/lib/modalidade-frete";
@@ -370,6 +371,10 @@ function RotasPage() {
           ) : null}
         </CardContent>
       </Card>
+
+      {consulta ? (
+        <GraficoOfertasMes descricao="Quantidade de ofertas por mês na rota pesquisada, independente do resultado." filtros={{ ...consulta, modalidade }} />
+      ) : null}
 
       {!consulta ? (
         <EstadoVazio />
