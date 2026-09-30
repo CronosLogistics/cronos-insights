@@ -229,8 +229,6 @@ function ColoadersPage() {
         </CardContent>
       </Card>
 
-      <GraficoOfertasMes descricao={`Quantidade de ofertas por mês do ${termos.coloaderMinusculo} selecionado, independente do resultado.`} filtros={{ coloader, anos, meses, modalidade }} />
-
       {!coloader ? (
         <EstadoVazio />
       ) : analise.isPending && !analise.data ? (
@@ -245,6 +243,8 @@ function ColoadersPage() {
           <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
       ) : null}
+
+      <GraficoOfertasMes descricao={`Quantidade de ofertas por mês do ${termos.coloaderMinusculo} selecionado, independente do resultado.`} filtros={{ coloader, anos, meses, modalidade }} />
     </div>
   );
 }

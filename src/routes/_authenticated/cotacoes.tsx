@@ -8,7 +8,6 @@ import { getAnalistasOpcoesFiltro } from "@/lib/analyst-analysis-fn";
 import { Database, RefreshCw } from "lucide-react";
 
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
-import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { FiltroPeriodo } from "@/components/data/FiltroPeriodo";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -517,17 +516,6 @@ function CotacoesPage() {
           )}
         </div>
       </PanelBlock>
-
-      <GraficoOfertasMes
-        descricao="Quantidade de ofertas por mês do analista selecionado, independente do resultado."
-        filtros={{
-          ...(analistaAtual !== ANALISTA_TODOS ? { analista: analistaAtual } : {}),
-          anos,
-          meses,
-          ...(modalidade !== "todas" ? { modalidade } : {}),
-        }}
-        habilitado={analista !== null}
-      />
     </div>
   );
 }

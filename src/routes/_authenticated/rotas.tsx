@@ -372,10 +372,6 @@ function RotasPage() {
         </CardContent>
       </Card>
 
-      {consulta ? (
-        <GraficoOfertasMes descricao="Quantidade de ofertas por mês na rota pesquisada, independente do resultado." filtros={{ ...consulta, modalidade }} />
-      ) : null}
-
       {!consulta ? (
         <EstadoVazio />
       ) : analise.isPending && !analise.data ? (
@@ -389,6 +385,10 @@ function RotasPage() {
         <div className={cn(analise.isFetching && "opacity-70 transition-opacity")}>
           <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
+      ) : null}
+
+      {consulta ? (
+        <GraficoOfertasMes descricao="Quantidade de ofertas por mês na rota pesquisada, independente do resultado." filtros={{ ...consulta, modalidade }} />
       ) : null}
     </div>
   );

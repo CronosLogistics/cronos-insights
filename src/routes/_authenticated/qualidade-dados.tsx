@@ -117,8 +117,6 @@ function QualidadePage() {
         </CardContent>
       </Card>
 
-      <GraficoOfertasMes descricao="Quantidade de ofertas por mês na base analisada, independente do resultado." filtros={{ anos, meses, modalidade }} />
-
       {analise.isPending && !analise.data ? (
         <div className="space-y-6">
           <Card>
@@ -146,6 +144,8 @@ function QualidadePage() {
           />
         </div>
       ) : null}
+
+      <GraficoOfertasMes descricao="Quantidade de ofertas por mês na base analisada, independente do resultado." filtros={{ anos, meses, modalidade }} />
     </div>
   );
 }

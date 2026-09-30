@@ -25,7 +25,6 @@ import {
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
-import { GraficoOfertasMes } from "@/components/data/GraficoOfertasMes";
 import { CampoData } from "@/components/data/CampoData";
 import { ModuleIntro, PanelBlock } from "@/components/data/Placeholders";
 import { TablePagination, PaginatedContent, usePaginacao } from "@/components/data/TablePagination";
@@ -747,11 +746,6 @@ function ConteudoDashboard({
       <TabelaEvolucaoMensal
         linhas={analise.evolucaoMensal}
         resetKey={`${resetKey}-evolucao`}
-      />
-
-      <GraficoOfertasMes
-        descricao="Quantidade de ofertas e revisões por mês no recorte filtrado, independente do resultado."
-        dados={analise.evolucaoMensal.map((l) => ({ mes: l.mes, ofertas: l.rotas, linhas: l.rotas }))}
       />
 
       <PanelBlock

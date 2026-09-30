@@ -224,8 +224,6 @@ function AgentesPage() {
         </CardContent>
       </Card>
 
-      <GraficoOfertasMes descricao="Quantidade de ofertas por mês do agente selecionado, independente do resultado." filtros={{ agente, anos, meses, modalidade }} />
-
       {!agente ? (
         <EstadoVazio />
       ) : analise.isPending && !analise.data ? (
@@ -240,6 +238,8 @@ function AgentesPage() {
           <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
       ) : null}
+
+      <GraficoOfertasMes descricao="Quantidade de ofertas por mês do agente selecionado, independente do resultado." filtros={{ agente, anos, meses, modalidade }} />
     </div>
   );
 }

@@ -237,8 +237,6 @@ function MotivosPage() {
         </CardContent>
       </Card>
 
-      <GraficoOfertasMes titulo="Ofertas reprovadas por mês" descricao="Quantidade de ofertas reprovadas por mês no motivo selecionado." filtros={{ motivo, anos, meses, modalidade, somenteReprovadas: true }} />
-
       {!motivo ? (
         <EstadoVazio />
       ) : analise.isPending && !analise.data ? (
@@ -253,6 +251,8 @@ function MotivosPage() {
           <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
       ) : null}
+
+      <GraficoOfertasMes titulo="Ofertas reprovadas por mês" descricao="Quantidade de ofertas reprovadas por mês no motivo selecionado." filtros={{ motivo, anos, meses, modalidade, somenteReprovadas: true }} />
     </div>
   );
 }

@@ -223,8 +223,6 @@ function AnalistasPage() {
         </CardContent>
       </Card>
 
-      <GraficoOfertasMes descricao="Quantidade de ofertas por mês do analista selecionado, independente do resultado." filtros={{ analista, anos, meses, modalidade }} />
-
       {!analista ? (
         <EstadoVazio />
       ) : analise.isPending && !analise.data ? (
@@ -239,6 +237,8 @@ function AnalistasPage() {
           <Ficha analise={analise.data} resetKey={resetKey} />
         </div>
       ) : null}
+
+      <GraficoOfertasMes descricao="Quantidade de ofertas por mês do analista selecionado, independente do resultado." filtros={{ analista, anos, meses, modalidade }} />
     </div>
   );
 }
