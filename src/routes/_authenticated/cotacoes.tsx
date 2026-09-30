@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
+
+import { usePerfil } from "@/hooks/useProduto";
+import { getAnalistasOpcoesFiltro } from "@/lib/analyst-analysis-fn";
 import { Database, RefreshCw } from "lucide-react";
 
 import { BotaoLimparFiltros } from "@/components/data/BotaoLimparFiltros";
@@ -107,6 +111,17 @@ function KpiCard({ label, value, hint }: { label: string; value: string; hint?: 
 }
 
 const ANALISE_PADRAO = "Em Aberto";
+const ANALISTA_TODOS = "todos";
+const NAO_INFORMADO = "(Não informado)";
+
+function normalizarNome(valor: string) {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleUpperCase("pt-BR")
+    .replace(/\s+/g, " ");
+}
 
 function CotacoesPage() {
   const [busca, setBusca] = useState("");
@@ -114,7 +129,31 @@ function CotacoesPage() {
   const [analise, setAnalise] = useState(ANALISE_PADRAO);
   const [anos, setAnos] = useState<number[]>([]);
   const [meses, setMeses] = useState<number[]>([]);
+  const [analista, setAnalista] = useState<string | null>(null);
   const anosOpcoes = useMemo(() => gerarAnosOpcoes(), []);
+
+  const perfil = usePerfil();
+  const buscarAnalistas = useServerFn(getAnalistasOpcoesFiltro);
+  const analistasOpcoes = useQuery({
+    queryKey: ["cotacoes-analistas-opcoes"],
+    queryFn: () => buscarAnalistas(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Analista padrão: o próprio usuário logado, quando ele aparece na lista.
+  const analistaDoUsuario = useMemo(() => {
+    const nome = perfil.data?.nome;
+    const lista = analistasOpcoes.data?.analistas ?? [];
+    if (!nome) return ANALISTA_TODOS;
+    const alvo = normalizarNome(nome);
+    return lista.find((item) => normalizarNome(item) === alvo) ?? ANALISTA_TODOS;
+  }, [perfil.data?.nome, analistasOpcoes.data]);
+
+  const padraoPronto = !perfil.isPending && !analistasOpcoes.isPending;
+  useEffect(() => {
+    if (analista === null && padraoPronto) setAnalista(analistaDoUsuario);
+  }, [analista, padraoPronto, analistaDoUsuario]);
+  const analistaAtual = analista ?? ANALISTA_TODOS;
 
   const resumo = useQuery({
     queryKey: ["ofertas-resumo"],
@@ -141,7 +180,8 @@ function CotacoesPage() {
   });
 
   const lista = useQuery({
-    queryKey: ["ofertas-lista", busca, modalidade, analise, anos, meses],
+    queryKey: ["ofertas-lista", busca, modalidade, analise, anos, meses, analistaAtual],
+    enabled: analista !== null,
     queryFn: async () => {
       let query = supabase
         .from("ofertas")
@@ -159,6 +199,8 @@ function CotacoesPage() {
       if (analise !== "todas") query = query.eq("analise", analise);
       if (anos.length > 0) query = query.in("ano", anos);
       if (meses.length > 0) query = query.in("mes", meses);
+      if (analistaAtual === NAO_INFORMADO) query = query.is("pricing", null);
+      else if (analistaAtual !== ANALISTA_TODOS) query = query.eq("pricing", analistaAtual);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -193,7 +235,7 @@ function CotacoesPage() {
     return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
   }, [resumo.data]);
 
-  const filtrosKey = `${busca}|${modalidade}|${analise}|${anos.join(",")}|${meses.join(",")}`;
+  const filtrosKey = `${busca}|${modalidade}|${analise}|${anos.join(",")}|${meses.join(",")}|${analistaAtual}`;
   const { ordenadas, ordenacao, alternar, chaveReset } = useOrdenacaoTabela(
     lista.data,
     COLUNAS_OFERTAS,
@@ -267,12 +309,26 @@ function CotacoesPage() {
               onMesesChange={setMeses}
               anosOpcoes={anosOpcoes}
             />
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Input
                 value={busca}
                 onChange={(event) => setBusca(event.target.value)}
                 placeholder="Buscar por oferta ou cliente"
               />
+              <Select value={analistaAtual} onValueChange={setAnalista}>
+                <SelectTrigger aria-label="Analista">
+                  <SelectValue placeholder="Analista" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ANALISTA_TODOS}>Todos os analistas</SelectItem>
+                  {(analistasOpcoes.data?.analistas ?? []).map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                      {item === analistaDoUsuario ? " (você)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={modalidade} onValueChange={setModalidade}>
                 <SelectTrigger>
                   <SelectValue placeholder="Modalidade" />
@@ -307,13 +363,15 @@ function CotacoesPage() {
                 setAnalise(ANALISE_PADRAO);
                 setAnos([]);
                 setMeses([]);
+                setAnalista(analistaDoUsuario);
               }}
               disabled={
                 busca.trim() === "" &&
                 modalidade === "todas" &&
                 analise === ANALISE_PADRAO &&
                 anos.length === 0 &&
-                meses.length === 0
+                meses.length === 0 &&
+                analistaAtual === analistaDoUsuario
               }
             />
           </div>
