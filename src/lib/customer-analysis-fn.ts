@@ -43,9 +43,8 @@ function normalizarOfertaCliente(row: OfertaClienteRow): HistRow {
   };
 }
 
-type SupabaseCtx = Parameters<
-  Parameters<ReturnType<typeof createServerFn>["handler"]>[0]
->[0] extends never ? never : any; // eslint-disable-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseCtx = any;
 
 /**
  * Última aprovação do cliente (data de conclusão, com fallback na abertura) e
