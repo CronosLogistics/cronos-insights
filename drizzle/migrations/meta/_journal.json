@@ -253,6 +253,13 @@
       "when": 1790866409789,
       "tag": "0035_recalculo_agendado",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790880975727,
+      "tag": "0036_cliente_todos_analise",
+      "breakpoints": true
     }
   ]
 }
