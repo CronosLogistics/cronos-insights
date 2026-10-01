@@ -232,6 +232,27 @@
       "when": 1790863918337,
       "tag": "0032_rotas_indices_upper",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790864948378,
+      "tag": "0033_ofertas_chave_por_rota",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790866311737,
+      "tag": "0034_service_role_sem_timeout",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790866409789,
+      "tag": "0035_recalculo_agendado",
+      "breakpoints": true
     }
   ]
 }
