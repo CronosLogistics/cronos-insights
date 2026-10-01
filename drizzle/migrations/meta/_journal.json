@@ -260,6 +260,13 @@
       "when": 1790880975727,
       "tag": "0036_cliente_todos_analise",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790881347964,
+      "tag": "0037_cliente_todos_precalculado",
+      "breakpoints": true
     }
   ]
 }
