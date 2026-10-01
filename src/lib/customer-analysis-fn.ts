@@ -3,9 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parsePeriodo } from "@/lib/filtro-periodo";
 import { FRETE_TODOS, parseModalidadeFrete } from "@/lib/modalidade-frete";
-import { analisarCliente, type AnaliseCliente, type HistRow, type HistoricoAprovacao } from "@/lib/customer-analysis";
+import { analisarAgregado, analisarCliente, type AgregadoTodos, type AnaliseCliente, type HistRow, type HistoricoAprovacao } from "@/lib/customer-analysis";
 
 const PAGINA = 1000;
+
+/** Opção do seletor que soma todos os clientes do acesso. */
+const CLIENTE_TODOS = "Todos";
 
 /** Opção do seletor de cliente. */
 export type ClienteOpcao = { cliente: string; ofertas: number };
@@ -56,18 +59,19 @@ async function buscarHistoricoAprovacao(
   cliente: string,
   modalidade: string,
 ): Promise<HistoricoAprovacao> {
-  const comFrete = (q: SupabaseCtx) =>
-    modalidade === FRETE_TODOS
+  const comFrete = (q0: SupabaseCtx) => {
+    const q = cliente === CLIENTE_TODOS ? q0 : q0.eq("cliente", cliente);
+    return modalidade === FRETE_TODOS
       ? q
       : modalidade === "Não informado"
         ? q.or("modalidade.is.null,modalidade.eq.")
         : q.eq("modalidade", modalidade);
+  };
 
   const { data: aprov, error } = await comFrete(
     supabase
       .from("ofertas")
       .select("oferta,revisao,origem,destino,data_conclusao,data_abertura")
-      .eq("cliente", cliente)
       .eq("analise", "Aprovado"),
   )
     .order("data_conclusao", { ascending: false, nullsFirst: false })
@@ -82,7 +86,6 @@ async function buscarHistoricoAprovacao(
     supabase
       .from("ofertas")
       .select("id", { count: "exact", head: true })
-      .eq("cliente", cliente)
       .eq("analise", "Reprovado"),
   );
   const data = ultima ? (ultima.data_conclusao ?? ultima.data_abertura) : null;
@@ -159,6 +162,27 @@ export const getAnaliseCliente = createServerFn({ method: "POST" })
     const { cliente, anos, meses, modalidade } = data;
     // Consulta a tabela indexada diretamente e aplica todos os filtros antes
     // de transferir as linhas. A RLS de ofertas mantém o recorte por produto.
+    if (cliente === CLIENTE_TODOS) {
+      const [agg, mediaTodos] = await Promise.all([
+        supabase.rpc("cliente_todos_analise", {
+          ...(anos.length > 0 ? { p_anos: anos } : {}),
+          ...(meses.length > 0 ? { p_meses: meses } : {}),
+          p_modalidade: modalidade,
+        }),
+        supabase.from("v_cliente_media_geral").select("aprovadas,reprovadas").maybeSingle(),
+      ]);
+      if (agg.error) throw new Error(agg.error.message);
+      if (mediaTodos.error) throw new Error(mediaTodos.error.message);
+      const resultadoTodos = analisarAgregado({
+        cliente,
+        agregado: agg.data as unknown as AgregadoTodos,
+        mediaAprovadas: Number(mediaTodos.data?.aprovadas ?? 0),
+        mediaReprovadas: Number(mediaTodos.data?.reprovadas ?? 0),
+      });
+      resultadoTodos.historico = await buscarHistoricoAprovacao(supabase, cliente, modalidade);
+      return resultadoTodos;
+    }
+
     const rows: HistRow[] = [];
     for (let inicio = 0; ; inicio += PAGINA) {
       const { data: pagina, error } = await supabase.rpc("cliente_ofertas_analise", {
