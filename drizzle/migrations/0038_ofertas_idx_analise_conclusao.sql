@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_ofertas_analise_conclusao ON public.ofertas (analise, data_conclusao DESC NULLS LAST);
