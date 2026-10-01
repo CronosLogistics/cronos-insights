@@ -267,6 +267,13 @@
       "when": 1790881347964,
       "tag": "0037_cliente_todos_precalculado",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1790881454985,
+      "tag": "0038_ofertas_idx_analise_conclusao",
+      "breakpoints": true
     }
   ]
 }
