@@ -53,6 +53,10 @@ export function GraficoOfertasMes({
     ofertas: p.ofertas,
   }));
 
+  if (chartData.length === 0 || (!dados && (consulta.isPending || consulta.isError))) {
+    return null;
+  }
+
   return (
     <PanelBlock title={titulo} description={descricao}>
       {!dados && consulta.isPending ? (
