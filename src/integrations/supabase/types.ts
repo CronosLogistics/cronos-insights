@@ -626,6 +626,15 @@ export type Database = {
           origem: string
         }[]
       }
+      cliente_todos_analise: {
+        Args: {
+          p_anos?: number[]
+          p_limite?: number
+          p_meses?: number[]
+          p_modalidade?: string
+        }
+        Returns: Json
+      }
       coloaders_analise: {
         Args: { p_anos?: number[]; p_coloader?: string; p_meses?: number[] }
         Returns: Json
