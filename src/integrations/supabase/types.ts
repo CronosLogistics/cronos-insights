@@ -224,6 +224,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          must_change_password: boolean
           nome: string | null
           produto_codigo: string | null
           updated_at: string
@@ -233,6 +234,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id: string
+          must_change_password?: boolean
           nome?: string | null
           produto_codigo?: string | null
           updated_at?: string
@@ -242,6 +244,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          must_change_password?: boolean
           nome?: string | null
           produto_codigo?: string | null
           updated_at?: string
