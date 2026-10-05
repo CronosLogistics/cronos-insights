@@ -649,7 +649,7 @@ function CadastroUsuarios() {
           <DialogHeader>
             <DialogTitle>Dados de acesso</DialogTitle>
             <DialogDescription>
-              Copie e envie estes dados ao usuário. A senha não poderá ser consultada depois.
+              Copie e envie estes dados ao usuário. A senha é temporária: no primeiro acesso, o usuário definirá uma senha pessoal, que você não terá como consultar.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
