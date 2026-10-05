@@ -48,6 +48,12 @@ function AuthenticatedLayout() {
   const termos = useTerminologia();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const perfil = usePerfil();
+  const trocarSenha = perfil.data?.trocarSenha === true;
+
+  useEffect(() => {
+    if (trocarSenha) void navigate({ to: "/definir-senha", replace: true });
+  }, [trocarSenha, navigate]);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -61,7 +67,7 @@ function AuthenticatedLayout() {
     .sort((a, b) => b.to.length - a.to.length)
     .find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
 
-  if (loading || !session) {
+  if (loading || !session || perfil.isPending || trocarSenha) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="w-64 space-y-3">

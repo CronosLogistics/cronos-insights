@@ -38,7 +38,7 @@ export function usePerfil() {
       const [perfil, vinculos, papeis] = await Promise.all([
         supabase
           .from("perfis")
-          .select("id,email,nome,ativo,produto_codigo")
+          .select("id,email,nome,ativo,produto_codigo,must_change_password")
           .eq("id", userId!)
           .maybeSingle(),
         supabase
@@ -65,6 +65,8 @@ export function usePerfil() {
         /** Compatibilidade com telas que ainda leem um único produto. */
         produtoCodigo: modalidades[0]?.codigo ?? perfil.data?.produto_codigo ?? null,
         produtoNome: modalidades[0]?.nome ?? null,
+        /** Senha temporária do administrador ainda não foi trocada. */
+        trocarSenha: perfil.data?.must_change_password === true,
         isAdmin: (papeis.data ?? []).some((item) => item.role === "admin"),
       };
     },
