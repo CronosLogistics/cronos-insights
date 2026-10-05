@@ -156,7 +156,15 @@ export const criarUsuario = createServerFn({ method: "POST" })
     const id = criado.data.user!.id;
     const { error } = await supabaseAdmin
       .from("perfis")
-      .upsert({ id, email, nome, ativo: data.ativo !== false, produto_codigo: modalidades[0] ?? null });
+      .upsert({
+        id,
+        email,
+        nome,
+        ativo: data.ativo !== false,
+        produto_codigo: modalidades[0] ?? null,
+        // A senha definida pelo administrador é temporária: troca obrigatória no 1º login.
+        must_change_password: true,
+      });
     if (error) throw new Error(error.message);
 
     await sincronizarModalidades(supabaseAdmin, id, modalidades);
@@ -181,7 +189,48 @@ export const definirSenhaUsuario = createServerFn({ method: "POST" })
       email_confirm: true,
     });
     if (error) throw erroDeSenha(error.message);
+    // Senha redefinida pelo administrador também é temporária.
+    const { error: erroFlag } = await supabaseAdmin
+      .from("perfis")
+      .update({ must_change_password: true })
+      .eq("id", data.id);
+    if (erroFlag) throw new Error(erroFlag.message);
     return { senha };
+  });
+
+/**
+ * Troca da senha temporária pelo próprio usuário. O alvo é sempre o usuário
+ * autenticado (userId do token), nunca um id vindo da requisição.
+ */
+export const trocarSenhaTemporaria = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { novaSenha: string; confirmacao: string }) => ({
+    novaSenha: typeof input?.novaSenha === "string" ? input.novaSenha : "",
+    confirmacao: typeof input?.confirmacao === "string" ? input.confirmacao : "",
+  }))
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { userId } = context as unknown as Ctx;
+    if (data.novaSenha.length < 8) throw new Error("A nova senha deve ter pelo menos 8 caracteres.");
+    if (data.novaSenha !== data.confirmacao) throw new Error("A confirmação deve ser igual à nova senha.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: perfil, error: erroPerfil } = await supabaseAdmin
+      .from("perfis")
+      .select("must_change_password")
+      .eq("id", userId)
+      .maybeSingle();
+    if (erroPerfil) throw new Error(erroPerfil.message);
+    if (!perfil?.must_change_password) throw new Error("Não há troca de senha pendente para este acesso.");
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: data.novaSenha });
+    if (error) throw erroDeSenha(error.message);
+
+    const { error: erroFlag } = await supabaseAdmin
+      .from("perfis")
+      .update({ must_change_password: false })
+      .eq("id", userId);
+    if (erroFlag) throw new Error(erroFlag.message);
+    return { ok: true };
   });
 
 

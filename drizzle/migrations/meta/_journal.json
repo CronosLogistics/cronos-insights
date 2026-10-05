@@ -274,6 +274,13 @@
       "when": 1790881454985,
       "tag": "0038_ofertas_idx_analise_conclusao",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1791227859235,
+      "tag": "0039_perfis_must_change_password",
+      "breakpoints": true
     }
   ]
 }

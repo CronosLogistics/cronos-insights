@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Temporary passwords: perfis.must_change_password (set only by server/admin; DB trigger blocks self-edit) gates the app via the _authenticated layout redirect to /definir-senha; the user's change goes through trocarSenhaTemporaria, which always targets the token's userId. Why: admin never knows the final password.
